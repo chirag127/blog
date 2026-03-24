@@ -1,0 +1,375 @@
+src\components\Footer.astro:2:8 lint/correctness/noUnusedImports  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This import is unused.
+  
+    1 Γöé ---
+  > 2 Γöé import { SITE_CONFIG } from "../config";
+      Γöé        ^^^^^^^^^^^^^^^
+    3 Γöé 
+    4 Γöé const currentYear = new Date().getFullYear();
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+    1   Γöé - 
+    2   Γöé - import┬╖{┬╖SITE_CONFIG┬╖}┬╖from┬╖"../config";
+      1 Γöé + 
+    3 2 Γöé   
+    4 3 Γöé   const currentYear = new Date().getFullYear();
+  
+
+src\components\Footer.astro:4:7 lint/correctness/noUnusedVariables  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable currentYear is unused.
+  
+    2 Γöé import { SITE_CONFIG } from "../config";
+    3 Γöé 
+  > 4 Γöé const currentYear = new Date().getFullYear();
+      Γöé       ^^^^^^^^^^^
+    5 Γöé ---
+    6 Γöé 
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend currentYear with an underscore.
+  
+    2 2 Γöé   import { SITE_CONFIG } from "../config";
+    3 3 Γöé   
+    4   Γöé - const┬╖currentYear┬╖=┬╖new┬╖Date().getFullYear();
+      4 Γöé + const┬╖_currentYear┬╖=┬╖new┬╖Date().getFullYear();
+    5 5 Γöé   
+  
+
+src\components\GiscusComments.astro:2:8 lint/correctness/noUnusedImports  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This import is unused.
+  
+    1 Γöé ---
+  > 2 Γöé import { SITE_CONFIG } from "../config";
+      Γöé        ^^^^^^^^^^^^^^^
+    3 Γöé ---
+    4 Γöé 
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+    1   Γöé - 
+    2   Γöé - import┬╖{┬╖SITE_CONFIG┬╖}┬╖from┬╖"../config";
+      1 Γöé + 
+    3 2 Γöé   
+  
+
+src\components\Header.astro:2:8 lint/correctness/noUnusedImports  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This import is unused.
+  
+    1 Γöé ---
+  > 2 Γöé import { SITE_CONFIG } from "../config";
+      Γöé        ^^^^^^^^^^^^^^^
+    3 Γöé import MenuIcon from "./icons/MenuIcon.astro";
+    4 Γöé import SearchIcon from "./icons/SearchIcon.astro";
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+    1   Γöé - 
+    2   Γöé - import┬╖{┬╖SITE_CONFIG┬╖}┬╖from┬╖"../config";
+      1 Γöé + 
+    3 2 Γöé   import MenuIcon from "./icons/MenuIcon.astro";
+    4 3 Γöé   import SearchIcon from "./icons/SearchIcon.astro";
+  
+
+src\components\Header.astro:3:8 lint/correctness/noUnusedImports  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This import is unused.
+  
+    1 Γöé ---
+    2 Γöé import { SITE_CONFIG } from "../config";
+  > 3 Γöé import MenuIcon from "./icons/MenuIcon.astro";
+      Γöé        ^^^^^^^^
+    4 Γöé import SearchIcon from "./icons/SearchIcon.astro";
+    5 Γöé ---
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+    1 1 Γöé   
+    2 2 Γöé   import { SITE_CONFIG } from "../config";
+    3   Γöé - import┬╖MenuIcon┬╖from┬╖"./icons/MenuIcon.astro";
+    4 3 Γöé   import SearchIcon from "./icons/SearchIcon.astro";
+    5 4 Γöé   
+  
+
+src\components\Header.astro:4:8 lint/correctness/noUnusedImports  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This import is unused.
+  
+    2 Γöé import { SITE_CONFIG } from "../config";
+    3 Γöé import MenuIcon from "./icons/MenuIcon.astro";
+  > 4 Γöé import SearchIcon from "./icons/SearchIcon.astro";
+      Γöé        ^^^^^^^^^^
+    5 Γöé ---
+    6 Γöé 
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+    2 2 Γöé   import { SITE_CONFIG } from "../config";
+    3 3 Γöé   import MenuIcon from "./icons/MenuIcon.astro";
+    4   Γöé - import┬╖SearchIcon┬╖from┬╖"./icons/SearchIcon.astro";
+    5 4 Γöé   
+  
+
+src\components\OptimizedImage.astro:12:2 lint/correctness/noUnusedVariables ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable src is unused.
+  
+    11 Γöé const {
+  > 12 Γöé 	src,
+       Γöé 	^^^
+    13 Γöé 	alt,
+    14 Γöé 	width = 800,
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+
+src\components\OptimizedImage.astro:13:2 lint/correctness/noUnusedVariables ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable alt is unused.
+  
+    11 Γöé const {
+    12 Γöé 	src,
+  > 13 Γöé 	alt,
+       Γöé 	^^^
+    14 Γöé 	width = 800,
+    15 Γöé 	height = 450,
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+
+src\components\OptimizedImage.astro:14:2 lint/correctness/noUnusedVariables ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable width is unused.
+  
+    12 Γöé 	src,
+    13 Γöé 	alt,
+  > 14 Γöé 	width = 800,
+       Γöé 	^^^^^
+    15 Γöé 	height = 450,
+    16 Γöé 	class: className = "",
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+
+src\components\OptimizedImage.astro:15:2 lint/correctness/noUnusedVariables ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable height is unused.
+  
+    13 Γöé 	alt,
+    14 Γöé 	width = 800,
+  > 15 Γöé 	height = 450,
+       Γöé 	^^^^^^
+    16 Γöé 	class: className = "",
+    17 Γöé 	loading = "lazy",
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+
+src\components\OptimizedImage.astro:16:9 lint/correctness/noUnusedVariables ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable className is unused.
+  
+    14 Γöé 	width = 800,
+    15 Γöé 	height = 450,
+  > 16 Γöé 	class: className = "",
+       Γöé 	       ^^^^^^^^^
+    17 Γöé 	loading = "lazy",
+    18 Γöé } = Astro.props;
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+
+src\components\OptimizedImage.astro:17:2 lint/correctness/noUnusedVariables ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable loading is unused.
+  
+    15 Γöé 	height = 450,
+    16 Γöé 	class: className = "",
+  > 17 Γöé 	loading = "lazy",
+       Γöé 	^^^^^^^
+    18 Γöé } = Astro.props;
+    19 Γöé ---
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+
+src\components\PostCard.astro:18:7 lint/correctness/noUnusedVariables  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable formattedDate is unused.
+  
+    17 Γöé const { post } = Astro.props;
+  > 18 Γöé const formattedDate = post.data.pubDate.toLocaleDateString("en-US", {
+       Γöé       ^^^^^^^^^^^^^
+    19 Γöé 	year: "numeric",
+    20 Γöé 	month: "short",
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend formattedDate with an underscore.
+  
+    16 16 Γöé   
+    17 17 Γöé   const { post } = Astro.props;
+    18    Γöé - const┬╖formattedDate┬╖=┬╖post.data.pubDate.toLocaleDateString("en-US",┬╖{
+       18 Γöé + const┬╖_formattedDate┬╖=┬╖post.data.pubDate.toLocaleDateString("en-US",┬╖{
+    19 19 Γöé   	year: "numeric",
+    20 20 Γöé   	month: "short",
+  
+
+src\components\PostCard.astro:24:7 lint/correctness/noUnusedVariables  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable readingTime is unused.
+  
+    22 Γöé });
+    23 Γöé const wordCount = post.body.split(/\s+/).length;
+  > 24 Γöé const readingTime = `${Math.ceil(wordCount / 200)} min`;
+       Γöé       ^^^^^^^^^^^
+    25 Γöé ---
+    26 Γöé 
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend readingTime with an underscore.
+  
+    22 22 Γöé   });
+    23 23 Γöé   const wordCount = post.body.split(/\s+/).length;
+    24    Γöé - const┬╖readingTime┬╖=┬╖`${Math.ceil(wordCount┬╖/┬╖200)}┬╖min`;
+       24 Γöé + const┬╖_readingTime┬╖=┬╖`${Math.ceil(wordCount┬╖/┬╖200)}┬╖min`;
+    25 25 Γöé   
+  
+
+src\components\Recommendations.astro:19:7 lint/correctness/noUnusedVariables  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable scored is unused.
+  
+    17 Γöé const { currentSlug, currentTags, allPosts } = Astro.props;
+    18 Γöé 
+  > 19 Γöé const scored = allPosts
+       Γöé       ^^^^^^
+    20 Γöé 	.filter((post) => post.id !== currentSlug)
+    21 Γöé 	.map((post) => {
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend scored with an underscore.
+  
+    17 17 Γöé   const { currentSlug, currentTags, allPosts } = Astro.props;
+    18 18 Γöé   
+    19    Γöé - const┬╖scored┬╖=┬╖allPosts
+       19 Γöé + const┬╖_scored┬╖=┬╖allPosts
+    20 20 Γöé   	.filter((post) => post.id !== currentSlug)
+    21 21 Γöé   	.map((post) => {
+  
+
+src\components\ShareButtons.astro:8:7 lint/correctness/noUnusedVariables  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable encodedUrl is unused.
+  
+     7 Γöé const { title, url } = Astro.props;
+   > 8 Γöé const encodedUrl = encodeURIComponent(url);
+       Γöé       ^^^^^^^^^^
+     9 Γöé const encodedTitle = encodeURIComponent(title);
+    10 Γöé ---
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend encodedUrl with an underscore.
+  
+     6  6 Γöé   
+     7  7 Γöé   const { title, url } = Astro.props;
+     8    Γöé - const┬╖encodedUrl┬╖=┬╖encodeURIComponent(url);
+        8 Γöé + const┬╖_encodedUrl┬╖=┬╖encodeURIComponent(url);
+     9  9 Γöé   const encodedTitle = encodeURIComponent(title);
+    10 10 Γöé   
+  
+
+src\components\ShareButtons.astro:9:7 lint/correctness/noUnusedVariables  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable encodedTitle is unused.
+  
+     7 Γöé const { title, url } = Astro.props;
+     8 Γöé const encodedUrl = encodeURIComponent(url);
+   > 9 Γöé const encodedTitle = encodeURIComponent(title);
+       Γöé       ^^^^^^^^^^^^
+    10 Γöé ---
+    11 Γöé 
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend encodedTitle with an underscore.
+  
+     7  7 Γöé   const { title, url } = Astro.props;
+     8  8 Γöé   const encodedUrl = encodeURIComponent(url);
+     9    Γöé - const┬╖encodedTitle┬╖=┬╖encodeURIComponent(title);
+        9 Γöé + const┬╖_encodedTitle┬╖=┬╖encodeURIComponent(title);
+    10 10 Γöé   
+  
+
+src\components\TableOfContents.astro:7:7 lint/correctness/noUnusedVariables  FIXABLE  ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable filteredHeadings is unused.
+  
+    6 Γöé const { headings } = Astro.props;
+  > 7 Γöé const filteredHeadings = headings.filter((h) => h.depth <= 3);
+      Γöé       ^^^^^^^^^^^^^^^^
+    8 Γöé ---
+    9 Γöé 
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend filteredHeadings with an underscore.
+  
+    5 5 Γöé   
+    6 6 Γöé   const { headings } = Astro.props;
+    7   Γöé - const┬╖filteredHeadings┬╖=┬╖headings.filter((h)┬╖=>┬╖h.depth┬╖<=┬╖3);
+      7 Γöé + const┬╖_filteredHeadings┬╖=┬╖headings.filter((h)┬╖=>┬╖h.depth┬╖<=┬╖3);
+    8 8 Γöé   
+  
+
+src\components\icons\MenuIcon.astro:6:16 lint/correctness/noUnusedVariables ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable className is unused.
+  
+    4 Γöé }
+    5 Γöé 
+  > 6 Γöé const { class: className = "w-5 h-5" } = Astro.props;
+      Γöé                ^^^^^^^^^
+    7 Γöé ---
+    8 Γöé 
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+
+src\components\icons\SearchIcon.astro:6:16 lint/correctness/noUnusedVariables ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ! This variable className is unused.
+  
+    4 Γöé }
+    5 Γöé 
+  > 6 Γöé const { class: className = "w-4 h-4" } = Astro.props;
+      Γöé                ^^^^^^^^^
+    7 Γöé ---
+    8 Γöé 
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+
+check ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
+
+  ├ù Some errors were emitted while running checks.
+  
+

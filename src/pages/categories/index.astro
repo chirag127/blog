@@ -1,6 +1,6 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
 
 const allPosts = await getCollection("blog", ({ data }) => !data.draft);
 const categoryMap = new Map<string, number>();
@@ -8,7 +8,7 @@ const categoryMap = new Map<string, number>();
 allPosts.forEach((post) => {
   categoryMap.set(
     post.data.category,
-    (categoryMap.get(post.data.category) || 0) + 1
+    (categoryMap.get(post.data.category) || 0) + 1,
   );
 });
 

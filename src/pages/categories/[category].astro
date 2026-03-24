@@ -1,7 +1,7 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import PostCard from "../../components/PostCard.astro";
 import { getCollection } from "astro:content";
+import PostCard from "../../components/PostCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export async function getStaticPaths() {
   const allPosts = await getCollection("blog", ({ data }) => !data.draft);
@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 
   return uniqueCategories.map((category) => ({
     params: {
-      category: category.toLowerCase().replace(/[\s\/]+/g, "-"),
+      category: category.toLowerCase().replace(/[\s/]+/g, "-"),
     },
     props: {
       category,
@@ -22,7 +22,7 @@ export async function getStaticPaths() {
 
 const { category, posts } = Astro.props;
 const sortedPosts = posts.sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
 

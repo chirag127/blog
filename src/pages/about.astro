@@ -1,12 +1,28 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
 import { SITE_CONFIG } from "../config";
+import BaseLayout from "../layouts/BaseLayout.astro";
 
 const skills = [
-  "Python", "TypeScript", "React", "Astro", "FastAPI", "Node.js",
-  "Django", "Kafka", "Redis", "Docker", "Kubernetes", "Terraform",
-  "AWS", "Cloudflare Workers", "LangChain", "RAG Pipelines",
-  "Firebase", "Supabase", "MongoDB", "Turso",
+  "Python",
+  "TypeScript",
+  "React",
+  "Astro",
+  "FastAPI",
+  "Node.js",
+  "Django",
+  "Kafka",
+  "Redis",
+  "Docker",
+  "Kubernetes",
+  "Terraform",
+  "AWS",
+  "Cloudflare Workers",
+  "LangChain",
+  "RAG Pipelines",
+  "Firebase",
+  "Supabase",
+  "MongoDB",
+  "Turso",
 ];
 
 const projects = [
@@ -33,12 +49,32 @@ const projects = [
 ];
 
 const socialLinks = [
-  { name: "GitHub", href: `https://github.com/${SITE_CONFIG.social.github}`, icon: "github" },
-  { name: "LinkedIn", href: `https://linkedin.com/in/${SITE_CONFIG.social.linkedin}`, icon: "linkedin" },
+  {
+    name: "GitHub",
+    href: `https://github.com/${SITE_CONFIG.social.github}`,
+    icon: "github",
+  },
+  {
+    name: "LinkedIn",
+    href: `https://linkedin.com/in/${SITE_CONFIG.social.linkedin}`,
+    icon: "linkedin",
+  },
   { name: "Email", href: `mailto:${SITE_CONFIG.social.email}`, icon: "email" },
-  { name: "Bluesky", href: `https://bsky.app/profile/${SITE_CONFIG.social.bluesky}`, icon: "bluesky" },
-  { name: "Mastodon", href: `https://mastodon.social/${SITE_CONFIG.social.mastodon}`, icon: "mastodon" },
-  { name: "LeetCode", href: `https://leetcode.com/${SITE_CONFIG.social.leetcode}`, icon: "leetcode" },
+  {
+    name: "Bluesky",
+    href: `https://bsky.app/profile/${SITE_CONFIG.social.bluesky}`,
+    icon: "bluesky",
+  },
+  {
+    name: "Mastodon",
+    href: `https://mastodon.social/${SITE_CONFIG.social.mastodon}`,
+    icon: "mastodon",
+  },
+  {
+    name: "LeetCode",
+    href: `https://leetcode.com/${SITE_CONFIG.social.leetcode}`,
+    icon: "leetcode",
+  },
 ];
 
 const socialIcons: Record<string, string> = {

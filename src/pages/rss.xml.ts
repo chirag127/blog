@@ -1,10 +1,13 @@
+import { type CollectionEntry, getCollection } from "astro:content";
 import rss from "@astrojs/rss";
-import { getCollection, type CollectionEntry } from "astro:content";
 import type { APIContext } from "astro";
 import { SITE_CONFIG } from "../config";
 
 export async function GET(context: APIContext) {
-  const posts = await getCollection("blog", (entry: CollectionEntry<"blog">) => !entry.data.draft);
+  const posts = await getCollection(
+    "blog",
+    (entry: CollectionEntry<"blog">) => !entry.data.draft,
+  );
   const sortedPosts = posts.sort(
     (a: CollectionEntry<"blog">, b: CollectionEntry<"blog">) =>
       b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),

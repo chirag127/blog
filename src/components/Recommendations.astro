@@ -20,7 +20,7 @@ const scored = allPosts
   .filter((post) => post.id !== currentSlug)
   .map((post) => {
     const sharedTags = post.data.tags.filter((tag) =>
-      currentTags.includes(tag)
+      currentTags.includes(tag),
     ).length;
     return { post, score: sharedTags };
   })

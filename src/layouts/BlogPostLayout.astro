@@ -1,12 +1,12 @@
 ---
-import BaseLayout from "./BaseLayout.astro";
-import TableOfContents from "../components/TableOfContents.astro";
-import ShareButtons from "../components/ShareButtons.astro";
-import GiscusComments from "../components/GiscusComments.astro";
+import { getCollection } from "astro:content";
 import BookmarkButton from "../components/BookmarkButton.astro";
+import GiscusComments from "../components/GiscusComments.astro";
 import RecentlyViewed from "../components/RecentlyViewed.astro";
 import Recommendations from "../components/Recommendations.astro";
-import { getCollection } from "astro:content";
+import ShareButtons from "../components/ShareButtons.astro";
+import TableOfContents from "../components/TableOfContents.astro";
+import BaseLayout from "./BaseLayout.astro";
 
 interface Props {
   title: string;

@@ -1,15 +1,15 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import PostCard from "../components/PostCard.astro";
-import SearchModal from "../components/SearchModal.astro";
+import { getCollection } from "astro:content";
 import CommandPalette from "../components/CommandPalette.astro";
 import Newsletter from "../components/Newsletter.astro";
+import PostCard from "../components/PostCard.astro";
+import SearchModal from "../components/SearchModal.astro";
 import { SITE_CONFIG } from "../config";
-import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
 
 const allPosts = await getCollection("blog", ({ data }) => !data.draft);
 const sortedPosts = allPosts.sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 const latestPosts = sortedPosts.slice(0, 6);
 

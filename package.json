@@ -8,22 +8,20 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "lint": "eslint src/",
-    "format": "prettier --write src/"
+    "lint": "biome check .",
+    "format": "biome format --write ."
   },
   "dependencies": {
-    "astro": "^6.0.5",
     "@astrojs/mdx": "^5.0.2",
+    "@astrojs/rss": "^4.0.11",
     "@astrojs/sitemap": "^3.3.0",
-    "@astrojs/rss": "^4.0.11"
+    "astro": "^6.0.5"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.8",
     "@tailwindcss/vite": "^4.2.2",
-    "tailwindcss": "^4.2.2",
     "sharp": "^0.33.5",
-    "typescript": "^5.8.0",
-    "eslint": "^9.21.0",
-    "prettier": "^3.5.0",
-    "prettier-plugin-astro": "^0.14.1"
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.8.0"
   }
 }
