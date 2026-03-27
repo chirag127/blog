@@ -1,0 +1,193 @@
+---
+title: "Building Client-Side Only Sites with Astro + React on Cloudflare Pages"
+description: "How to build fast, free, client-side SPA using Astro's static output and React, deployable on Cloudflare Pages with zero server costs."
+pubDate: 2026-03-27
+tags: ["Astro", "React", "Cloudflare Pages", "Static Sites", "Web Development"]
+category: "Engineering"
+author: "Chirag Singhal"
+draft: false
+---
+
+# Building Client-Side Only Sites with Astro + React on Cloudflare Pages
+
+I recently rebuilt my entire tool platform using a client-side only architecture. No server, no API costs, just static HTML/JS deployed globally. Here's how.
+
+## Why Client-Side Only?
+
+Traditional server-rendered apps have a hidden cost: the server itself. Even a simple Node.js app needs:
+- A server/VPS ($5-10/month minimum)
+- Database (often pay-per-query)
+- SSL certificates
+- Monitoring and maintenance
+
+For many use cases — portfolios, docs, tools, dashboards — you don't need a server at all. The browser can do everything.
+
+## The Stack
+
+- **Astro**: Static site generation with islands architecture
+- **React**: For interactive components when needed
+- **Cloudflare Pages**: Free hosting with global CDN
+- **Client-side APIs**: IndexedDB, localStorage, or external services
+
+## Configuration
+
+```javascript
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  output: 'static', // Key: client-side only
+  adapter: cloudflare({
+    imageService: 'cloudflare',
+  }),
+  integrations: [react()],
+  vite: {
+    ssr: {
+      noExternal: ['react', 'react-dom'],
+    },
+  },
+});
+```
+
+The key is `output: 'static'`. This tells Astro to pre-render everything at build time. No server-side rendering, no serverless functions needed.
+
+## Project Structure
+
+```
+/
+├── src/
+│   ├── components/
+│   │   ├── Counter.jsx        // React - hydrated
+│   │   ├── Header.astro       // Static, no JS
+│   │   └── DataViz.jsx        // React - hydrated
+│   ├── layouts/
+│   │   └── MainLayout.astro
+│   ├── pages/
+│   │   ├── index.astro
+│   │   ├── dashboard.astro
+│   │   └── tools/
+│   │       └── index.astro
+│   └── styles/
+│       └── global.css
+├── public/
+│   └── data/
+│       └── tools.json
+└── astro.config.mjs
+```
+
+## Interactive Islands
+
+Astro's islands architecture lets you mix static HTML with interactive React components:
+
+```astro
+---
+// src/pages/dashboard.astro
+import Layout from '../layouts/MainLayout.astro';
+import Counter from '../components/Counter.jsx';
+import SearchPanel from '../components/SearchPanel.jsx';
+---
+
+<Layout title="Dashboard">
+  <div class="stats">
+    <p>Static content loads instantly</p>
+  </div>
+  
+  <!-- Only this hydrates -->
+  <Counter client:load initial={42} />
+  
+  <!-- Hydrates when visible -->
+  <SearchPanel client:visible />
+</Layout>
+```
+
+## State Management
+
+For client-side state, keep it simple:
+
+```javascript
+// src/lib/store.js
+import { writable } from 'svelte/store'; // or any state library
+
+function createPersistedStore(key, initial) {
+  const stored = typeof localStorage !== 'undefined' 
+    ? localStorage.getItem(key) 
+    : null;
+    
+  const store = writable(stored ? JSON.parse(stored) : initial);
+  
+  store.subscribe(value => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+  });
+  
+  return store;
+}
+
+export const userPrefs = createPersistedStore('prefs', {
+  theme: 'dark',
+  layout: 'grid'
+});
+```
+
+## Deploying to Cloudflare Pages
+
+1. Connect your repo to Cloudflare Pages
+2. Build settings:
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Node version: `18`
+3. That's it. Free tier includes:
+   - 500 builds/month
+   - Unlimited sites
+   - Global CDN
+   - Auto SSL
+
+## External API Integration
+
+Need backend logic? Use external APIs instead of running your own server:
+
+```javascript
+// Fetch from external API
+async function getToolData() {
+  const response = await fetch('https://api.example.com/tools');
+  return response.json();
+}
+
+// Or use Cloudflare Workers as your API layer
+// - Deploy separate from your frontend
+// - Only pay for API calls, not static asset serving
+```
+
+## Performance Comparison
+
+| Metric | Server-Rendered | Client-Side Static |
+|--------|-----------------|-------------------|
+| Time to First Byte | 150ms | <10ms |
+| CDN Caching | Partial | Full |
+| Cost per month | $5+ | $0 |
+| Cold Starts | Yes | None |
+
+## Use Cases That Work
+
+- Dashboards with client-side data fetching
+- Tool collections (URL shorteners, generators)
+- Documentation sites
+- Portfolios with interactive components
+- Internal apps behind auth (use client-side auth)
+
+## What's Missing
+
+Client-side only isn't right for everything:
+- Server-side rendering for SEO-critical content
+- WebSocket/real-time (Durable Objects needed)
+- Heavy server-side computation
+- Rate limiting without external service
+
+## Conclusion
+
+For many web projects, you don't need a server. Astro's static output with React islands gives you the best of both worlds: fast initial load with progressive enhancement, deployed for free on Cloudflare Pages.
+
+Your users won't notice, but your wallet will.
