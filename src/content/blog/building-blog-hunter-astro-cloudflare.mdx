@@ -1,5 +1,5 @@
 ---
-title: "Building Blog Hunter: A Zero-Cost, High-Performance Blog with Astro & Cloudflare"
+title: "Building Chirag Singhal's blog: A Zero-Cost, High-Performance Blog with Astro & Cloudflare"
 description: "A deep dive into how I built this blog from scratch — the architecture decisions, tech stack, automation, and features that make it fast, free, and developer-friendly."
 pubDate: 2026-03-28
 tags: ["Astro", "Cloudflare Pages", "TypeScript", "Tailwind CSS", "Web Development"]
@@ -8,9 +8,9 @@ author: "Chirag Singhal"
 draft: false
 ---
 
-# Building Blog Hunter: A Zero-Cost, High-Performance Blog with Astro & Cloudflare
+# Building Chirag Singhal's blog: A Zero-Cost, High-Performance Blog with Astro & Cloudflare
 
-Every engineer needs a blog. Not a Medium profile — a real, owned space on the internet. I built **Blog Hunter** (`blog.oriz.in`) to be exactly that: a fast, free, and fully automated technical blog that runs entirely on Cloudflare's free tier.
+Every engineer needs a blog. Not a Medium profile — a real, owned space on the internet. I built **Chirag Singhal's blog** (`blog.oriz.in`) to be exactly that: a fast, free, and fully automated technical blog that runs entirely on Cloudflare's free tier.
 
 This post is a complete walkthrough of the repository — what it does, how it's built, and why every technical decision was made.
 
@@ -88,7 +88,7 @@ const blog = defineCollection({
     tags: z.array(z.string()).default([]),
     category: z.string().default("General"),
     draft: z.boolean().default(false),
-    author: z.string().default("Blog Hunter"),
+    author: z.string().default("Chirag Singhal"),
   }),
 });
 ```
@@ -99,7 +99,7 @@ Posts support draft mode (`draft: true`), which excludes them from all listings 
 
 ## Client-Side Features (No Backend Required)
 
-Despite being a static site, Blog Hunter has rich interactivity powered by client-side JavaScript and localStorage:
+Despite being a static site, Chirag Singhal's blog has rich interactivity powered by client-side JavaScript and localStorage:
 
 **Search**: A JSON search index is generated at build time (`/search-index.json`). The search modal filters by title, description, and tags. Triggered by `Cmd+K`.
 
@@ -185,7 +185,7 @@ One command sets up everything from scratch. No clicking through dashboards.
 
 ## CMS: Two Ways to Write
 
-Not everyone wants to edit MDX files in a code editor. Blog Hunter supports two content creation methods:
+Not everyone wants to edit MDX files in a code editor. Chirag Singhal's blog supports two content creation methods:
 
 1. **Decap CMS** (`/admin`): A visual web interface. Log in via GitHub, fill out form fields, and the CMS commits the MDX file directly to the `main` branch.
 
