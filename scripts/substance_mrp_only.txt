@@ -1,0 +1,123 @@
+Substance MRP List (Raw Package Prices - Not Divided by Unit)
+==============================================================================================================
+Substance       | MRP      | Pack Size       | Full Name
+--------------------------------------------------------------------------------------------------------------
+Atropine        | Rs    2.0 | 1 ml            | Atropine Sulphate Injection IP 0.6mg per ml
+Promethazine    | Rs   2.82 | 2 ml            | Promethazine Injection IP 25 mg per ml
+Alprazolam      | Rs   4.13 | 10's            | Alprazolam Tablets IP 0.25 mg
+Tramadol        | Rs   4.69 | 1 ml            | Tramadol HCl Injection 50mg 1 ml
+Clonazepam      | Rs   5.16 | 10's            | Clonazepam Tablets IP 0.5 mg
+Diazepam        | Rs   5.63 | 10's            | Diazepam Tablets IP 5 mg
+Atropine        | Rs   5.63 | 10's            | Diphenoxylate Hydrochloride 2.5mg and Atropine sulphate 0.025mg Tablet
+Amitriptyline   | Rs   6.19 | 10's            | Amitriptyline Hydrochloride Tablets IP 10mg
+Trihexyphenidyl | Rs   6.19 | 10's            | Trihexyphenidyl Hydrochloride Tablets IP 2mg (Benzhexol Hydrochloride Tablets IP 2mg)
+Promethazine    | Rs   6.57 | 10's            | Promethazine Tablets IP 25 mg
+Diazepam        | Rs   6.57 | 10's            | Diazepam Tablets IP 2 mg
+Alprazolam      | Rs   7.22 | 10's            | Alprazolam Tablets IP 0.5 mg
+Hydroxyzine     | Rs   7.22 | 10's            | Hydroxyzine Hydrochloride Tablets IP 10mg
+Tramadol        | Rs    7.5 | 2 ml            | Tramadol Hydrochloride Injection 100 mg per 2 ml
+Tramadol        | Rs    7.5 | 10's            | Tramadol Tablets 50mg
+Diazepam        | Rs    7.5 | 2 ML            | Diazepam Injection IP 5mg per ml
+Amitriptyline   | Rs   8.25 | 15's            | Amitriptyline Hydrochloride Tablets IP 25mg
+Clonazepam      | Rs   8.25 | 10's            | Clonazepam Tablets IP 1mg
+Chlordiazepoxide | Rs   8.44 | 10's            | Chlordiazepoxide 5mg and Clidinium Bromide 2.5mg Tablets
+Nitrazepam      | Rs   8.44 | 10's            | Nitrazepam Tablets I.P 10mg
+Chlordiazepoxide | Rs   8.44 | 10's            | Chlordiazepoxide 5mg and Amitriptyline Hydrochloride 12.5mg Tablets
+Tizanidine      | Rs   9.38 | 10's            | Tizanidine Tablets I.P 2mg
+Tramadol        | Rs   9.38 | 10's            | Paracetamol 162.5 mg and Tramadol 18.75 mg Tablet
+Chlordiazepoxide | Rs   9.38 | 10's            | Amitriptyline Hydrochloride 25mg Chlordiazepoxide 10mg Tablets
+Clonazepam      | Rs   9.38 | 10's            | Clonazepam Mouth Dissolving Tablets 0.25 mg
+Diphenhydramine | Rs   9.38 | 10's            | Caffeine (30mg) + Diphenhydramine (25mg) + Paracetamol (500mg) + Phenylephrine (5mg) Tablets
+Trihexyphenidyl | Rs   9.38 | 10's            | Risperidone 2mg Trihexyphenidyl 2 mg Tablets (mouth Dissolving )
+Zolpidem        | Rs   9.38 | 10's            | Zolpidem Tablets IP 5mg
+Lorazepam       | Rs  10.32 | 10's            | Lorazepam Tablets IP 1mg
+Quetiapine      | Rs  10.32 | 10's            | Quetiapine Tablets IP 25 mg
+Baclofen        | Rs   11.0 | 10's            | Baclofen Tablets IP 10 mg
+Lorazepam       | Rs  11.25 | 10's            | Lorazepam Tablets IP 2mg
+Hydroxyzine     | Rs  11.25 | 15's            | Hydroxyzine Tablets IP 25mg
+Tramadol        | Rs  12.38 | 10's            | Paracetamol 325mg and Tramadol 37.5mg Tablets
+Promethazine    | Rs  13.13 | 100 ml          | Promethazine Syrup IP 5mg per 5ml
+Alprazolam      | Rs  13.13 | 10's            | Alprazolam 0.25mg and Fluoxetine 20mg Tablets
+Chlordiazepoxide | Rs  13.13 | 10's            | Clidinium Bromide 2.5mg, Chlordiazepoxide 5mg and Dicyclomine Hydrochloride 10mg Tablets
+Chlorpheniramine | Rs  13.13 | 10's            | Paracetamol 500 mg, Phenylephrine 10 mg and Chlorpheniramine 2 mg Tablet
+Clonazepam      | Rs  13.41 | 10's            | Escitalopram Oxalate 5mg and Clonazepam 0.5mg Tablets IP
+Clonazepam      | Rs  14.07 | 10's            | Escitalopram Oxelate 10mg and Clonazepam 0.5mg Tablets IP
+Chlordiazepoxide | Rs  14.07 | 10's            | Chlordiazepoxide 10mg and Trifluoperazine 1mg Tablets
+Clobazam        | Rs  14.07 | 10's            | Clobazam Tablet IP 5mg
+Alprazolam      | Rs  14.07 | 10's            | Alprazolam 0.25mg and Propranolol Hydrochloride 10mg Tablets
+Amitriptyline   | Rs  14.07 | 10's            | Amitriptyline Hydrochloride Tablets IP 50 mg
+Gabapentin      | Rs  14.44 | 10's            | Gabapentin Tablets IP 100 mg
+Chlorzoxazone   | Rs   15.0 | 10's            | Aceclofenac 100mg, Paracetamol 325mg and Chlorzoxazone 250mg Tablets
+Chlorzoxazone   | Rs   15.0 | 10's            | Paracetamol 500mg and Chlorzoxazone 250mg Tablet
+Alprazolam      | Rs   15.0 | 10's            | Alprazolam 0.25mg and Propranolol Hydrochloride 20mg Tablets
+Phenobarbitone  | Rs  15.94 | 30's            | Phenobarbitone Tablets IP 30mg
+Chlorpheniramine | Rs  16.88 | 60 ml Bottle    | Paracetamol 125mg, Chlorpheniramine 1mg and Sodium Citrate 60mg Syrup in Flavour base
+Zolpidem        | Rs  16.88 | 10's            | Zolpidem Tablets IP 10mg
+Diphenhydramine | Rs  16.88 | 100 ml Bottle   | Diphenhydramine 13-15mg, Ammonium Chloride 135-150mg , Sodium Citrate 57-85mg, Menthol 0.9-2.6mg Cough Syrup
+Lorazepam       | Rs  16.88 | 10's            | Lorazepam Tablets IP 3mg
+Quetiapine      | Rs  16.88 | 10's            | Quetiapine Tablets IP 50mg
+Nandrolone      | Rs  18.75 | 1 ML            | Nandrolone Decanoate Injection IP 25 mg per ml
+Chlorpheniramine | Rs  18.75 | 15 ml Bottle    | Phenylephrine Hydrochloride 5mg and Chlorpheniramine Maleate 2mg Drops
+Chlorzoxazone   | Rs  18.75 | 10's            | Nimesulid 100mg, Paracetamol 325mg and Chlorzoxazone 375mg Tablets
+Tizanidine      | Rs  18.75 | 10's            | Aceclofenac 100mg, Paracetamol 325mg and Tizanidine 2mg Tablets
+Chlorpheniramine | Rs  18.75 | 15 ml           | Paracetamol 125 mg, Phenylephrine 2.5 mg and Chlorpheniramine 1 mg Drops
+Amitriptyline   | Rs  18.75 | 10's            | Amitriptyline Hydrochloride Tablets IP 75 mg
+Diazepam        | Rs  18.75 | 10's            | Diazepam Tablets IP 10 mg
+Gabapentin      | Rs  18.75 | 10's            | Gabapentin 200mg and Nortriptyline 10mg Tablets
+Hydroxyzine     | Rs  18.75 | 15ml in Mono-carton with screw dropper | Hydroxyzine Hydrochloride Drops 6mg per ml
+Tramadol        | Rs  18.75 | 10's            | Tramadol Hydrochloride (IR) 50mg and Diclofenac Sodium (SR) 75mg Tablets
+Chlordiazepoxide | Rs  19.69 | 10's            | Chlordiazepoxide Tablets IP 10 mg
+Pregabalin      | Rs  20.63 | 10's            | Pregabalin Capsules IP 75 mg
+Chlorpheniramine | Rs  20.63 | 10's            | Paracetamol 325mg, Phenylephrine 10mg and Chlorpheniramine 2mg Tablets
+Chlorpheniramine | Rs  20.63 | 60 ML           | Paracetamol 125 mg, Phenylephrine 5 mg and Chlorpheniramine 1 mg Suspension
+Dextromethorphan | Rs  21.57 | 50 ml           | Dextromethorphan Hydrobromide Syrup IP 13.5mg per 5ml
+Pregabalin      | Rs  22.69 | 10's            | Pregabalin Tablets 75 mg
+Chlorzoxazone   | Rs  23.44 | 10's            | Chlorzoxazone 500mg, Diclofenac 50mg and Paracetamol 325mg Tablets
+Gabapentin      | Rs  23.44 | 15's            | Gabapentin 100 mg and Nortryptyline 10 mg Tablet
+Chlorpheniramine | Rs  23.44 | 60 ML           | Paracetamol 250 mg, Phenylephrine 5 mg and Chlorpheniramine 2 mg Suspension
+Dextromethorphan | Rs  23.44 | 100 ml          | Phenylephrine 5 mg,Chlorpheniramine 2 mg and Dextromethorphan 10 mg Syrup
+Alprazolam      | Rs  23.44 | 10's            | Alprazolam 0.5mg and Sertraline Hydrochloride 25mg Tablets
+Chlordiazepoxide | Rs  23.44 | 10's            | Chlordiazepoxide Tablets IP 25 mg
+Hydroxyzine     | Rs  23.44 | 100ml with measuring cap | Hydroxyzine Hydrochloride Syrup 10mg per 5ml
+Gabapentin      | Rs  25.79 | 10's            | Gabapentin Capsules IP 300mg
+Phenobarbitone  | Rs  26.25 | 30's            | Phenobarbitone Tablets IP 60 mg
+Dextromethorphan | Rs  28.13 | 100 ml          | Phenylephrine 5 mg, Chlorpheniramine 2 mg and Dextromethorphan 15 mg Syrup
+Pregabalin      | Rs  28.13 | 10's            | Pregabalin Tablets IP 150mg
+Midazolam       | Rs  28.13 | 10ml vial       | Midazolam Injection 10mg
+Nandrolone      | Rs  28.13 | 1ml Ampoule in Mono Carton | Nandrolone Decanoate Injection IP 50mg/ml
+Chlordiazepoxide | Rs  28.13 | 10's            | Mebeverine (135mg) + Chlordiazepoxide (5mg) Tablets
+Clobazam        | Rs   30.0 | 15's            | Clobazam Tablets IP 10 mg
+Baclofen        | Rs   30.0 | 10's            | Baclofen 20mg Extended Release (Gastric Retentive System) Tablets
+Tapentadol      | Rs   30.0 | 10's            | Tapentadol 50mg Tablets
+Clonazepam      | Rs  30.94 | 10's            | Desvenlafaxine Extended Release 50mg and Clonazepam 0.5mg Tablets
+Pregabalin      | Rs  31.97 | 10's            | Pregabalin 75mg and Nortriptyline 10mg Tablets
+Tramadol        | Rs  32.82 | 10's            | Tramadol Prolonged Release Tablets IP 100 mg
+Alprazolam      | Rs  32.82 | 10's            | Alprazolam 0.5mg and Sertraline Hydrochloride 50mg Tablets
+Pregabalin      | Rs  32.82 | 10's            | Pregabalin 50mg and Duloxetin (Delayed Release) 20mg Capsules
+Gabapentin      | Rs  34.04 | 10's            | Gabapentin 100mg and Methylcobalamin 500mcg Tablets
+Quetiapine      | Rs  34.04 | 10's            | Quetiapine Tablets IP 100mg
+Pregabalin      | Rs  35.63 | 10's            | Pregabalin 75mg and Methylcobalamin 750mcg Tablets
+Pregabalin      | Rs   36.1 | 10's            | Pregabalin 75mg and Methylcobalamin 750mcg Capsule IP
+Nandrolone      | Rs   37.5 | 2 ml            | Nandrolone Decanoate Injection IP 50 mg per ml
+Gabapentin      | Rs   37.5 | 10's            | Gabapentin 300mg and Methylcobalamin 500mcg Tablet
+Clonazepam      | Rs   37.5 | 10's            | Paroxetine Extended Release 12.5mg and Clonazepam 0.25mg Tablets
+Pregabalin      | Rs   37.5 | 10's            | Etoricoxib 60mg and Pregabalin 75mg (SR) Tablets
+Chlorpheniramine | Rs  38.44 | 120 ml          | Levodropropizine 30mg and Chlorpheniramine Maleate 2mg Syrup
+Pregabalin      | Rs  42.19 | 10's            | Pregabalin 75 mg and Methylcobalamin 1500 mcg and Nortriptyline 10 mg Tablets
+Bupropion       | Rs  42.19 | 10's            | Bupropion Prolonged-release Tablets IP 150 mg
+Pregabalin      | Rs  42.19 | 10's            | Pregabalin 75mg and Duloxetin (Delayed Release) 20mg Capsules
+Pregabalin      | Rs  46.88 | 10's            | Pregabalin (Sustained release) 75mg and Methylcobalamin 1500mcg Tablets
+Pregabalin      | Rs  46.88 | 10's            | Pregabalin 75mg and Duloxetin (Delayed Release) 30mg Capsules
+Modafinil       | Rs  46.88 | 10's            | Modafinil 100mg Tablets
+Gabapentin      | Rs  51.57 | 10's            | Gabapentin 400mg and Nortriptyline 10mg Tablets
+Gabapentin      | Rs  51.57 | 10's            | Gabapentin 300mg and Amitriptyline 10mg Tablets
+Clonazepam      | Rs  56.25 | 10's            | Desvenlafaxine Extended Release 100mg and Clonazepam 0.5mg Tablets
+Quetiapine      | Rs  60.94 | 10's            | Quetiapine Fumarate Tablets IP 200mg
+Tapentadol      | Rs  60.94 | 10's            | Tapentadol 100mg Extended Release Tablets
+Gabapentin      | Rs  60.94 | 30g             | Gabapentin 6% w/w, Lignocaine 5% w/w and Baclofen 2% w/w gel
+Chlorpheniramine | Rs  60.94 | 100ml with measuring cap in Mono-carton | Levocloperastine 20mg and Chlorpheniramine Maleate 4mg per 5ml Oral suspension.
+Quetiapine      | Rs  70.32 | 10's            | Quetiapine Prolonged release Tablets IP 300mg
+Modafinil       | Rs  78.75 | 10's            | Modafinil Tablets IP 200mg
+
+
+
