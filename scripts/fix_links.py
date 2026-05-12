@@ -3,14 +3,10 @@ import re
 
 directory = r'c:\Users\chira\OneDrive\GitHub\blog.oriz.in\src\content\blog\substance-use-education-india'
 
-# Pattern for absolute links
-pattern_abs = re.compile(r'\(file:///.*?/part-(\d+)-([\w-]+)\.mdx\)')
-
-# Fix for Part 44 label mismatch in Part 43
-part44_label_fix = (
-    "Part 44: Dexamethasone – The 'Life-Saving' Steroid and the 'Moon Face' Reality",
-    "Part 44: Nandrolone – The Gym-Culture Steroid and the 'Deca-Dick' Reality"
-)
+# Pattern for relative links I just created or absolute links
+pattern_links = re.compile(r'\((\./|file:///.*?/)part-(\d+)-([\w-]+)\)')
+# Also catch links that might have .mdx at the end
+pattern_links_mdx = re.compile(r'\((\./|file:///.*?/)part-(\d+)-([\w-]+)\.mdx\)')
 
 def fix_all():
     for filename in os.listdir(directory):
@@ -19,18 +15,22 @@ def fix_all():
             with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            # Fix absolute links
-            new_content = pattern_abs.sub(r'(./part-\1-\2)', content)
+            # Replace with root-relative paths
+            # Note: Astro usually maps /src/content/blog/X.mdx to /blog/X/
+            # But the parent folder is /substance-use-education-india/
+            # So the correct root-relative path is /blog/substance-use-education-india/part-X-name
             
-            # Fix specific label and link for Part 43 -> 44 transition
-            if filename == "part-43-bupropion.mdx":
-                new_content = new_content.replace(part44_label_fix[0], part44_label_fix[1])
-                new_content = new_content.replace('./part-44-dexamethasone', './part-44-nandrolone')
+            new_content = pattern_links.sub(r'(/blog/substance-use-education-india/part-\2-\3)', content)
+            new_content = pattern_links_mdx.sub(r'(/blog/substance-use-education-india/part-\2-\3)', new_content)
             
+            # Special check for index.mdx if it has relative links
+            if filename == "index.mdx":
+                new_content = new_content.replace('(./part-', '(/blog/substance-use-education-india/part-')
+
             if new_content != content:
                 with open(filepath, 'w', encoding='utf-8') as f:
                     f.write(new_content)
-                print(f"Updated: {filename}")
+                print(f"Updated to root-relative: {filename}")
 
 if __name__ == "__main__":
     fix_all()
