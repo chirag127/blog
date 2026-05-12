@@ -1,5 +1,5 @@
 {
-  "name": "blog-hunter",
+  "name": "blog",
   "type": "module",
   "version": "1.0.0",
   "description": "A world-class open-source Astro blog platform with zero cost and global CDN scaling",
