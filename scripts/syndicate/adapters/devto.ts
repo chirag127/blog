@@ -20,6 +20,7 @@ export class DevToAdapter implements SyndicationAdapter {
         headers: {
           "Content-Type": "application/json",
           "api-key": apiKey,
+          "Accept": "application/vnd.forem.api-v1+json",
         },
         body: JSON.stringify({
           article: {
