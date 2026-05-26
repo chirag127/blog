@@ -6,31 +6,6 @@ import { defineConfig } from "astro/config";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 
-// Custom remark plugin to bypass Expressive Code for Mermaid diagrams
-function remarkMermaidBypass() {
-  return (tree) => {
-    function walk(node) {
-      if (node.type === "code" && node.lang === "mermaid") {
-        node.type = "html";
-        const escapedCode = node.value
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
-        node.value = `<pre class="language-mermaid"><code>${escapedCode}</code></pre>`;
-        return;
-      }
-      if (node.children) {
-        for (const child of node.children) {
-          walk(child);
-        }
-      }
-    }
-    walk(tree);
-  };
-}
-
 export default defineConfig({
   site: "https://blog.oriz.in",
   output: "static",
@@ -43,6 +18,39 @@ export default defineConfig({
         codePaddingBlock: "1rem",
         codePaddingInline: "1.25rem",
       },
+      plugins: [
+        {
+          name: "Mermaid Bypass",
+          hooks: {
+            postprocessRenderedBlock: ({ codeBlock, renderData }) => {
+              if (codeBlock.language === "mermaid") {
+                renderData.blockAst = {
+                  type: "element",
+                  tagName: "pre",
+                  properties: {
+                    className: ["language-mermaid"],
+                  },
+                  children: [
+                    {
+                      type: "element",
+                      tagName: "code",
+                      properties: {
+                        className: ["language-mermaid"],
+                      },
+                      children: [
+                        {
+                          type: "text",
+                          value: codeBlock.code,
+                        },
+                      ],
+                    },
+                  ],
+                };
+              }
+            },
+          },
+        },
+      ],
     }),
     mdx(),
     sitemap(),
@@ -51,7 +59,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   markdown: {
-    remarkPlugins: [remarkMermaidBypass, remarkMath],
+    remarkPlugins: [remarkMath],
     rehypePlugins: [rehypeKatex],
   },
   i18n: {
