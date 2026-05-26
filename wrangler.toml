@@ -1,0 +1,7 @@
+name = "blog"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-05-26"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+PUBLIC_SITE_URL = "https://blog.oriz.in"
