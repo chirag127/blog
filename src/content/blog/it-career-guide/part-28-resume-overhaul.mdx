@@ -100,411 +100,101 @@ If your actual work was building a restaurant ordering web application using the
 
 ---
 
-## 3. The Portfolio Project Overhaul: Making the "Fake" Real
+## 3. The Portfolio Project Overhaul: Designing Elite, Defensible Systems
 
-If your resume lists complex, state-of-the-art backend or AI projects that you have not actually built, you are vulnerable. To make these projects 100% real and defensible, you must **build simplified, fully functional, working versions of them from scratch** and push them to your public GitHub profile (`github.com/chirag127`). 
+If your resume lists standard tutorial projects or basic CLI scripts, you will not survive interviews for mid-to-senior backend or Generative AI roles. Product companies and global remote employers want to see **systems-level thinking**. They want to see that you understand databases, event streams, caching, container orchestration, microservices boundaries, and multi-agent loops.
 
-An elite portfolio project does not need to handle millions of real users; it needs to have **clean repository structure, strict typing, comprehensive unit tests, clear logging, a beautiful README, and an executable script**.
-
-Below are the complete, step-by-step blueprints for building all 5 advanced projects listed on your resume.
+Instead of writing basic web scrapers or simple chatbots, we have designed **5 elite, production-grade systems** built out of the exact skills you acquired across this 27-part IT Career Guide series. Below, we break down **what each project does, its architecture, and how to defend it in a technical interview** without writing any raw code. By pushing clean, well-tested, modular open-source versions of these architectures to your public GitHub profile (`github.com/chirag127`), you make your engineering credentials completely bulletproof.
 
 ---
 
-### Project 1: NexusAI — Multi-Agent RAG Platform (Python & LangGraph)
+### Project 1: Aetherflow — Distributed Event-Driven Telemetry & Analytics Platform
+*   **The Systems Focus:** High-Throughput Event Streaming, Distributed Message Queues, & Time-Series Caching.
+*   **Modern Technical Stack:** Python, FastAPI, Apache Kafka, Redis, PostgreSQL (TimescaleDB), Docker.
 
-**The Resume Claim:** An agentic AI platform that orchestrates multiple autonomous LLM agents using LangGraph and a Graph-based RAG pipeline.
+#### System Architecture & What It Does
+**Aetherflow** is a high-performance telemetry processing pipeline designed to ingest, process, and analyze massive volumes of real-time server performance metrics. The platform is structured into decoupled, event-driven stages to handle high-frequency data streams without system degradation:
+1.  **FastAPI Ingestion Gateway:** An asynchronous HTTP API that acts as a low-latency entry point. It accepts structured JSON payloads representing system diagnostics, validates data integrity using Pydantic, and immediately hands off payloads to a partitioned **Apache Kafka** topic.
+2.  **Partitioned Kafka Event Hub:** Kafka decouples ingestion from database writes, mitigating high-throughput spikes. Events are routed to specific partitions based on server ID hash keys, guaranteeing order preservation for individual host streams.
+3.  **Decoupled Worker Consumers:** A fleet of distributed Python worker processes operating in a Kafka *Consumer Group* read from the topic concurrently. Workers execute real-time aggregations (such as rolling average CPU loads) and update hot metrics directly in **Redis**.
+4.  **Redis Caching Engine:** Serves as a high-performance caching layer for operational dashboards, utilizing cache-aside patterns and TTL jitter schemas to prevent cache stampedes.
+5.  **TimescaleDB Archive Store:** Long-term metrics are written to a PostgreSQL instance optimized with TimescaleDB hypertables, enabling high-performance queries for historical trend analysis.
 
-#### How to Build a Real, Simplified Version
-Create a working, local command-line or API-driven LangGraph agent that coordinates two specialized agents:
-1.  **A Researcher Agent:** Reads a folder of local markdown documents, runs a semantic vector search using a local vector store (FAISS or SQLite), and extracts context.
-2.  **An Editor Agent:** Takes the researcher's output, reviews it for accuracy, calls an LLM API (Groq/Gemini) to format it, and saves the final result.
-
-```
-~/nexus_ai_core/
-├── app/
-│   ├── __init__.py
-│   ├── main.py             # LangGraph StateGraph & Node loops
-│   ├── database.py         # SQLite vector store / local search
-│   └── agent_logic.py      # LLM API calls (using Gemini or Groq)
-├── docs/                   # Local markdown KB documents
-├── tests/
-│   └── test_agents.py      # Pytest suite running the graph
-├── requirements.txt
-└── run_demo.py             # Console entry point
-```
-
-#### Core Python Implementation (`app/main.py`)
-```python
-import os
-from typing import TypedDict, Annotated, List, Literal
-from langgraph.graph import StateGraph, START, END
-from google import genai  # Or use Groq/OpenAI client
-
-# Define the shared Graph State
-class AgentState(TypedDict):
-    query: str
-    context: str
-    draft: str
-    iterations: int
-    approved: bool
-
-# Initialize client (Gemini SDK example)
-client = genai.Client()
-
-def research_node(state: AgentState) -> dict:
-    """Simulates local knowledge retrieval + LLM context gathering."""
-    query = state["query"]
-    # In a real run, perform simple keyword search over ~/nexus_ai_core/docs/
-    mock_context = f"Retrieved local documents relevant to: '{query}'"
-    
-    prompt = f"Using this context: {mock_context}, draft a technical answer for: {query}"
-    response = client.models.generate_content(
-        model='gemini-2.5-flash',
-        contents=prompt
-    )
-    return {"context": mock_context, "draft": response.text, "iterations": state["iterations"] + 1}
-
-def review_node(state: AgentState) -> dict:
-    """Evaluates if the generated draft is thorough."""
-    draft = state["draft"]
-    # Call LLM to evaluate draft quality
-    prompt = f"Assess this technical draft. Does it fully answer the query? Respond with YES or NO only. Draft: {draft}"
-    response = client.models.generate_content(
-        model='gemini-2.5-flash',
-        contents=prompt
-    )
-    is_approved = "YES" in response.text.upper()
-    return {"approved": is_approved}
-
-def routing_edge(state: AgentState) -> Literal["researcher", "__end__"]:
-    """Loops back to researcher if draft fails review, up to 3 times."""
-    if state["approved"] or state["iterations"] >= 3:
-        return "__end__"
-    return "researcher"
-
-# Build Graph
-builder = StateGraph(AgentState)
-builder.add_node("researcher", research_node)
-builder.add_node("reviewer", review_node)
-
-builder.add_edge(START, "researcher")
-builder.add_edge("researcher", "reviewer")
-builder.add_conditional_edges("reviewer", routing_edge, {"researcher": "researcher", "__end__": END})
-
-compiled_graph = builder.compile()
-```
-
-*   **How to Showcase:** Push this code to `github.com/chirag127/NexusAI-Agentic-Workflows`. Add a README showing the graph topology, a sample run output, and instructions on how to install and run the pytest verification suite.
+#### Core Engineering Challenge & Interview Defensibility
+*   **The Interview Grilling:** *"How does Aetherflow prevent database bottlenecking during traffic spikes, and how do you guarantee exactly-once processing?"*
+*   **The Systems Defense:** You explain that PostgreSQL cannot handle direct, unbuffered writes at thousands of transactions per second. By placing Apache Kafka as a persistent commit log buffer, the ingestion gateway responds in sub-milliseconds to clients. The consumer workers consume messages in batches and execute bulk inserts into PostgreSQL using transaction blocks. To prevent data loss or duplicate records during worker crashes, consumers commit offsets back to Kafka only *after* the database transaction successfully commits (at-least-once with database-level deduplication keys ensuring downstream idempotency).
 
 ---
 
-### Project 2: Crawl4AI — Distributed RAG Ingestion (Python & Redis Queue)
+### Project 2: CognitiveGraph — Stateful Multi-Agent Research & Knowledge Platform
+*   **The Systems Focus:** Stateful Cyclic LLM Orchestration, Vector Space Semantics, & Human-in-the-Loop Workflows.
+*   **Modern Technical Stack:** Python, LangGraph, PGVector (PostgreSQL), Ollama (Llama-3), Playwright, Pytest.
 
-**The Resume Claim:** A distributed web crawler using Redis Task Queues to ingest massive datasets for LLM training pipelines, incorporating stealth drivers and Markdown parsing.
+#### System Architecture & What It Does
+**CognitiveGraph** is a stateful, cyclic multi-agent system designed to automate deep-dive developer documentation research and knowledge retrieval. Built using **LangGraph**, it models research processes as state machines, escaping linear directed acyclic graph (DAG) limits:
+1.  **Coordinator Agent:** The central routing node. It accepts natural language queries, splits complex questions into specialized sub-tasks, and tracks graph states (query variables, retrieved context, draft iterations).
+2.  **Vector Search Agent:** Queries a **PGVector** database containing semantically indexed tech documentation, retrieving structural context based on cosine similarity embeddings.
+3.  **Headless Scraper Agent:** When vector search yields outdated or insufficient data, the coordinator routes tasks to a crawler worker that spawns headless **Playwright** instances to fetch live documentation directly from the web, parsing raw HTML into clean Markdown.
+4.  **Editor & Critique Agent:** Utilizes local Llama-3 models via **Ollama** to synthesize the raw context, draft a markdown answer, and critique the output. If formatting rules or technical facts fail validation checks, the graph cyclically routes the state *back* to the researcher agent with self-correction logs.
+5.  **Human-in-the-Loop Validation:** Sensitive operations (such as permanently writing verified records to the database) trigger a compiled LangGraph memory checkpoint interrupt, pausing execution for human approval before resuming.
 
-#### How to Build a Real, Simplified Version
-Do not build a complex system spanning multiple servers. Build a clean, local distributed-style queue using **Python, Redis, and Playwright/BeautifulSoup**:
-1.  **A Publisher Script:** Accepts a list of URLs, creates scraping jobs, and pushes them to a Redis queue.
-2.  **A Worker Process:** Listens to the Redis queue, pops job requests, uses `requests` and `BeautifulSoup` to scrape the page, converts the HTML to Markdown, and writes it to a local SQLite database.
-
-```
-~/crawl4ai_lite/
-├── app/
-│   ├── __init__.py
-│   ├── queue.py            # Simple Redis queue connection
-│   ├── worker.py           # Scraping consumer loop
-│   └── parser.py           # BeautifulSoup HTML-to-Markdown parser
-├── requirements.txt
-├── docker-compose.yml      # Local Redis launcher
-└── run.sh                  # Setup, launch worker, run publisher
-```
-
-#### Core Python Implementation (`app/worker.py`)
-```python
-import time
-import json
-import redis
-import requests
-from bs4 import BeautifulSoup
-import sqlite3
-
-r = redis.Redis(host='localhost', port=6379, db=0)
-db_conn = sqlite3.connect("scraped_data.db")
-db_conn.execute("CREATE TABLE IF NOT EXISTS articles (url TEXT PRIMARY KEY, content TEXT);")
-
-def html_to_markdown(html_content: str) -> str:
-    """Parses HTML and extracts main article text as markdown."""
-    soup = BeautifulSoup(html_content, 'html.parser')
-    # Remove script and style elements
-    for element in soup(["script", "style", "nav", "footer", "header"]):
-        element.decompose()
-    
-    # Extract structural text
-    text_blocks = []
-    for heading in soup.find_all(['h1', 'h2', 'h3']):
-        text_blocks.append(f"\n## {heading.get_text().strip()}\n")
-    for para in soup.find_all('p'):
-        text_blocks.append(para.get_text().strip())
-    return "\n".join(text_blocks)
-
-def process_queue():
-    """Worker loop popping URLs from redis queue and scraping."""
-    print("Worker running. Listening to 'scrape_jobs' queue...")
-    while True:
-        job = r.blpop("scrape_jobs", timeout=5)
-        if not job:
-            continue
-        
-        job_data = json.loads(job[1].decode('utf-8'))
-        url = job_data["url"]
-        print(f"Scraping: {url}")
-        
-        try:
-            headers = {"User-Agent": "Mozilla/5.0 (Windows 11; x64) Chrome/120.0"}
-            res = requests.get(url, headers=headers, timeout=10)
-            if res.status_code == 200:
-                markdown = html_to_markdown(res.text)
-                db_conn.execute(
-                    "INSERT OR REPLACE INTO articles (url, content) VALUES (?, ?);",
-                    (url, markdown)
-                )
-                db_conn.commit()
-                print(f"Successfully ingested and saved: {url}")
-            else:
-                print(f"Failed to scrape {url}: Status {res.status_code}")
-        except Exception as e:
-            print(f"Error scraping {url}: {str(e)}")
-
-if __name__ == "__main__":
-    process_queue()
-```
-
-*   **How to Showcase:** Push this code to `github.com/chirag127/Crawl4AI-LLM-Optimized-Web-Crawler`. Highlight your queue-driven design, the HTML parsing pipeline, and SQLite integration.
+#### Core Engineering Challenge & Interview Defensibility
+*   **The Interview Grilling:** *"Why use LangGraph instead of standard LangChain, and how do you handle state accumulation in long execution loops?"*
+*   **The Systems Defense:** You explain that standard LangChain chains are linear, whereas agentic research is inherently cyclic (requiring self-correction and validation loops). LangGraph treats the workflow as a state machine where nodes return incremental updates. To prevent state bloat, you implement custom **State Reducers** that selectively append message history while overwriting temporary analysis variables, keeping the token context window optimized. Thread safety and session persistence are guaranteed using a compiled memory checkpointer.
 
 ---
 
-### Project 3: Olivia — Edge AI Voice Assistant (Python & Local LLM)
+### Project 3: ShieldOps — DevSecOps API Gateway & Web Application Firewall
+*   **The Systems Focus:** High-Performance Middleware, OAuth2 PKCE Security, Caching, & Input Sanitization.
+*   **Modern Technical Stack:** TypeScript, Node.js, Redis, JWT, OAuth 2.0, OWASP Guard.
 
-**The Resume Claim:** A privacy-first edge voice assistant utilizing local LLMs for intent classification and system automation command execution.
+#### System Architecture & What It Does
+**ShieldOps** is a secure, low-latency API Gateway and reverse proxy designed to sit at the edge of a microservices mesh. Implementing the formal **Adapter Design Pattern**, it unifies communication with multiple third-party systems under a single, highly protected interface:
+1.  **Asynchronous Proxy Routing:** Intercepts incoming HTTP requests, performs schema validations, and maps paths to backend microservices boundaries.
+2.  **Stateless JWT & OAuth2 Authorization:** Validates JSON Web Tokens (JWT) signed by identity providers, supporting secure OAuth2 Proof Key for Code Exchange (PKCE) auth flows. Verified claims are injected into request headers, enabling downstream services to remain stateless.
+3.  **Redis Sliding-Window Rate Limiter:** Protects microservices from DDoS and brute force attacks using a high-efficiency rate limiting algorithm implemented as atomic Redis transactions (`MULTI/EXEC`), keeping latency overhead under 2ms.
+4.  **Active Input Sanitization (OWASP Guardian):** Custom middleware sanitizes headers, query strings, and request bodies, stripping malicious payloads to prevent SQL Injection (SQLi), Cross-Site Scripting (XSS), and Cross-Site Request Forgery (CSRF).
+5.  **Edge Caching Layer:** Caches safe, idempotent GET requests in Redis using strict TTL expiration profiles to reduce backend workloads.
 
-#### How to Build a Real, Simplified Version
-Build a clean, runnable console-based agent that connects to a **locally running Llama-3 model via Ollama** (using the free, lightweight Ollama server) and processes user text commands to run local scripts (like opening browser windows or calculating mathematical expressions).
-
-```
-~/olivia_assistant/
-├── app/
-│   ├── __init__.py
-│   ├── main.py             # Ollama client connection & command loop
-│   └── plugins/            # Intent execution plugins
-│       ├── system_ctrl.py  # Run local scripts / commands
-│       └── web_search.py   # Run local search tool
-├── requirements.txt
-└── run.py                  # Entry point
-```
-
-#### Core Python Implementation (`app/main.py`)
-```python
-import json
-import requests
-import subprocess
-import sys
-
-OLLAMA_URL = "http://localhost:11434/api/generate"
-
-def query_local_llm(prompt: str) -> str:
-    """Queries Ollama running a lightweight model (e.g., llama3 or qwen2.5-coder)."""
-    payload = {
-        "model": "llama3",
-        "prompt": prompt,
-        "stream": False,
-        "format": "json"  # Enforce JSON output for intent mapping
-    }
-    try:
-        res = requests.post(OLLAMA_URL, json=payload, timeout=20)
-        return res.json()["response"]
-    except Exception as e:
-        return json.dumps({"intent": "error", "parameter": str(e)})
-
-def execute_intent(intent: str, param: str) -> str:
-    """Executes local system actions based on mapped intents."""
-    if intent == "open_website":
-        # Safe browser execution
-        url = param if param.startswith("http") else f"https://{param}"
-        subprocess.Popen(["cmd", "/c", "start", url], shell=True)
-        return f"Executing action: Opened browser to {url}"
-    elif intent == "calculate":
-        # Run safe evaluation of simple math strings
-        try:
-            result = eval(param, {"__builtins__": None}, {})
-            return f"Calculated result: {result}"
-        except Exception:
-            return "Invalid expression."
-    else:
-        return "Intent not recognized or system permission denied."
-
-def run_loop():
-    print("=== Olivia Edge Assistant (Ollama Activated) ===")
-    print("Commands: 'open google.com', 'calculate 25 * 4', or 'exit'\n")
-    
-    while True:
-        user_input = input("Olivia > ").strip()
-        if user_input.lower() == "exit":
-            sys.exit(0)
-            
-        system_prompt = (
-            "Analyze the user command and extract the intent. Respond with a JSON object "
-            "containing 'intent' (either 'open_website', 'calculate', or 'unknown') "
-            "and 'parameter' (the website domain or math expression). "
-            f"Command: '{user_input}'"
-        )
-        
-        raw_json = query_local_llm(system_prompt)
-        try:
-            parsed = json.loads(raw_json)
-            intent = parsed.get("intent")
-            param = parsed.get("parameter")
-            print(f"[LLM Intent Mapping] Intent: {intent} | Param: {param}")
-            output = execute_intent(intent, param)
-            print(output)
-        except Exception as e:
-            print(f"Error parsing model response: {raw_json}")
-
-if __name__ == "__main__":
-    run_loop()
-```
-
-*   **How to Showcase:** Push this code to `github.com/chirag127/Olivia-Voice-Assistant`. Highlight how you used structured JSON schemas to reliably map user natural language into local script execution paths.
+#### Core Engineering Challenge & Interview Defensibility
+*   **The Interview Grilling:** *"How do you design a sliding-window rate limiter in Redis that does not suffer from race conditions or memory leaks?"*
+*   **The Systems Defense:** You explain that standard token-bucket limiters can suffer from race conditions in high-concurrency environments. ShieldOps uses a **Redis Sorted Set (ZSET)** for each client IP. When a request arrives, we add a unique timestamp to the set using `ZADD`, remove elements older than the window limit using `ZREMRANGEBYSCORE`, and count the remaining items using `ZCARD`. These operations are wrapped in an atomic Redis `MULTI/EXEC` transaction block, guaranteeing thread safety while automatic TTL expirations on key-value pairs prevent memory leaks.
 
 ---
 
-### Project 4: TubeDigest — Multimodal Sponsor Detection (Python & Whisper/T5)
+### Project 4: KryptonMesh — High-Performance gRPC Microservices Mesh
+*   **The Systems Focus:** Decoupled Service Architectures, gRPC Serialization, gRPC Protobuf, Saga Transactions, & Circuit Breakers.
+*   **Modern Technical Stack:** TypeScript, NestJS, gRPC, Docker, Kubernetes, Helm, Prometheus.
 
-**The Resume Claim:** An AI engine to detect sponsor segments using Hugging Face Transformers and multimodal analysis, optimized with ONNX Runtime.
+#### System Architecture & What It Does
+**KryptonMesh** is a modular, production-grade microservices mesh demonstrating clean Domain-Driven Design (DDD) boundaries and high-efficiency inter-service communication:
+1.  **gRPC Protocol Buffers Integration:** Replaces high-overhead JSON-over-HTTP REST endpoints with low-latency, binary-serialized **gRPC** protocol buffers for internal service-to-service calls.
+2.  **Saga Pattern Transactions:** Manages distributed transactional consistency across isolated database instances (such as a customer service and an inventory service) using the *Saga design pattern*, coordinating compensating database rollbacks if intermediate steps fail.
+3.  **Resiliency Circuit Breakers:** Wraps all remote inter-service gRPC calls in fault-tolerant *Circuit Breakers* (similar to Netflix Hystrix), automatically returning fallback values or triggering retries if a dependency goes down.
+4.  **Containerized Orchestration:** Every microservice is packaged using highly optimized multi-stage Dockerfiles that minimize image sizes and eliminate root-user security vulnerabilities.
+5.  **Kubernetes Deployment Topology:** Deployed on local Kubernetes clusters utilizing declarative manifests with load-balancing Ingress controllers, resource CPU/Memory constraints, liveness/readiness diagnostic probes, and Helm chart packaging.
 
-#### How to Build a Real, Simplified Version
-Instead of full audio-video parsing, build a clean, functional text-based summarization and highlight engine:
-1.  **Extract Transcript:** Use the free library `youtube-transcript-api` to fetch transcripts of any YouTube video URL.
-2.  **Run Summarization Pipeline:** Send the transcript to an open-source LLM (via Ollama or Groq API) to extract the core points and flag promotional segments (e.g., "Sponsored by", "NordVPN", "Skillshare").
-
-```
-~/tube_digest/
-├── app/
-│   ├── __init__.py
-│   ├── main.py             # FastAPI server routing
-│   └── transcript.py       # youtube-transcript-api fetch logic
-├── requirements.txt
-└── run.py                  # Server launcher
-```
-
-#### Core Python Implementation (`app/main.py`)
-```python
-from fastapi import FastAPI, HTTPException
-from youtube_transcript_api import YouTubeTranscriptApi
-import requests
-
-app = FastAPI(title="TubeDigest Backend Core")
-GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-# Replace with actual key or mock with a local model
-GROQ_API_KEY = "mock_key" 
-
-def fetch_youtube_transcript(video_id: str) -> str:
-    """Retrieves full text transcript of a YouTube video."""
-    try:
-        srt = YouTubeTranscriptApi.get_transcript(video_id)
-        return " ".join([entry["text"] for entry in srt])
-    except Exception as e:
-        raise Exception(f"Failed to fetch YouTube transcripts: {str(e)}")
-
-@app.post("/analyze/{video_id}")
-def analyze_video(video_id: str):
-    """Fetches transcript, detects promotional segments, and returns summary."""
-    try:
-        transcript = fetch_youtube_transcript(video_id)
-        # Limit transcript context size to prevent token limits
-        context = transcript[:4000] 
-        
-        prompt = (
-            "Analyze the following video transcript. Identify and list any promotional segments, "
-            "sponsor callouts (e.g. NordVPN, Skillshare, etc.), or sales pitches. "
-            "Then, provide a brief 3-sentence summary of the main educational content. "
-            f"Transcript: {context}"
-        )
-        
-        # In a real setup, connect to Groq/Ollama API
-        # Return mock analysis if key is missing, or call the model
-        return {
-            "video_id": video_id,
-            "transcript_length": len(transcript),
-            "sponsor_analysis": "Detected potential sponsor segments: 'NordVPN' callout at transcript block 3.",
-            "content_summary": "This video covers standard structural patterns in microservices architectures, explaining API gateways and database replication topologies."
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-```
-
-*   **How to Showcase:** Push this code to `github.com/chirag127/TubeDigest-AI-Sponsor-Block`. Highlight how you handled raw text data extraction, handled context windows, and mapped API responses.
+#### Core Engineering Challenge & Interview Defensibility
+*   **The Interview Grilling:** *"Why choose gRPC over REST for microservices communication, and how does your circuit breaker handle transient network failures?"*
+*   **The Systems Defense:** You explain that HTTP/1.1 REST APIs suffer from head-of-line blocking and massive serialization overhead due to verbose JSON strings. gRPC utilizes HTTP/2 multiplexing, allowing multiple requests to flow over a single TCP connection, while binary Protocol Buffers reduce payload sizes by up to 70%. Your circuit breakers prevent cascade failures: if a downstream service latency exceeds a 500ms threshold over 10 consecutive requests, the breaker trips to 'Open', immediately failing fast with fallback data, and gradually tests recovery by routing minor canary traffic when entering the 'Half-Open' state.
 
 ---
 
-### Project 5: OmniPublish — Content Orchestration Engine (Node.js & Express)
+### Project 5: VeloCI — Declarative Infrastructure & Multi-Stage CI/CD Mesh
+*   **The Systems Focus:** Infrastructure as Code (IaC), GitOps Automation, Parallel Pipelines, & Cloud Platform Deployments.
+*   **Modern Technical Stack:** Terraform, AWS (EKS, VPC, S3), GitHub Actions, Helm, Docker, GitHub Container Registry (GHCR).
 
-**The Resume Claim:** A content orchestration engine using the Adapter pattern to unify multiple social publishing APIs (LinkedIn, Twitter) behind a single, resilient interface.
+#### System Architecture & What It Does
+**VeloCI** is a robust DevOps and infrastructure integration project demonstrating modern GitOps automation and secure cloud provisioning:
+1.  **Terraform Cloud Provisioning:** Provisions a complete, multi-zone AWS VPC network topology and an Elastic Kubernetes Service (EKS) cluster using modular **Terraform** configurations, incorporating secure IAM roles and state-locking mechanisms.
+2.  **Parallel GitHub Actions Pipelines:** Runs optimized, cache-enabled CI/CD pipelines on every push. Pipelines execute static analysis (linters and typecheckers) and unit tests concurrently across multiple parallel runners using matrix strategies.
+3.  **GHCR Packaging:** Successfully built Docker container images are tagged, optimized, and pushed to the **GitHub Container Registry (GHCR)**.
+4.  **Helm Deployment Management:** Deployments to AWS EKS are managed dynamically using **Helm** charts, structuring environment variables, config maps, and resource limits cleanly.
+5.  **Rollback Automation:** Incorporates continuous health diagnostics during deployment; if liveness probes fail during rolling updates, the pipeline automatically halts and triggers a Helm rollback to the last stable state.
 
-#### How to Build a Real, Simplified Version
-Build a highly structured, strictly typed **TypeScript/Express API Gateway** that implements a formal **Adapter Design Pattern** to post structured content to third-party endpoints. In your code, implement:
-1.  A standard, unified interface class (`SocialAdapter`).
-2.  Concrete implementations for `TwitterAdapter` and `LinkedInAdapter` that handle API payloads, error catching, and rate limits.
-3.  A mock testing harness that runs a local server and prints unified post confirmations.
-
-```
-~/omnipublish_core/
-├── src/
-│   ├── index.ts            # Express server configuration
-│   ├── adapters/
-│   │   ├── base.ts         # Abstract base Adapter class
-│   │   ├── twitter.ts      # Mock/Real Twitter API integration
-│   │   └── linkedin.ts     # Mock/Real LinkedIn API integration
-│   └── routing.ts          # Express API route handlers
-├── package.json
-└── tsconfig.json
-```
-
-#### Core TypeScript Implementation (`src/adapters/twitter.ts`)
-```typescript
-import { SocialAdapter, PostPayload, PostResponse } from "./base";
-
-export class TwitterAdapter extends SocialAdapter {
-    async publish(payload: PostPayload): Promise<PostResponse> {
-        console.log(`[Twitter Adapter] Formatting tweet: ${payload.text}`);
-        
-        // Enforce Twitter character limits (280 characters)
-        if (payload.text.length > 280) {
-            throw new Error("[Twitter Adapter] Content exceeds character limit.");
-        }
-        
-        try {
-            // Mock API network request to Twitter endpoint
-            // const res = await fetch("https://api.twitter.com/v2/tweets", { ... });
-            
-            return {
-                platform: "Twitter",
-                postId: `tweet_${Math.floor(Math.random() * 1000000)}`,
-                success: true,
-                timestamp: new Date().toISOString()
-            };
-        } catch (error: any) {
-            return {
-                platform: "Twitter",
-                postId: "",
-                success: false,
-                error: error.message || "Unknown adapter exception"
-            };
-        }
-    }
-}
-```
-
-*   **How to Showcase:** Push this code to `github.com/chirag127/OmniPublish-Platform`. Add a structured README explaining how the Adapter design pattern decouples the primary client application from third-party vendor APIs, making the platform highly modular and easy to expand.
+#### Core Engineering Challenge & Interview Defensibility
+*   **The Interview Grilling:** *"How do you secure infrastructure secrets in GitHub Actions, and how does Terraform prevent concurrent state modification?"*
+*   **The Systems Defense:** You explain that hardcoding cloud credentials or database keys is a critical security vulnerability. VeloCI utilizes AWS OpenID Connect (OIDC) federation, allowing GitHub Actions to authenticate directly with AWS via temporary IAM role sessions, eliminating the need to store long-lived access keys in GitHub Secrets. Concurrent infrastructure updates are prevented by configuring a remote S3 backend for Terraform, utilizing a DynamoDB table state-locking key that blocks execution if another engineer or workflow runner attempts a parallel deploy.
 
 ---
 
@@ -605,59 +295,73 @@ Update your Projects section to highlight the real, open-source repositories you
       \end{cvitems}
     }
     \vspace{4.0mm}
-  % NexusAI
+  % Aetherflow
   \cventry
-    {Python, LangGraph, Gemini SDK, Pytest, SQLite} % Tech Stack
-    {NexusAI — Stateful Multi-Agent Orchestrator} % Project Name
-    {github.com/chirag127/NexusAI-Agentic-Workflows} % Link
+    {Python, FastAPI, Apache Kafka, Redis, PostgreSQL (TimescaleDB)} % Tech Stack
+    {Aetherflow — Distributed Event-Driven Telemetry & Analytics Platform} % Project Name
+    {github.com/chirag127/Aetherflow-Event-Streaming-Telemetry} % Link
     {} % Date(s)
     {
       \begin{cvitems} % Description(s)
-        \item {Developed a stateful multi-agent system utilizing **LangGraph** to coordinate specialized 'Researcher' and 'Reviewer' agents through cyclic reasoning loops.}
-        \item {Implemented dynamic state reducers and thread-safe in-memory session persistence, enabling seamless history tracking and self-correction flows.}
-        \item {Configured a validation harness powered by **Pytest**, verifying state transitions and API routing reliability across concurrent agent sessions.}
+        \item {Engineered a high-throughput telemetry ingestion pipeline utilizing asynchronous **FastAPI** gateways and **Pydantic** schema validation.}
+        \item {Implemented **Apache Kafka** topic partitioning to decouple ingestion from database operations, buffering high-frequency metric streams.}
+        \item {Developed concurrent Python consumer workers utilizing **Redis** for real-time in-memory aggregations and **TimescaleDB** hypertables for time-series metrics archive.}
       \end{cvitems}
     }
     \vspace{4.0mm}
-  % Crawl4AI
+  % CognitiveGraph
   \cventry
-    {Python, Redis Queue (RQ), BeautifulSoup, SQLite} % Tech Stack
-    {Crawl4AI — Queue-Driven Scraping Pipeline} % Project Name
-    {github.com/chirag127/Crawl4AI-LLM-Optimized-Web-Crawler} % Link
+    {Python, LangGraph, PGVector, Ollama (Llama-3), Playwright, Pytest} % Tech Stack
+    {CognitiveGraph — Stateful Multi-Agent Research & Knowledge Platform} % Project Name
+    {github.com/chirag127/CognitiveGraph-Agentic-Workflows} % Link
     {} % Date(s)
     {
       \begin{cvitems} % Description(s)
-        \item {Built a queue-driven, asynchronous scraping system utilizing **Redis** to ingest web datasets for downstream LLM pipelines.}
-        \item {Designed custom HTML parsing logic using **BeautifulSoup** to strip document styling, parsing unstructured markup into clean, readable Markdown.}
-        \item {Persisted extracted documents inside a local **SQLite** database, optimizing insert pathways using standard relational schemas.}
+        \item {Architected a stateful, cyclic multi-agent research coordinator in **LangGraph** managing state vectors and reflection self-correction loops.}
+        \item {Configured headless **Playwright** scraping agents to dynamically harvest web documentation, parsing unstructured markup into clean Markdown.}
+        \item {Implemented semantically indexed knowledge stores using **PGVector** and registered human-in-the-loop checkpoint interrupts for write approvals.}
       \end{cvitems}
     }
     \vspace{4.0mm}
-  % Olivia
+  % ShieldOps
   \cventry
-    {Python, Ollama (Llama-3), JSON Schemas, Subprocess} % Tech Stack
-    {Olivia — Edge AI Script Automation Agent} % Project Name
-    {github.com/chirag127/Olivia-Voice-Assistant} % Link
+    {TypeScript, Node.js, Redis, JWT, OAuth 2.0 (PKCE)} % Tech Stack
+    {ShieldOps — DevSecOps API Gateway & Web Application Firewall} % Project Name
+    {github.com/chirag127/ShieldOps-API-Gateway} % Link
     {} % Date(s)
     {
       \begin{cvitems} % Description(s)
-        \item {Engineered a local system automation agent leveraging a locally hosted **Llama-3** model via **Ollama** for prompt processing.}
-        \item {Structured prompt context to enforce strict, schema-compliant **JSON** outputs, mapping natural language queries to reliable system action paths.}
-        \item {Integrated safe subprocess controls and evaluation scopes to run math calculations and system commands directly from console inputs.}
+        \item {Designed a low-latency reverse proxy gateway using the **Adapter Pattern** to unify and secure multiple third-party microservices.}
+        \item {Implemented stateful token-based JWT validation with OAuth2 PKCE auth flows, injecting verified claims directly into backend headers.}
+        \item {Wrote an atomic sliding-window rate limiter in **Redis** utilizing sorted sets (ZSET) wrapped in transaction blocks, keeping edge latency overhead under **2ms**.}
       \end{cvitems}
     }
     \vspace{4.0mm}
-  % OmniPublish
+  % KryptonMesh
   \cventry
-    {TypeScript, Node.js, Express, Adapter Pattern, TS-Node} % Tech Stack
-    {OmniPublish — API Gateway Integration Service} % Project Name
-    {github.com/chirag127/OmniPublish-Platform} % Link
+    {TypeScript, NestJS, gRPC, Docker, Kubernetes, Helm, Prometheus} % Tech Stack
+    {KryptonMesh — High-Performance gRPC Microservices Mesh} % Project Name
+    {github.com/chirag127/KryptonMesh-Microservices} % Link
     {} % Date(s)
     {
       \begin{cvitems} % Description(s)
-        \item {Developed a strictly typed Express API gateway utilizing **TypeScript** to orchestrate social media publishing pipelines.}
-        \item {Implemented the formal **Adapter Design Pattern** to standardize posting interfaces, decoupling primary application routing from third-party APIs.}
-        \item {Configured input validation schemas and custom middleware to handle API exceptions, rate limits, and network errors cleanly.}
+        \item {Structured a decoupled microservices architecture utilizing binary-serialized **gRPC Protocol Buffers** to reduce inter-service latency by 70\%.}
+        \item {Implemented the **Saga Pattern** for distributed transaction consistency alongside Hystrix-style **Circuit Breakers** to eliminate cascade failures.}
+        \item {Packaged microservices inside multi-stage Dockerfiles and deployed them via Helm charts onto a replica Kubernetes cluster with Ingress routing.}
+      \end{cvitems}
+    }
+    \vspace{4.0mm}
+  % VeloCI
+  \cventry
+    {Terraform, AWS (EKS/VPC), GitHub Actions, Helm, GHCR} % Tech Stack
+    {VeloCI — Declarative Infrastructure & Multi-Stage CI/CD Mesh} % Project Name
+    {github.com/chirag127/VeloCI-Infrastructure-Mesh} % Link
+    {} % Date(s)
+    {
+      \begin{cvitems} % Description(s)
+        \item {Provisioned multi-zone AWS VPC networks and EKS Kubernetes clusters declaratively utilizing **Terraform** modules with S3 state-locking.}
+        \item {Configured automated GitHub Actions workflows with build matrix testing, caching directories, and Helm automated rollbacks on failure.}
+        \item {Set up OpenID Connect (OIDC) federation for keyless AWS authentication, eliminating static access keys in GitHub Secrets.}
       \end{cvitems}
     }
 \end{cventries}
