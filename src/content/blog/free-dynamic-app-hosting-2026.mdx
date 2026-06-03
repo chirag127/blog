@@ -1,0 +1,925 @@
+---
+title: "The Complete Guide to Free Dynamic App Hosting in 2026 (Node.js, Python & More)"
+description: "Static hosting is everywhere. But where do you host a real Node.js or Python server for free? This guide covers every platform — from Render to Oracle Cloud — with exact CPU, RAM, sleep policies, and honest trade-offs for each."
+pubDate: 2026-06-03
+updatedDate: 2026-06-03
+tags: ["Node.js", "Python", "Hosting", "DevOps", "Free Tier", "Cloud", "Backend", "Self-Hosting", "PaaS", "IaaS"]
+category: "Engineering"
+author: "Chirag Singhal"
+draft: false
+---
+
+# The Complete Guide to Free Dynamic App Hosting in 2026
+
+Everyone knows about Cloudflare Pages, Vercel, and GitHub Pages for static
+sites. There are dozens of great options for hosting a folder of HTML files.
+
+But what happens when you need to run a **real server** — a Node.js Express
+API, a Python FastAPI backend, a Django application, a WebSocket server, or
+a Next.js app with server-side rendering? The free options shrink dramatically.
+
+This guide covers **every meaningful free-tier platform** that can actually
+run dynamic server-side code in 2026. We cover the exact resources you get,
+whether your app sleeps, how cold starts work, supported runtimes, and the
+honest trade-offs that most comparison articles skip.
+
+---
+
+## Why Dynamic Hosting Is Harder to Find for Free
+
+Static hosting is cheap because servers do nothing between requests — they
+just serve files from a CDN. A dynamic server must be running and consuming
+CPU and RAM at all times to process requests. That costs real money.
+
+To offer free tiers, providers use one of three strategies:
+
+1. **Sleep after inactivity** — the server stops when idle and restarts on
+   the next request (cold start delay of 15–60 seconds).
+2. **Scale to zero / serverless** — your code runs in short-lived function
+   invocations, not a persistent process.
+3. **VMs with genuinely free compute** — Oracle Cloud's infamous Always Free
+   tier is the most notable example.
+
+Understanding which model a platform uses is the most important thing to
+know before committing to it.
+
+---
+
+## The Platform Landscape: What Died, What Changed
+
+Before diving in, a quick reality check. Several platforms that developers
+relied on in 2023–2024 are gone or changed beyond recognition:
+
+- **Heroku free tier** — removed in November 2022. Heroku is now paid-only.
+- **Glitch app hosting** — ended. The community platform remains but hosting
+  user apps with a live `glitch.me` URL is gone.
+- **Cyclic.sh** — shut down completely.
+- **Deta Space** — shut down its cloud hosting services.
+- **Railway free tier** — removed. Railway now offers $5 trial credits to new
+  users, but there is no permanent free plan.
+- **Fly.io free tier** — removed for new users. Trial-only.
+
+This is the reality of free-tier hosting: it changes. Always have a migration
+path in mind.
+
+---
+
+## Category 1 — Always-On Free VMs (True Persistent Servers)
+
+These give you a real virtual machine or container that stays running 24/7
+with no sleep, no cold starts, and no serverless constraints.
+
+---
+
+### Oracle Cloud Always Free
+
+**URL:** [oracle.com/cloud/free](https://www.oracle.com/cloud/free/)
+
+Oracle Cloud's Always Free tier is the single most powerful free compute
+offer in the cloud industry. It has been available since 2019 and has not
+been removed or downgraded — making it the most stable free-tier offer on
+this list.
+
+**What you actually get:**
+
+| Resource | Spec |
+|---|---|
+| ARM VMs | 4 Ampere A1 OCPUs + 24 GB RAM (shared across up to 4 VMs) |
+| x86 VMs | 2× AMD-based e2.micro (1/8 OCPU, 1 GB RAM each) |
+| Block Storage | 200 GB total across 2 volumes |
+| Object Storage | 10 GB |
+| Outbound bandwidth | 10 TB/month |
+| Network egress speed | 500 Mbps × core count on ARM |
+
+The ARM configuration is particularly compelling: 4 OCPUs + 24 GB RAM is
+enough to run multiple full-stack applications, a database, a Redis cache,
+and a reverse proxy — all for free.
+
+**Supported runtimes:** Everything. You have a full Ubuntu or Oracle Linux
+VM. Install Node.js, Python, Ruby, Go, Java, Rust, Docker — whatever you
+need.
+
+**Sleep policy:** None. The VMs run 24/7.
+
+**The catch:** Oracle requires a credit card for identity verification even
+for the Always Free tier. They will not charge it unless you manually upgrade
+to a paid tier, but some developers are uncomfortable with this. Additionally,
+availability of ARM instances varies by region and can be difficult to
+provision during high-demand periods.
+
+**Setup complexity:** High. You are managing a Linux server — SSH keys, UFW
+firewall, Nginx reverse proxy, SSL certificates via Let's Encrypt, systemd
+services, and OS updates are all your responsibility.
+
+**Best for:** Developers comfortable with Linux server administration who
+want maximum free compute. Run your entire backend stack here.
+
+**Sample stack on Oracle Free Tier:**
+```bash
+# Node.js app with PM2 process manager
+npm install -g pm2
+pm2 start server.js --name my-api
+pm2 startup    # survive reboots
+pm2 save
+
+# Nginx as reverse proxy
+sudo apt install nginx
+# Proxy localhost:3000 → public port 80/443
+```
+
+---
+
+### Google Cloud Free Tier (Compute Engine e2-micro)
+
+**URL:** [cloud.google.com/free](https://cloud.google.com/free)
+
+Google Cloud offers one always-free e2-micro VM per account in specific
+US regions (us-west1, us-central1, us-east1).
+
+**What you actually get:**
+
+| Resource | Spec |
+|---|---|
+| vCPUs | 2 (shared, burstable) |
+| RAM | 1 GB |
+| Storage | 30 GB HDD |
+| Outbound egress | 1 GB/month from North America |
+| Regions | us-west1, us-central1, us-east1 only |
+
+1 GB of RAM is tight. You can run a small Node.js or Python application,
+but anything memory-intensive will struggle. Swap helps but degrades
+performance significantly.
+
+**Sleep policy:** None. Always running.
+
+**The catch:** 1 GB RAM is genuinely limiting. The 1 GB outbound egress cap
+is also very small for any app serving non-trivial traffic.
+
+**Best for:** Lightweight APIs, bots, cron jobs, and webhook receivers.
+
+---
+
+## Category 2 — PaaS with Sleep (Free Web Services)
+
+These platforms offer managed deployment with a free tier, but your
+application sleeps after a period of inactivity and takes a cold start
+penalty on the next request.
+
+---
+
+### Render
+
+**URL:** [render.com](https://render.com)
+
+Render is currently the most popular free-tier PaaS for individual
+developers and is the closest modern replacement for the old Heroku free
+tier.
+
+**What you actually get (Free Web Service):**
+
+| Resource | Spec |
+|---|---|
+| RAM | 512 MB |
+| CPU | 0.1 vCPU (shared) |
+| Bandwidth | 100 GB/month |
+| Build minutes | 500/month |
+| Sleep policy | Spins down after 15 min of inactivity |
+| Cold start | 30–60 seconds |
+
+**Supported runtimes:** Node.js, Python, Ruby, Go, Rust, Elixir, Docker.
+Render detects your runtime automatically from your repository.
+
+**Free PostgreSQL:** Render offers a free PostgreSQL database, but it expires
+after 30 days (it is meant for development only). For production, you need
+a paid plan or an external database.
+
+**The cold start problem:** After 15 minutes of no traffic, your app shuts
+down. The next visitor waits 30–60 seconds for it to restart. This is the
+biggest pain point of the free tier. There are workarounds — external cron
+services pinging your app every 14 minutes — but Render actively rate-limits
+these.
+
+**Deploying a Node.js app:**
+```yaml
+# render.yaml
+services:
+  - type: web
+    name: my-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+```
+
+**Best for:** Hobby projects, side projects, demos, and development
+environments where cold starts are acceptable.
+
+---
+
+### Koyeb
+
+**URL:** [koyeb.com](https://koyeb.com)
+
+Koyeb is a newer PaaS that positions itself as a developer-friendly
+alternative to Render and Fly.io. Its free tier is notable because
+the instance does not sleep after inactivity.
+
+**What you actually get (Free Nano instance):**
+
+| Resource | Spec |
+|---|---|
+| RAM | 512 MB |
+| CPU | 0.1 vCPU |
+| Regions | Frankfurt (EU) or Washington D.C. (US) |
+| Free instances | 1 |
+| Sleep policy | **None — always on** |
+| Databases | Not included in free tier |
+
+The key advantage over Render: no sleep. Your API is always ready. This
+makes Koyeb the best free managed PaaS for applications that need consistent
+response times.
+
+**Supported runtimes:** Node.js, Python, Go, Ruby, PHP, Docker. Koyeb
+also supports deploying from a GitHub repo or a Docker image directly.
+
+**The catch:** Only one free instance. Worker services (background jobs)
+and persistent volumes are not available on the free tier. You need an
+external database (Supabase, Neon, or MongoDB Atlas all have free tiers).
+
+**Deploying via CLI:**
+```bash
+# Install Koyeb CLI
+npm install -g @koyeb/koyeb-cli
+
+# Deploy from current directory
+koyeb app init my-python-api
+koyeb service create \
+  --app my-python-api \
+  --git github.com/chirag127/my-api \
+  --git-branch main \
+  --instance-type nano \
+  --ports 8000:http \
+  --routes /:8000 \
+  --env PORT=8000
+```
+
+**Best for:** Always-on APIs, webhooks, and small web services that cannot
+afford cold start delays.
+
+---
+
+### Northflank
+
+**URL:** [northflank.com](https://northflank.com)
+
+Northflank is a developer platform with a free tier that supports persistent
+services. It is less well-known than Render but offers solid free compute.
+
+**What you actually get (Free tier):**
+
+| Resource | Spec |
+|---|---|
+| Services | 2 free services |
+| RAM per service | 512 MB |
+| vCPUs per service | 0.2 |
+| Sleep policy | Always on (no sleep) |
+| Databases | 1 free database (PostgreSQL/MySQL/MongoDB) |
+| Build minutes | 200/month |
+
+**Supported runtimes:** Any language via Docker, plus buildpacks for
+Node.js, Python, Ruby, Go, Java.
+
+The inclusion of a free database makes Northflank a particularly complete
+free stack — you can deploy a backend service and a database without needing
+external services.
+
+**Best for:** Full-stack hobby apps where you want both backend and database
+in one place.
+
+---
+
+## Category 3 — Serverless & Edge (Scale-to-Zero)
+
+These platforms run your code in short-lived function invocations rather
+than a persistent process. They are not suitable for every application but
+offer generous free tiers and zero cold starts for warm functions.
+
+---
+
+### Google Cloud Run
+
+**URL:** [cloud.google.com/run](https://cloud.google.com/run)
+
+Cloud Run is Google's managed serverless container platform. You package
+your app as a Docker image and Cloud Run handles scaling from zero to N.
+
+**What you actually get (Free tier, monthly):**
+
+| Resource | Spec |
+|---|---|
+| Requests | 2 million per month |
+| CPU time | 360,000 GB-seconds |
+| Memory time | 180,000 vCPU-seconds |
+| Network egress | 1 GB from North America |
+| Cold start | Yes (varies by image size and language) |
+
+**Supported runtimes:** Anything that runs in a Docker container — Node.js,
+Python, Go, Java, .NET, etc. Cloud Run is runtime-agnostic.
+
+**The cold start reality:** Cold starts on Cloud Run range from 200ms
+(Go, minimal image) to several seconds (Node.js with heavy dependencies,
+Python with ML libraries). You can set `--min-instances 1` to eliminate cold
+starts but this counts against your free tier allocation.
+
+**Deploying a Python Flask app:**
+```dockerfile
+# Dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD ["python", "app.py"]
+```
+
+```bash
+# Deploy via gcloud CLI
+gcloud run deploy my-api \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --max-instances 3
+```
+
+**Best for:** APIs and microservices that handle traffic in bursts,
+particularly those that are already containerized.
+
+---
+
+### Cloudflare Workers
+
+**URL:** [workers.cloudflare.com](https://workers.cloudflare.com)
+
+Cloudflare Workers runs your JavaScript or TypeScript (and now Python via
+Pyodide) at the edge, distributed across 300+ global data centers. It is
+not a traditional server — it is a V8 isolate-based edge runtime.
+
+**What you actually get (Free tier):**
+
+| Resource | Spec |
+|---|---|
+| Requests | 100,000 per day |
+| CPU time per request | 10ms (CPU time, not wall-clock) |
+| Memory | 128 MB per isolate |
+| KV storage | 1 GB + 100k reads/day |
+| D1 database | 5M rows read/day, 100k writes/day, 1 GB |
+| R2 storage | 10 GB + operations |
+| Queues | 1M messages/month |
+| Global CDN | Included |
+
+**The key difference:** Workers do not run a persistent server. Each request
+creates a fresh isolate. You cannot maintain state in memory between
+requests, open persistent database connections in the traditional way, or
+run long-lived background processes.
+
+**What Works well on Workers:**
+- REST APIs with stateless request handling
+- Webhook receivers
+- Authentication middleware
+- Image/content transformation proxies
+- A/B testing logic
+- Rate limiting
+
+**What does NOT work on Workers:**
+- WebSocket servers (requires Durable Objects — paid)
+- Long-running background jobs
+- Heavy CPU tasks (10ms CPU limit)
+- Libraries that need native Node.js APIs (fs, child_process, etc.)
+
+**Node.js compatibility:** Workers has good `node:` compat for common
+APIs but it is not full Node.js. Test your dependencies carefully.
+
+**Python support:** Workers supports Python via the `python_workers`
+compatibility flag, running Pyodide. It works for pure-Python logic but
+is limited compared to a full CPython environment.
+
+**Deploying a Worker:**
+```typescript
+// worker.ts
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/api/health") {
+      return Response.json({ status: "ok", ts: Date.now() });
+    }
+
+    return new Response("Not Found", { status: 404 });
+  },
+};
+```
+
+```bash
+# Deploy with Wrangler
+npx wrangler deploy
+```
+
+**Best for:** High-traffic stateless APIs, edge middleware, and any
+application that benefits from global distribution.
+
+---
+
+### AWS Lambda + API Gateway (Free Tier)
+
+**URL:** [aws.amazon.com/lambda](https://aws.amazon.com/lambda)
+
+AWS Lambda is the original serverless compute platform. The free tier
+is permanent (not just 12 months).
+
+**What you actually get (Free tier, monthly):**
+
+| Resource | Spec |
+|---|---|
+| Invocations | 1 million/month |
+| Compute | 400,000 GB-seconds/month |
+| API Gateway | 1 million API calls/month (12 months only) |
+| Cold start | Yes (varies by runtime and package size) |
+
+**Supported runtimes:** Node.js 20/22, Python 3.12/3.13, Java, .NET,
+Ruby, Go (custom runtime).
+
+**The API Gateway caveat:** The 1 million free API Gateway calls is only
+for the first 12 months. After that, API Gateway costs $3.50/million
+requests. For high-traffic free APIs, this is a concern. Lambda Function
+URLs (a simpler HTTP endpoint mechanism) are always free within the Lambda
+invocation limit.
+
+**Deploying a Node.js Lambda with Function URL:**
+```javascript
+// index.mjs
+export const handler = async (event) => {
+  return {
+    statusCode: 200,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: "Hello from Lambda",
+      path: event.rawPath,
+    }),
+  };
+};
+```
+
+**Best for:** Developers already in the AWS ecosystem who need scalable,
+event-driven compute without worrying about servers.
+
+---
+
+### Vercel Serverless Functions
+
+**URL:** [vercel.com](https://vercel.com)
+
+Vercel is primarily a frontend platform, but it supports serverless functions
+that run Node.js code. Every API route in a Next.js or Astro app becomes a
+serverless function automatically.
+
+**What you actually get (Hobby / Free tier):**
+
+| Resource | Spec |
+|---|---|
+| Function invocations | 1 million/month |
+| Function duration | 10 seconds max (Hobby) |
+| Memory | 1024 MB |
+| Bandwidth | 100 GB/month |
+| Regions | 1 (us-east-1 or your nearest) |
+| Edge functions | Unlimited (100ms CPU limit) |
+
+**Supported runtimes:** Node.js, Python (beta), Edge Runtime (V8).
+
+**Limitations:** The 10-second function timeout is a real constraint for
+long-running operations. Python support is in beta and has limitations.
+You cannot run a persistent WebSocket server or background jobs.
+
+**Best for:** Full-stack Next.js and Astro applications where the backend
+is server-side rendering or simple API routes.
+
+---
+
+### Netlify Functions
+
+**URL:** [netlify.com](https://netlify.com)
+
+Netlify offers serverless functions (powered by AWS Lambda under the hood)
+alongside its static hosting.
+
+**What you actually get (Free tier):**
+
+| Resource | Spec |
+|---|---|
+| Function invocations | 125,000/month |
+| Function duration | 10 seconds max |
+| Bandwidth | 100 GB/month |
+| Build minutes | 300/month |
+
+**Supported runtimes:** Node.js, Python 3.x (via zip deploys).
+
+The 125,000 monthly invocation limit is lower than Vercel or AWS Lambda
+and can be exhausted quickly by popular APIs.
+
+**Best for:** Simple serverless functions alongside a static frontend,
+particularly if you are already using Netlify for hosting.
+
+---
+
+## Category 4 — Specialized Free Tiers
+
+These platforms have specific use cases but offer free compute for dynamic
+apps within their domain.
+
+---
+
+### Hugging Face Spaces
+
+**URL:** [huggingface.co/spaces](https://huggingface.co/spaces)
+
+Hugging Face Spaces is designed for sharing ML demos but works well for
+any Python web application built with Streamlit, Gradio, or a custom Docker
+image.
+
+**What you actually get (Free CPU tier):**
+
+| Resource | Spec |
+|---|---|
+| vCPUs | 2 |
+| RAM | 16 GB |
+| Storage | Ephemeral (data lost on restart) |
+| Sleep policy | Spaces sleep after 48h of inactivity (free) |
+| GPU | Requires paid upgrade |
+
+16 GB of RAM on a free tier is exceptional. This is more than enough for
+almost any Python web application, including those with ML inference on CPU.
+
+**Supported runtimes:** Python (Streamlit, Gradio, FastAPI, Flask, Docker).
+The Docker runtime lets you run literally anything.
+
+**The catch:** Spaces sleep after 48 hours of inactivity. Storage is
+ephemeral — restarting the space wipes any data written to disk. For
+persistent storage, you need to use the Hugging Face Hub or external services.
+Spaces are public by default; private Spaces require a paid plan.
+
+**Deploying a FastAPI app:**
+```python
+# app.py
+from fastapi import FastAPI
+import uvicorn
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"status": "healthy"}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+```
+
+```dockerfile
+# Dockerfile for HF Spaces
+FROM python:3.11
+WORKDIR /code
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD ["python", "app.py"]
+```
+
+**Best for:** Python AI/ML apps, data science dashboards, and any Python
+application that benefits from having 16 GB of RAM.
+
+---
+
+### Replit
+
+**URL:** [replit.com](https://replit.com)
+
+Replit is a browser-based IDE with hosting. Every Repl can be deployed as
+a web service.
+
+**What you actually get (Free tier):**
+
+| Resource | Spec |
+|---|---|
+| RAM | 512 MB |
+| vCPUs | Shared (limited) |
+| Sleep policy | Sleeps after ~5 minutes of inactivity |
+| Cold start | 5–30 seconds |
+| Always-on | Requires paid plan |
+
+**Supported runtimes:** Node.js, Python, Ruby, Go, Rust, Java, C++, and
+dozens more. Replit's Nix-based environment can run almost any language.
+
+**The catch:** The free tier is heavily limited. Free Repls sleep quickly
+and have significant resource constraints. The platform is better positioned
+as a learning and prototyping tool than a production hosting solution.
+
+**Best for:** Quick prototypes, learning projects, and sharing runnable
+code examples.
+
+---
+
+### Supabase Edge Functions
+
+**URL:** [supabase.com](https://supabase.com)
+
+Supabase (primarily a Firebase alternative) offers Edge Functions powered
+by Deno Deploy. These functions run globally and have access to your
+Supabase database.
+
+**What you actually get (Free tier):**
+
+| Resource | Spec |
+|---|---|
+| Function invocations | 500,000/month |
+| Function size | 20 MB max |
+| Execution time | 150 seconds max per invocation |
+| Database | Included (1 free PostgreSQL project) |
+
+**Supported runtimes:** TypeScript/JavaScript via Deno. Node.js is not
+directly supported, though many npm packages work in Deno-compatible mode.
+
+**Best for:** Backend functions that need direct database access, particularly
+if you are already using Supabase for your database.
+
+---
+
+### Zeabur
+
+**URL:** [zeabur.com](https://zeabur.com)
+
+Zeabur is a newer PaaS popular in the developer community for its
+one-click GitHub deployment experience. It offers monthly free credits.
+
+**What you actually get (Free Developer plan):**
+
+| Resource | Spec |
+|---|---|
+| Monthly credits | ~$5 worth |
+| RAM | Configurable (within credit limit) |
+| Sleep policy | Credits-based; app pauses when credits exhausted |
+| Supported regions | Multiple (Asia, US, EU) |
+
+**Supported runtimes:** Node.js, Python, Ruby, PHP, Go, Java, Docker.
+
+**The catch:** Credits-based free tiers are tricky. A small always-on
+service (256 MB RAM) costs roughly $2–3/month in Zeabur credits, so your
+$5 of free credits covers about one month. After that, you either pay or
+get cut off.
+
+**Best for:** Quick deployments and trials, particularly for developers
+in Asia who benefit from Zeabur's regional presence.
+
+---
+
+## The "Serverless Containers" Middle Ground
+
+A few platforms offer free tiers that fall between traditional PaaS and
+pure serverless — they run containers but scale to zero.
+
+---
+
+### Google Cloud Run (Revisited for Containers)
+
+Already covered above, but worth reiterating: if your Node.js or Python
+app is containerized, Cloud Run is one of the best free options. The
+2 million free requests per month covers almost any hobby project, and
+the Dockerfile-based deployment means no platform lock-in.
+
+---
+
+### Cloudflare Containers (Emerging)
+
+Cloudflare is rolling out container support in 2026 as an extension of
+Workers. This allows long-running containers alongside the existing Workers
+serverless model. Pricing and free tier details are still evolving — watch
+[developers.cloudflare.com](https://developers.cloudflare.com) for updates.
+
+---
+
+## The Complete Comparison Table
+
+Here is every platform ranked by use case and key characteristics:
+
+| Platform | Type | Sleep? | Free RAM | Free CPU | Languages | DB Included |
+|---|---|---|---|---|---|---|
+| **Oracle Cloud** | VPS | Never | 24 GB (ARM) | 4 OCPUs | Any | ✗ |
+| **Google Compute e2-micro** | VPS | Never | 1 GB | 0.125 vCPU | Any | ✗ |
+| **Koyeb** | PaaS | Never | 512 MB | 0.1 vCPU | Node, Python, Docker | ✗ |
+| **Northflank** | PaaS | Never | 512 MB×2 | 0.2 vCPU×2 | Any (Docker) | 1 free |
+| **Render** | PaaS | 15 min | 512 MB | 0.1 vCPU | Node, Python, Go | 30-day free |
+| **Replit** | IDE+PaaS | 5 min | 512 MB | Shared | 50+ languages | ✗ |
+| **Hugging Face Spaces** | PaaS | 48h | 16 GB | 2 vCPU | Python (Docker) | ✗ |
+| **Google Cloud Run** | Serverless | Scale-to-0 | Up to 32 GB | Up to 8 vCPU | Any (Docker) | ✗ |
+| **AWS Lambda** | Serverless | Scale-to-0 | 10 GB max | Proportional | Node, Python, Go+ | ✗ |
+| **Cloudflare Workers** | Edge | Never | 128 MB | 10ms CPU | JS/TS, Python | D1 (free) |
+| **Vercel Functions** | Serverless | Scale-to-0 | 1 GB | — | Node, Python (β) | ✗ |
+| **Netlify Functions** | Serverless | Scale-to-0 | 1 GB | — | Node, Python | ✗ |
+| **Supabase Edge Fn** | Serverless | Scale-to-0 | — | — | TypeScript/Deno | ✓ (Postgres) |
+| **Zeabur** | PaaS | Credit-based | Varies | Varies | Node, Python, Docker | ✗ |
+
+---
+
+## Which Platform Should You Choose?
+
+### "I need always-on, real server, maximum free resources"
+→ **Oracle Cloud Always Free** (4 OCPUs + 24 GB RAM ARM VM)
+
+### "I need always-on with zero server management"
+→ **Koyeb** (free Nano, no sleep) or **Northflank** (2 free always-on services + 1 database)
+
+### "Cold starts are fine, I want the simplest deployment"
+→ **Render** (free web services, auto-deploy from GitHub)
+
+### "I'm building a Python AI/ML app with heavy RAM needs"
+→ **Hugging Face Spaces** (16 GB RAM free, Docker support)
+
+### "I need edge performance and don't need a persistent process"
+→ **Cloudflare Workers** (100k req/day free, global edge)
+
+### "I need containerized deployment with serious scale potential"
+→ **Google Cloud Run** (2M requests/month free, any Docker image)
+
+### "I'm building a Next.js/Astro full-stack app"
+→ **Vercel** (serverless functions, best Next.js integration)
+
+### "I'm already using AWS and want serverless for free"
+→ **AWS Lambda** (1M invocations/month, permanent free tier)
+
+---
+
+## The Cold Start Problem — And How to Beat It
+
+If you are stuck on a sleepy platform like Render, there is a practical
+workaround: external keep-alive pinging. The idea is to have a cron service
+send a request to your app every 14 minutes to keep it awake.
+
+**Free cron services that can ping your app:**
+
+- **cron-job.org** — free, up to 1-minute intervals, HTTPS support
+- **UptimeRobot** — free 5-minute monitoring (also sends alerts if your app
+  is down — bonus)
+- **Healthchecks.io** — free tier for scheduling and monitoring
+- **GitHub Actions** — schedule a workflow every 10 minutes:
+
+```yaml
+# .github/workflows/keepalive.yml
+name: Keep Alive
+on:
+  schedule:
+    - cron: "*/14 * * * *"  # every 14 minutes
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping app
+        run: |
+          curl -f https://your-app.onrender.com/health || true
+```
+
+> [!WARNING]
+> Render actively detects and limits external pinging from known cron
+> services. This is against their fair-use policy. If you need always-on
+> for free, use Koyeb or Northflank instead.
+
+---
+
+## Free Databases for Your Dynamic App
+
+A backend without a database is barely useful. Here are the best free
+database options to pair with your dynamic hosting:
+
+| Database | Type | Free Tier |
+|---|---|---|
+| **Supabase** | PostgreSQL | 2 free projects, 500 MB each |
+| **Neon** | Serverless Postgres | 0.5 GB storage, scale-to-0 compute |
+| **PlanetScale** | MySQL (Vitess) | 5 GB storage, 1 billion row reads/month |
+| **MongoDB Atlas** | MongoDB | 512 MB M0 cluster (shared) |
+| **Turso** | SQLite (libSQL) | 9 GB storage, 500 DBs, 1B rows read/month |
+| **Upstash Redis** | Redis | 10K commands/day, 256 MB |
+| **Cloudflare D1** | SQLite | 5M reads/day, 100K writes/day, 1 GB |
+| **Cloudflare KV** | Key-value | 100K reads/day, 1K writes/day, 1 GB |
+
+**Recommended pairings:**
+
+- Koyeb or Northflank + Neon PostgreSQL = always-on full-stack for free
+- Oracle Cloud ARM VM + self-hosted PostgreSQL = maximum power, $0/month
+- Cloudflare Workers + Cloudflare D1 = edge-native full stack, free
+- Google Cloud Run + Supabase = serverless + managed Postgres, free
+
+---
+
+## What About Platform Stability?
+
+The graveyard of dead free tiers (Heroku, Glitch, Cyclic, Deta) teaches
+a lesson: free tiers are a business decision, not a promise. They change
+when the business math changes.
+
+Here is how to evaluate platform risk:
+
+1. **Funding** — Is the company VC-backed (burn-driven) or profitable?
+   Oracle's free tier is sustainable because Oracle is profitable.
+   Startup PaaS free tiers are at risk if they cannot convert users to paid.
+
+2. **Track record** — Has the platform maintained its free tier for 2+ years?
+   Render and Koyeb have been consistent. Railway removed their free tier.
+
+3. **Migration effort** — How hard is it to move your app to another platform?
+   Docker-based deployments (Cloud Run, Northflank, Koyeb) are easy to move.
+   Platform-specific runtime configs create lock-in.
+
+4. **Always have a `Dockerfile`** — Any app that can be containerized can be
+   deployed anywhere. This is the single best insurance against platform
+   changes.
+
+---
+
+## The Recommended Free Stack for 2026
+
+After evaluating all options, here is the stack I recommend for different
+use cases:
+
+### For Serious Projects (Always-On, Production-Grade)
+
+```
+Compute: Oracle Cloud ARM VM (4 OCPUs, 24 GB RAM)
+Runtime: Node.js 22 / Python 3.12 via NVM / pyenv
+Process: PM2 (Node.js) / Gunicorn + Supervisor (Python)
+Proxy: Nginx (reverse proxy + SSL termination)
+SSL: Let's Encrypt via Certbot
+Database: PostgreSQL (self-hosted on same VM)
+Cache: Redis (self-hosted on same VM)
+DNS: Cloudflare (free plan)
+Cost: $0/month
+```
+
+### For Quick Deployments (Some Cold Starts Acceptable)
+
+```
+Compute: Render (free web service)
+Database: Neon (free serverless Postgres)
+Cache: Upstash Redis (free tier)
+DNS: Cloudflare (free plan)
+Cost: $0/month
+```
+
+### For Always-On Managed (Zero Server Admin)
+
+```
+Compute: Koyeb (free Nano) or Northflank (2 free services)
+Database: Neon or Supabase (free tier)
+CDN: Cloudflare (free plan)
+Cost: $0/month
+```
+
+### For Edge/API Use Cases
+
+```
+Runtime: Cloudflare Workers (100k req/day free)
+Database: Cloudflare D1 (SQLite at the edge, free)
+Storage: Cloudflare R2 (10 GB free)
+KV: Cloudflare KV (1 GB free)
+Cost: $0/month
+```
+
+---
+
+## Summary
+
+The myth that "you can only host static sites for free" is outdated. You
+absolutely can run dynamic Node.js and Python applications for free in 2026
+— the options are just different from what existed in 2022.
+
+The key facts to remember:
+
+- **Oracle Cloud** gives you the most raw compute (4 OCPUs + 24 GB RAM) for
+  free, permanently, but requires Linux server management.
+- **Koyeb** and **Northflank** offer always-on managed PaaS with no sleep
+  and no Linux server management required.
+- **Render** is the simplest deployment experience but your app sleeps after
+  15 minutes.
+- **Cloudflare Workers** is the best for high-traffic stateless APIs at the
+  edge with no cold starts.
+- **Google Cloud Run** is the best for containerized apps that can tolerate
+  cold starts.
+- **Hugging Face Spaces** is the surprise winner for Python apps needing
+  serious RAM (16 GB free).
+
+The most important thing is to **containerize your app**. A `Dockerfile`
+gives you the freedom to move between platforms as the free-tier landscape
+continues to evolve.
+
+---
+
+*Verified as of June 2026. Free tier limits change frequently — always
+check the official pricing pages before committing to a platform.*
