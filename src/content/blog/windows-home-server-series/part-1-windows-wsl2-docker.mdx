@@ -1,0 +1,940 @@
+---
+title: "Windows Home Server on HP 15s — Part 1: Windows Prep, WSL2, and Docker"
+description: "A comprehensive deep-dive into transforming your HP 15s-du2077TU (i5-1035G1, 16 GB RAM) into a Windows home server. Part 1 covers hardware analysis, battery safety, BIOS tuning, Windows power settings, WSL2 installation and resource limits, native Docker Engine setup inside Linux, and the dual-drive storage layout strategy."
+pubDate: 2026-06-05
+tags:
+  - Home-Server
+  - Windows
+  - WSL2
+  - Docker
+  - HP-15s
+  - Self-Hosting
+  - Windows-10
+category: "Engineering"
+author: "Chirag Singhal"
+series: "Windows Home Server on HP 15s"
+part: 1
+draft: false
+---
+
+# Windows Home Server on HP 15s — Part 1: Windows Prep, WSL2, and Docker
+
+You have an HP 15s-du2077TU. It came with 4 GB of RAM and Windows 10 Home
+out of the box. You upgraded the RAM to 16 GB — and now you are sitting on
+hardware that is genuinely capable of running a production-grade home server
+stack.
+
+The key question is: **do you have to wipe Windows to unlock that potential?**
+
+The answer is no. This series walks through every configuration decision
+needed to turn that laptop into a dual-purpose machine — a Windows desktop
+when you need it and a silent background server running 24/7 when you don't.
+
+We will not install Linux as the primary OS. We will not use WSL2 as a toy
+development environment. We will treat it as the production server layer it
+is capable of being.
+
+---
+
+## 1. Hardware Assessment: The HP 15s-du2077TU
+
+Before touching any configuration, understand what you are working with.
+
+### Full Specification Sheet
+
+| Component        | Specification                                                        |
+| :--------------- | :------------------------------------------------------------------- |
+| **Processor**    | Intel Core i5-1035G1 (10th Gen "Ice Lake", 4C/8T, up to 3.6 GHz)  |
+| **Microarch.**   | Sunny Cove (10nm), significant IPC gain over Skylake-era chips       |
+| **TDP**          | 15 W base / 25 W boost (configurable in BIOS)                       |
+| **RAM**          | 16 GB DDR4-2666 MHz (2 × 8 GB SODIMM, dual-channel)                |
+| **RAM BW**       | ~42.6 GB/s theoretical peak (dual-channel DDR4-2666)                |
+| **SSD**          | 256 GB PCIe NVMe M.2 SSD (OS partition, fast I/O)                  |
+| **HDD**          | 1 TB SATA 5400 RPM (bulk storage, backups, media)                   |
+| **GPU**          | Intel UHD Graphics G1 (integrated, 32 EUs, shares system memory)   |
+| **LAN**          | Realtek RTL8111H Gigabit Ethernet (RTL8111H chip)                  |
+| **Wi-Fi**        | Realtek RTL8821CE 802.11ac (2.4 GHz / 5 GHz, 1×1 antenna)         |
+| **Ports**        | 1× USB-C 5 Gbps, 2× USB-A 5 Gbps, 1× HDMI 1.4b, RJ-45, SD card  |
+| **Display**      | 15.6" FHD (1920×1080) IPS Anti-Glare Micro-Edge                    |
+| **Battery**      | 3-cell 41 Wh Li-ion (~4–6 hours typical use)                        |
+| **Charger**      | 45 W HP Smart AC Adapter                                             |
+| **OS (original)**| Windows 10 Home (with Microsoft Office pre-installed)               |
+
+### Processor Deep Dive: Intel Core i5-1035G1
+
+The i5-1035G1 is built on Intel's 10nm **Sunny Cove** microarchitecture.
+Compared to its Skylake/Kaby Lake predecessors, Sunny Cove introduced
+meaningful improvements: larger L1/L2 caches, better branch prediction,
+and a ~18% IPC uplift per clock. For server workloads, this matters.
+
+**Key server-relevant CPU features:**
+- **Intel VT-x**: Hardware-assisted virtualization. Required for WSL2.
+- **Intel VT-d**: Directed I/O virtualization. Enables PCIe device
+  passthrough if you ever need it.
+- **Intel AES-NI**: Hardware AES encryption acceleration. SSH sessions,
+  TLS handshakes, WireGuard tunnels, and `dm-crypt` disk encryption all
+  run through this without measurable CPU overhead.
+- **Intel SHA Extensions**: Accelerates SHA-1 and SHA-256 hashing, used
+  in Git operations, TLS certificates, and package verification.
+- **Intel TSX (Transactional Synchronization Extensions)**: Improves
+  performance for multi-threaded database operations.
+
+At server idle (containers running, no active inference), the i5-1035G1
+draws approximately **5–12 watts** from the wall. This is one of the most
+compelling arguments for a laptop server over a traditional desktop or even
+a Raspberry Pi cluster.
+
+### The Dual-Drive Configuration: A Server's Best Friend
+
+The hybrid drive setup (NVMe SSD + SATA HDD) is ideal for a server because
+different data has radically different access patterns:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    DRIVE ROLE ALLOCATION                             │
+├─────────────────────────────┬───────────────────────────────────────┤
+│  256 GB NVMe SSD (fast)     │  1 TB SATA HDD (slow, large)         │
+│  Sequential: ~1500 MB/s     │  Sequential: ~80–100 MB/s             │
+│  Random 4K: ~200K IOPS      │  Random 4K: ~1 IOPS (seek latency)   │
+├─────────────────────────────┼───────────────────────────────────────┤
+│  ✓ Windows 10 OS             │  ✗ Active databases                  │
+│  ✓ WSL2 Linux VM (VHDX)     │  ✓ Docker volume backups             │
+│  ✓ WSL2 Docker volumes       │  ✓ Nextcloud user files (media)     │
+│  ✓ Active PostgreSQL/SQLite  │  ✓ Immich photo library              │
+│  ✓ System page file          │  ✓ n8n workflow exports              │
+│  ✓ cloudflared binary        │  ✓ Log archives                      │
+└─────────────────────────────┴───────────────────────────────────────┘
+```
+
+**The golden rule**: All active Docker volumes and database files must
+live inside the WSL2 Linux virtual disk (VHDX), which resides on the NVMe
+SSD. Cross-OS file access through WSL2's 9P protocol translation layer
+drops throughput to 10–30% of native NVMe speeds and causes high CPU usage.
+Mount only large, sequential-access data from the HDD.
+
+### RAM: The 16 GB Upgrade Makes Everything Possible
+
+The original 4 GB single-channel configuration would have made this guide
+impossible — you cannot run Docker containers, a local AI model, a database,
+and Windows simultaneously on 4 GB.
+
+With 16 GB in dual-channel mode (2 × 8 GB), you have:
+- ~2.5–3 GB consumed by Windows 10 base processes
+- ~10 GB allocated to the WSL2 VM (our server layer)
+- ~2.5 GB as a buffer / Windows application space
+
+The dual-channel configuration also doubles memory bandwidth from ~21 GB/s
+to ~42.6 GB/s — critical for local AI model inference, which is entirely
+memory-bandwidth-bound on a CPU.
+
+---
+
+## 2. Battery Safety: The Critical 24/7 Risk
+
+A laptop running as a 24/7 plugged-in server introduces a real hardware
+risk: **lithium-ion battery degradation and swelling**.
+
+### Why Batteries Swell
+
+Li-ion cells operate on electrochemical insertion and extraction of lithium
+ions between anode and cathode materials. Keeping a battery at 100% state
+of charge (SoC) while simultaneously applying heat (from the CPU's 15W+ 
+dissipation) causes an accelerated chemical reaction. The electrolyte
+oxidizes, generating CO₂ gas that inflates the battery pouch. This is the
+"spicy pillow" phenomenon.
+
+The HP 15s-du2077TU uses a 41 Wh 3-cell Li-ion battery with no hardware
+BIOS-level charge limit (unlike HP EliteBook/ProBook enterprise models that
+offer a "Battery Care Function" at 80%). This means you must manage it
+manually.
+
+### Risk Levels by Configuration
+
+| Scenario                          | Swelling Risk | Notes                                |
+| :-------------------------------- | :------------ | :----------------------------------- |
+| Plugged in 24/7 at 100%, hot area | **Critical**  | ~12–18 months to visible swelling    |
+| Plugged in 24/7 at 100%, cool     | High          | 2–3 years degradation                |
+| Battery removed entirely          | **None**      | Best for pure server use             |
+| Kept at 40–60% via monitoring     | Low           | Requires discipline / automation     |
+| Plugged in, charged to 80%, idle  | Moderate      | Only possible with 3rd-party tools   |
+
+### Option A: Remove the Battery (Recommended for Pure Server Use)
+
+If this laptop will stay plugged in and never needs battery backup:
+
+1. Power off completely and unplug the charger.
+2. Remove the bottom panel (10 Phillips screws on the HP 15s-du2077TU).
+3. Disconnect the battery connector from the motherboard (gently — it is
+   a small JST-style connector near the drive bays).
+4. Unscrew the 4 battery mounting screws and remove the pack.
+5. Store in a cool, dry location at ~40–60% charge, or responsibly recycle.
+
+**Pros**: Zero thermal risk, zero swelling risk.  
+**Cons**: No built-in UPS — a power cut shuts the server instantly and
+may corrupt database write journals. Pair with an external UPS or
+surge protector if this is a concern.
+
+### Option B: Keep the Battery as a Built-In UPS (with Management)
+
+If you want the battery as protection against power outages:
+
+**Behavioral approach** (no software required):
+- Keep the charging cable connected, but unplug the battery connector
+  from the motherboard and leave only the AC adapter supplying power.
+  The HP 15s will run on AC-only without a battery connected.
+- Re-connect the battery only during monsoon season / frequent power-cut
+  months (June–September in most of India).
+
+**Software monitoring approach** (BatteryBar Pro / HWMonitor):
+- Set a Windows Scheduled Task to alert you when battery reaches 80%.
+- Unplug manually when alerted. This is manual but safe.
+
+**Kernel-level monitoring** (inside WSL2 Ubuntu, advanced):
+```bash
+# Check if Linux sees the battery via ACPI
+ls /sys/class/power_supply/
+# If BAT0 exists, read current charge percentage
+cat /sys/class/power_supply/BAT0/capacity
+# Read current charge limit (if supported by your ACPI driver)
+cat /sys/class/power_supply/BAT0/charge_control_end_threshold
+```
+
+> **Note:** The HP 15s consumer line does **not** support `charge_control_end_threshold`
+> via the Linux ACPI interface. The battery care function is hardware-gated
+> in the EC (embedded controller) and only exposed on business-class HP units.
+
+---
+
+## 3. BIOS/UEFI Configuration
+
+Correct BIOS configuration makes the difference between a reliable server
+and a machine that resets itself randomly.
+
+### Entering HP BIOS
+
+1. Shut down completely.
+2. Press the power button, then immediately spam the **`Esc`** key until
+   the HP Startup Menu appears.
+3. Press **`F10`** to enter BIOS Setup Utility.
+
+### Required Settings
+
+Navigate through each tab and configure the following:
+
+**System Configuration tab:**
+
+| Setting                            | Value       | Why                                            |
+| :--------------------------------- | :---------- | :--------------------------------------------- |
+| Intel Virtualization Technology    | **Enabled** | Required for WSL2 / VT-x support              |
+| Intel VT-d                         | **Enabled** | Directed I/O, future device passthrough        |
+| Fan Always On                      | **Enabled** | Prevents thermal spikes from fan stop-start    |
+| Action Keys Mode                   | **Disabled**| Restores F1–F12 as standard function keys      |
+| Adaptive Battery Optimizer         | **Enabled** | Reduces peak charging speed to protect battery |
+
+**Boot Options tab:**
+
+| Setting                      | Value       | Why                                           |
+| :--------------------------- | :---------- | :-------------------------------------------- |
+| POST Delay (sec)             | **0**       | Faster boot after power restore               |
+| Network Boot (PXE)           | **Enabled** | Allows Wake-on-LAN if needed                  |
+| Legacy Support               | **Disabled**| Use UEFI mode only                            |
+| Secure Boot                  | **Enabled** | Protects Windows boot chain (optional)        |
+
+**Power tab** (if available):
+
+| Setting                 | Value     | Why                                                |
+| :---------------------- | :-------- | :------------------------------------------------- |
+| AC Power Recovery       | **On**    | Auto-power-on after power outage — critical!       |
+| After Power Loss        | **On**    | Same — ensures server restarts without user action |
+
+Save: Press **`F10`** → **Yes**.
+
+> **The AC Power Recovery setting is the single most important BIOS
+> option for a home server.** Without it, any power outage requires you
+> to physically press the power button to restart the machine.
+
+---
+
+## 4. Windows 10 Power Configuration
+
+Windows 10 Home is built for interactive use. Its default behaviors are
+hostile to server operation: it sleeps on lid close, times out and sleeps
+after inactivity, and can force reboot for updates at any moment.
+
+### 4.1 Prevent Sleep on Lid Close
+
+**Method A — Control Panel (most reliable for Windows 10 Home):**
+1. Press `Win + R` → type `powercfg.cpl` → press Enter.
+2. On the left sidebar: **"Choose what closing the lid does"**.
+3. Change both **On battery** and **Plugged in** to **"Do nothing"**.
+4. Click **Save changes**.
+
+**Method B — PowerShell (run as Administrator):**
+```powershell
+# Lid close = do nothing on AC power
+powercfg /setacvalueindex SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
+
+# Lid close = do nothing on battery
+powercfg /setdcvalueindex SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
+
+# Apply the active power scheme
+powercfg /setactive SCHEME_CURRENT
+```
+
+If the "lid close" option doesn't appear in Control Panel:
+```powershell
+# Make the lid close action visible in Power Options via registry
+$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\4f971e89-eebd-4455-a8de-9e59040e7347\5ca83367-6e45-459f-a27b-476b1d01c936"
+Set-ItemProperty -Path $regPath -Name "Attributes" -Value 2 -Type DWord
+```
+
+### 4.2 Disable All Sleep and Standby Timeouts
+
+```powershell
+# Disable sleep on AC power (set to 0 = never)
+powercfg /change standby-timeout-ac 0
+
+# Disable sleep on battery (optional — for battery UPS use)
+powercfg /change standby-timeout-dc 0
+
+# Disable monitor timeout on AC (turns off display without sleeping)
+powercfg /change monitor-timeout-ac 10
+
+# Disable hibernation entirely (frees up ~16 GB on the SSD)
+powercfg /hibernate off
+```
+
+### 4.3 Fix the "System Unattended Sleep Timeout"
+
+Windows has a hidden "System unattended sleep timeout" that overrides your
+sleep settings when the OS decides no user is present. On a headless server
+this will trigger. Fix it:
+
+```powershell
+# Expose hidden power setting in registry
+$regPath2 = "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\238C9FA8-0AAD-41ED-83F4-97BE242C8F20\7bc4a2f9-d8fc-4469-b07b-33eb785aaca0"
+Set-ItemProperty -Path $regPath2 -Name "Attributes" -Value 2 -Type DWord
+```
+
+Then in **Control Panel** → **Power Options** → **Change plan settings** →
+**Change advanced power settings** → find **"Sleep" → "System unattended
+sleep timeout"** → set to **0 (Never)** for both battery and plugged in.
+
+### 4.4 Create a High-Performance Power Plan for Server Use
+
+The default "Balanced" power plan throttles the CPU during idle periods.
+This causes problems for server workloads that need consistent responsiveness.
+
+```powershell
+# Create a new power plan based on High Performance
+$guidResult = powercfg /duplicatescheme 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+$newGuid = ($guidResult | Select-String -Pattern '\{[0-9a-f-]+\}').Matches[0].Value.Trim('{}')
+
+# Rename it
+powercfg /changename $newGuid "Server - Always On"
+
+# Activate it
+powercfg /setactive $newGuid
+
+# Disable CPU power throttling on AC
+powercfg /setacvalueindex $newGuid SUB_PROCESSOR PROCTHROTTLEMIN 100
+powercfg /setactive $newGuid
+
+Write-Host "Power plan 'Server - Always On' created and activated."
+```
+
+### 4.5 Manage Windows Update Restarts
+
+Windows 10 Home gives you less control than Pro — you cannot disable
+Windows Update via Group Policy. But you have three practical strategies:
+
+**Strategy 1: Configure Active Hours (prevents forced restart during your window)**
+1. **Settings** → **Windows Update** → **Change active hours**.
+2. Set a window of up to 18 hours (e.g., 05:00 AM to 11:00 PM).
+3. Windows will only force restarts in the 6-hour gap you leave.
+
+**Strategy 2: Pause updates (temporary):**
+1. **Settings** → **Windows Update** → **Advanced options**.
+2. **"Pause updates"** → select "Pause for 5 weeks".
+3. Renew this pause every 5 weeks during a maintenance window.
+
+**Strategy 3: Configure notification mode (no auto-restart):**
+```powershell
+# Registry hack for Windows Home — notify before restart, don't auto-restart
+# (This may be reset after some Windows updates)
+$updatePath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
+New-Item -Path $updatePath -Force | Out-Null
+Set-ItemProperty -Path $updatePath -Name "NoAutoRebootWithLoggedOnUsers" -Value 1 -Type DWord
+Set-ItemProperty -Path $updatePath -Name "AUOptions" -Value 3 -Type DWord  # 3 = notify only
+Write-Host "Windows Update set to notify-only mode."
+```
+
+### 4.6 Enable Automatic Login After Reboot
+
+If the server reboots (from a power cut + AC recovery, or a forced Windows
+Update restart), Windows will sit at the lock screen waiting for a password.
+All your Task Scheduler startup tasks — including the WSL2 Docker stack —
+will not run until someone logs in.
+
+Use Microsoft's official **Autologon** tool (from Sysinternals):
+
+```powershell
+# Install via winget (Windows Package Manager)
+winget install --id Microsoft.Sysinternals.AutoLogon -e --silent
+
+# Or download manually from:
+# https://learn.microsoft.com/en-us/sysinternals/downloads/autologon
+```
+
+Run `Autologon64.exe` as Administrator → enter your Windows username,
+domain (use your PC name for local accounts), and password → click
+**Enable**. Autologon encrypts your password in the Windows registry
+(not stored in plaintext). The next boot proceeds directly to the desktop.
+
+> **Security Note**: Autologon's encryption uses the `LsaStorePrivateData`
+> function. The password is encrypted with the machine's Security Account
+> Manager key. It is not plaintext but is readable by any process with
+> Administrator privileges. Only use this on a physically secured machine.
+
+---
+
+## 5. Windows Subsystem for Linux 2 (WSL2) Setup
+
+WSL2 is the foundation of our server layer. It runs a real Linux kernel
+(Microsoft's custom build) inside a lightweight Hyper-V utility VM.
+Your Docker containers run inside this Linux environment.
+
+### 5.1 Enable WSL2
+
+Open PowerShell as Administrator:
+
+```powershell
+# Step 1: Enable WSL subsystem
+dism.exe /online /enable-feature `
+  /featurename:Microsoft-Windows-Subsystem-Linux `
+  /all /norestart
+
+# Step 2: Enable Virtual Machine Platform (required for WSL2)
+dism.exe /online /enable-feature `
+  /featurename:VirtualMachinePlatform `
+  /all /norestart
+
+# Restart Windows
+Restart-Computer
+```
+
+After reboot, open PowerShell again:
+
+```powershell
+# Set WSL2 as the default version
+wsl --set-default-version 2
+
+# Install Ubuntu (LTS)
+wsl --install -d Ubuntu
+
+# Verify the kernel version
+wsl --version
+```
+
+During Ubuntu first-launch, you will be prompted to create a Linux username
+and password. Choose something memorable:
+- Username: e.g., `serveradmin` or your first name
+- Password: at least 12 characters, mix of letters/numbers/symbols
+
+Verify WSL2 is running:
+```powershell
+wsl --list --verbose
+# Should output: Ubuntu   Running   2
+```
+
+If version shows `1`:
+```powershell
+wsl --set-version Ubuntu 2
+```
+
+### 5.2 Configure WSL2 Resource Limits (`.wslconfig`)
+
+Without resource limits, WSL2 can consume up to 50% of system RAM (8 GB
+on your 16 GB machine) and all CPU cores, starving the Windows host.
+
+Create the configuration file:
+```powershell
+# Open the WSL config file in Notepad (creates it if it doesn't exist)
+notepad "$env:USERPROFILE\.wslconfig"
+```
+
+Add this content (tuned for your 16 GB i5-1035G1 system):
+
+```ini
+[wsl2]
+# Allocate 10 GB to the Linux server VM
+# Leaves ~6 GB for Windows OS + applications
+memory=10GB
+
+# Use all 8 logical threads for server workloads
+# The i5-1035G1 has 4 physical cores, 8 logical threads
+processors=8
+
+# 4 GB of swap inside Linux for memory pressure relief
+# Lives inside the VHDX on the NVMe SSD
+swap=4GB
+
+# Automatically forward WSL2 ports to Windows localhost
+# (Allows localhost:8080 on Windows to reach WSL2:8080)
+localhostForwarding=true
+
+[experimental]
+# Gradually return freed memory to Windows (prevents balloon-and-crash)
+autoMemoryReclaim=gradual
+
+# Enable mirrored networking (Windows 11 22H2+ only — skip on Windows 10)
+# networkingMode=mirrored
+```
+
+Apply the settings:
+```powershell
+wsl --shutdown
+# Wait 8 seconds, then reopen Ubuntu
+```
+
+### 5.3 Configure systemd and Fix DNS Inside WSL2
+
+**Enable systemd** (required for Docker to auto-start on WSL2 boot):
+
+Open the Ubuntu terminal and run:
+```bash
+sudo nano /etc/wsl.conf
+```
+
+Add:
+```ini
+[boot]
+# Enable systemd as the init system
+# This allows 'systemctl enable docker' to work
+systemd=true
+
+[network]
+# Disable auto-generated /etc/resolv.conf
+# We will set a static DNS to prevent DNS loss after network changes
+generateResolvConf=false
+```
+
+Press `Ctrl+O` → Enter → `Ctrl+X` to save.
+
+Fix DNS:
+```bash
+# Remove the auto-generated symlink
+sudo rm /etc/resolv.conf
+
+# Create a static DNS file using Cloudflare (1.1.1.1) + Google (8.8.8.8)
+sudo tee /etc/resolv.conf > /dev/null << 'EOF'
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+EOF
+
+# Lock the file so WSL2 doesn't overwrite it on restart
+sudo chattr +i /etc/resolv.conf
+```
+
+Restart WSL2:
+```powershell
+wsl --shutdown
+```
+
+Verify systemd is running (reopen Ubuntu):
+```bash
+systemctl --no-pager status user.slice
+# Should show "active (running)"
+```
+
+---
+
+## 6. Native Docker Engine Installation (No Docker Desktop)
+
+Docker Desktop is a GUI application designed for Windows desktop
+developers. It adds significant overhead:
+
+```
+Docker Desktop architecture (AVOID for servers):
+Windows → Docker Desktop GUI (1.2 GB RAM) → helper VM (500 MB RAM)
+         → docker-desktop WSL distro → docker-desktop-data WSL distro
+         → Containers
+
+Total idle RAM overhead: ~1.7–2.5 GB
+
+Native WSL2 Docker Engine (USE THIS):
+Windows → WSL2 Ubuntu VM → Docker Engine daemon (~70 MB RAM) → Containers
+
+Total idle RAM overhead: ~70–100 MB
+```
+
+The RAM difference is not cosmetic — saving 1.5–2 GB means one more
+large language model, two more database containers, or a buffer against
+OOM crashes.
+
+### Installation Steps (Inside WSL2 Ubuntu Terminal)
+
+```bash
+# Step 1: Remove any conflicting legacy packages
+sudo apt-get remove -y \
+  docker.io docker-doc docker-compose docker-compose-v2 \
+  podman-docker containerd runc 2>/dev/null || true
+
+# Step 2: Update apt and install prerequisite packages
+sudo apt-get update
+sudo apt-get install -y \
+  ca-certificates \
+  curl \
+  gnupg \
+  lsb-release \
+  apt-transport-https
+
+# Step 3: Add Docker's official GPG key
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Step 4: Register the stable repository
+echo \
+  "deb [arch=$(dpkg --print-architecture) \
+  signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Step 5: Install Docker Engine, CLI, containerd, Buildx, and Compose
+sudo apt-get update
+sudo apt-get install -y \
+  docker-ce \
+  docker-ce-cli \
+  containerd.io \
+  docker-buildx-plugin \
+  docker-compose-plugin
+
+# Step 6: Allow your user to run Docker without sudo
+sudo usermod -aG docker $USER
+
+# Step 7: Enable Docker to start automatically via systemd
+sudo systemctl enable docker
+sudo systemctl start docker
+```
+
+Close and reopen the Ubuntu terminal to apply the group membership.
+Then verify:
+
+```bash
+docker --version
+# Docker version 27.x.x, build xxxxxxx
+
+docker compose version
+# Docker Compose version v2.x.x
+
+docker run --rm hello-world
+# Should print "Hello from Docker!" — confirms the daemon is working
+```
+
+### Docker Daemon Configuration (Log Rotation + Performance)
+
+Docker logs accumulate inside the WSL2 VHDX file. Without limits, they
+can grow to gigabytes and prevent VHDX from being compacted.
+
+```bash
+sudo nano /etc/docker/daemon.json
+```
+
+```json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "storage-driver": "overlay2",
+  "features": {
+    "buildkit": true
+  }
+}
+```
+
+```bash
+sudo systemctl restart docker
+```
+
+---
+
+## 7. Server Directory Structure
+
+Create a clean directory layout inside the WSL2 Linux filesystem. Never
+store active server files on `/mnt/c/` (the Windows C: drive) — cross-OS
+9P protocol access drops throughput to 10–30% of native NVMe speed.
+
+```bash
+# Create the main server directory
+mkdir -p ~/server
+
+# Create subdirectories for each service's persistent data
+mkdir -p ~/server/{caddy/{data,config},portainer,nextcloud/{app,db},\
+vaultwarden,ollama,open-webui,odysseus,flowise,qdrant,\
+uptime-kuma,n8n,prometheus,grafana}
+
+# Create the main compose file
+touch ~/server/docker-compose.yml
+
+# Create Caddy configuration
+mkdir -p ~/server/caddy
+touch ~/server/caddy/Caddyfile
+
+# Verify
+ls -la ~/server/
+```
+
+### Mounting the 1 TB HDD for Large Files
+
+The HDD should be used for large, sequential-access data (Nextcloud media,
+photo libraries, log archives, backup dumps). First, find its Windows drive
+letter. In Windows Explorer, the HDD appears as, say, `D:`.
+
+Inside WSL2, it is accessible at `/mnt/d/`. Create a symlink for easy access:
+
+```bash
+# Create a mount point for HDD data
+sudo mkdir -p /mnt/hdd
+
+# Link Windows D: drive to the mount point (WSL2 auto-mounts it)
+# /mnt/d is automatically available if D: is a valid Windows drive
+ls /mnt/d/
+
+# Create a data directory on the HDD for server use
+mkdir -p /mnt/d/server-data/{nextcloud-media,backups,media,logs}
+```
+
+> **Performance Rule**: Docker volume data → `/home/serveradmin/server/`
+> (NVMe SSD via WSL2 VHDX). Large media files → `/mnt/d/server-data/`
+> (SATA HDD). Never cross the streams.
+
+---
+
+## 8. WSL2 Startup Automation via Windows Task Scheduler
+
+WSL2 runs inside your user session and only starts when you open a terminal
+or when a scheduled task explicitly invokes it. We must ensure Docker and
+all containers start automatically on Windows boot.
+
+### 8.1 Create the WSL2 Startup Script
+
+Create `C:\Server\` directory in Windows, then create the startup script:
+
+```powershell
+# Create the server scripts directory
+New-Item -ItemType Directory -Force -Path "C:\Server"
+```
+
+Create `C:\Server\start-wsl-server.bat`:
+
+```batch
+@echo off
+:: ============================================================
+:: WSL2 Home Server Startup Script
+:: Runs on Windows boot via Task Scheduler
+:: ============================================================
+
+:: Wait 15 seconds for Windows network stack to stabilize
+timeout /t 15 /nobreak > nul
+
+:: Sync Linux clock (prevents clock drift after sleep/power restore)
+wsl.exe -d Ubuntu -u root -- hwclock --hctosys 2>nul
+
+:: Start Docker daemon via systemd (systemd was enabled in wsl.conf)
+wsl.exe -d Ubuntu -u root -- systemctl start docker
+
+:: Wait 5 more seconds for Docker to fully initialize
+timeout /t 5 /nobreak > nul
+
+:: Start the full Docker Compose stack
+wsl.exe -d Ubuntu -u serveradmin -e bash -c ^
+  "cd ~/server && docker compose up -d --remove-orphans 2>&1"
+
+:: Log the startup time
+echo [%date% %time%] WSL2 server stack started >> C:\Server\startup.log
+```
+
+### 8.2 Create the Port-Forwarding Script
+
+WSL2's internal IP address changes on each restart. This script detects
+the current IP and updates Windows netsh rules:
+
+Create `C:\Server\wsl2-port-forward.ps1`:
+
+```powershell
+# WSL2 Dynamic Port Forwarding Script
+# Detects current WSL2 IP and configures Windows port proxy rules
+# Must run as Administrator (scheduled task uses SYSTEM account)
+
+# Define ports your Docker containers expose to the LAN
+# Add/remove ports as you deploy new services
+$portList = @(80, 443, 3001, 5678, 7000, 8080, 8081, 8083, 8084, 9000, 11434)
+
+# Retrieve the WSL2 internal IP address
+$wslIpRaw = wsl.exe -d Ubuntu -e bash -c "hostname -I 2>/dev/null | awk '{print \$1}'"
+$wslIp = $wslIpRaw.Trim()
+
+if ([string]::IsNullOrEmpty($wslIp) -or $wslIp -notmatch '^\d+\.\d+\.\d+\.\d+$') {
+    Write-Error "$(Get-Date): Could not detect WSL2 IP. Is Ubuntu running?"
+    Exit 1
+}
+
+Write-Host "$(Get-Date): WSL2 IP detected: $wslIp"
+
+# Clear existing proxy rules to avoid stale routes
+netsh interface portproxy reset | Out-Null
+
+foreach ($port in $portList) {
+    # Add port proxy rule: Windows:port → WSL2:port
+    netsh interface portproxy add v4tov4 `
+        listenport=$port `
+        listenaddress=0.0.0.0 `
+        connectport=$port `
+        connectaddress=$wslIp | Out-Null
+
+    # Remove old firewall rule if it exists
+    $ruleName = "WSL2_Forward_TCP_$port"
+    Remove-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+
+    # Add new firewall rule to allow inbound traffic
+    New-NetFirewallRule `
+        -DisplayName $ruleName `
+        -Direction Inbound `
+        -Action Allow `
+        -Protocol TCP `
+        -LocalPort $port `
+        -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Host "$(Get-Date): Port forwarding configured for ports: $($portList -join ', ')"
+
+# Show current portproxy rules
+Write-Host ""
+Write-Host "Active port proxy rules:"
+netsh interface portproxy show v4tov4
+```
+
+### 8.3 Register Both Tasks in Task Scheduler
+
+Open PowerShell as Administrator and run:
+
+```powershell
+# ── Task 1: Start WSL2 Server Stack ──────────────────────────
+$action1 = New-ScheduledTaskAction `
+    -Execute "C:\Server\start-wsl-server.bat"
+
+$trigger1 = New-ScheduledTaskTrigger -AtLogOn
+
+$settings1 = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries `
+    -ExecutionTimeLimit (New-TimeSpan -Hours 0)  # No time limit
+
+Register-ScheduledTask `
+    -TaskName "WSL2_ServerStack_Startup" `
+    -Description "Starts WSL2 Ubuntu, Docker, and all Compose services at logon" `
+    -Action $action1 `
+    -Trigger $trigger1 `
+    -Settings $settings1 `
+    -RunLevel Highest `
+    -Force
+Write-Host "Task 1 registered: WSL2_ServerStack_Startup"
+
+# ── Task 2: WSL2 Port Forwarding ─────────────────────────────
+$action2 = New-ScheduledTaskAction `
+    -Execute "powershell.exe" `
+    -Argument "-NonInteractive -ExecutionPolicy Bypass -File C:\Server\wsl2-port-forward.ps1"
+
+# Run at startup AND 30 seconds after logon (to ensure WSL2 is ready)
+$trigger2a = New-ScheduledTaskTrigger -AtStartup
+$trigger2b = New-ScheduledTaskTrigger -AtLogOn
+
+Register-ScheduledTask `
+    -TaskName "WSL2_PortForwarding" `
+    -Description "Configures Windows netsh port proxy to route traffic to WSL2 services" `
+    -Action $action2 `
+    -Trigger @($trigger2a, $trigger2b) `
+    -User "SYSTEM" `
+    -RunLevel Highest `
+    -Force
+Write-Host "Task 2 registered: WSL2_PortForwarding (runs as SYSTEM)"
+
+Write-Host ""
+Write-Host "Both tasks registered. They will execute automatically on next reboot."
+Write-Host "Test now by running: schtasks /run /tn 'WSL2_ServerStack_Startup'"
+```
+
+---
+
+## 9. Performance Reality Check: Windows + WSL2 vs. Bare Metal Linux
+
+Before we move into service deployment, it is honest to document the
+trade-offs of this architecture compared to a bare-metal Ubuntu Server
+installation (which is covered in our separate "Old HP Laptop Into a
+Home Server" Linux series).
+
+### What You Give Up
+
+| Dimension                    | WSL2 on Windows 10 Home             | Bare-Metal Ubuntu Server 24.04      |
+| :--------------------------- | :----------------------------------- | :---------------------------------- |
+| **Idle RAM consumption**     | ~2.5–3.0 GB (Windows baseline)      | **< 200 MB**                        |
+| **CPU efficiency**           | ~95–98% of native (very close)       | 100% native                         |
+| **Disk I/O (internal VHDX)** | Near-native NVMe speeds             | Native NVMe speeds                  |
+| **Disk I/O (cross-OS /mnt/c)**| 10–30% of native (massive penalty) | Not applicable                      |
+| **Container density (16 GB)**| Effective ~13 GB for containers     | ~15.8 GB for containers             |
+| **Sleep/wake complexity**    | Clock drift after sleep; fixable    | No clock drift; instant resume      |
+| **LAN accessibility**        | Requires port proxy script          | Direct binding, always available    |
+| **AI inference (CPU)**       | Same token speed as bare metal       | Same token speed                    |
+
+### What You Keep
+
+| Benefit                      | Value                                                 |
+| :--------------------------- | :---------------------------------------------------- |
+| Windows license preserved    | Pre-activated Windows 10 Home stays intact            |
+| Dual-use flexibility         | Open lid → use Windows normally; containers keep running |
+| Familiar troubleshooting     | Task Manager, Device Manager, Windows Defender        |
+| Hardware monitoring          | Full WMI/CIM APIs for temperature, battery, disk     |
+| Zero OS reinstall risk       | Entire server layer runs inside WSL2 VHDX            |
+| Reversibility                | Uninstall WSL2 → system returns to clean Windows     |
+
+**Bottom line**: If maximizing server density and performance is your
+primary goal, bare-metal Linux wins. If dual-use and preserving Windows
+is the requirement, WSL2 provides 95%+ of the server capability you need.
+For a 16 GB system running moderate workloads (AI inference, a few
+databases, file sync, automation), this setup is more than sufficient.
+
+---
+
+## Summary and What's Next
+
+In this first part, you have:
+
+1. ✅ Assessed the HP 15s-du2077TU's hardware — understood the dual-drive
+   advantage, the i5-1035G1's server-relevant features, and the RAM
+   bandwidth that powers local AI inference.
+2. ✅ Configured battery safety — either removed the battery or understand
+   the risk management strategy.
+3. ✅ Tuned the HP BIOS — enabled VT-x, VT-d, fan management, and AC
+   power recovery.
+4. ✅ Configured Windows 10 — eliminated sleep, lid-close suspend,
+   configured auto-login, and managed update restart behavior.
+5. ✅ Installed WSL2 with Ubuntu — set resource limits, enabled systemd,
+   fixed DNS.
+6. ✅ Installed native Docker Engine — without Docker Desktop, saving
+   1.5–2 GB of idle RAM.
+7. ✅ Organized the directory structure — NVMe SSD for hot data, HDD for
+   cold storage.
+8. ✅ Created Task Scheduler automation — server stack boots automatically
+   on Windows startup.
+
+**In Part 2**, we deploy our public-facing infrastructure: Cloudflare Tunnel
+for zero-port-forward internet access with your existing domain, Caddy as
+the reverse proxy, and the core service stack including Portainer,
+Nextcloud, Vaultwarden, Uptime Kuma, and n8n.
+
+**[Continue to Part 2: Cloudflare Tunnels, Reverse Proxy, and Service Deployment →](/blog/windows-home-server-series/part-2-cloudflare-proxy-services)**

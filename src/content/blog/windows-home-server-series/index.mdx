@@ -1,0 +1,98 @@
+---
+title: "Turn Your Old HP 15s Laptop Into a Windows Home Server: Master Index"
+description: "A comprehensive 5-part engineering series on transforming an HP 15s-du2077TU (i5-1035G1, 16GB RAM, 1TB HDD + 256GB SSD) into a full-featured Windows home server—without wiping your OS—hosting Docker, Cloudflare Tunnels, Ollama, Odysseus AI, Nextcloud, and more."
+pubDate: 2026-06-05
+tags:
+  - Home-Server
+  - Windows
+  - WSL2
+  - Docker
+  - Local-AI
+  - Cloudflare
+  - Self-Hosting
+  - HP-15s
+category: "Engineering"
+author: "Chirag Singhal"
+series: "Windows Home Server on HP 15s"
+part: 0
+draft: false
+---
+
+# Turn Your Old HP 15s Laptop Into a Windows Home Server
+
+## Keep Windows. Keep Using the Laptop. Run a Full Server in the Background.
+
+> **The Hidden Power of an Old Budget Laptop:**  
+> The HP 15s-du2077TU was sold as an everyday productivity machine.
+> With a 10th Gen Intel Core i5-1035G1, a 1 TB HDD, a 256 GB NVMe SSD,
+> and your upgraded 16 GB of dual-channel DDR4-2666, it is capable of
+> far more than document editing and web browsing. It is a fully capable
+> home server—and you do not need to install Linux to unlock that potential.
+
+This series walks through every step of converting the HP 15s-du2077TU
+into a production-grade home server **while preserving your Windows 10/11
+installation**, so the laptop remains dual-purpose: a server in the background
+and a regular computer when you need it.
+
+---
+
+## The HP 15s-du2077TU at a Glance
+
+| Component       | Specification                                          |
+| :-------------- | :----------------------------------------------------- |
+| **CPU**         | Intel Core i5-1035G1 (4C/8T, 1.0–3.6 GHz, 15W TDP)   |
+| **RAM**         | 16 GB DDR4-2666 dual-channel (upgraded from 4 GB)     |
+| **SSD**         | 256 GB PCIe NVMe M.2 (OS + active containers)         |
+| **HDD**         | 1 TB SATA 5400 RPM (bulk storage + backups)            |
+| **GPU**         | Intel UHD Graphics G1 (integrated, shared memory)     |
+| **Network**     | Realtek Gigabit Ethernet + 802.11ac Wi-Fi              |
+| **Display**     | 15.6-inch Full HD (1920×1080) IPS Anti-Glare           |
+| **OS**          | Windows 10 Home (kept as-is, not wiped)                |
+| **Price (2020)**| ₹46,000–₹50,999                                        |
+
+---
+
+## The 5-Part Series
+
+### [Part 1: Windows Preparation, WSL2, and Docker Setup](/blog/windows-home-server-series/part-1-windows-wsl2-docker)
+
+Deep-dive into Windows power settings (lid close, sleep, update management,
+auto-login), enabling WSL2 with Ubuntu, installing Docker Engine natively
+inside Linux (bypassing Docker Desktop to save 2 GB of idle RAM), configuring
+resource limits, and understanding the dual-drive storage layout.
+
+### [Part 2: Cloudflare Tunnels, Reverse Proxy, and Service Deployment](/blog/windows-home-server-series/part-2-cloudflare-proxy-services)
+
+Setting up `cloudflared` as a Windows system service for zero-port-forward
+public access with your own domain, configuring Caddy as a lightweight
+reverse proxy inside Docker, and deploying the foundational service stack:
+Portainer, Nextcloud, Vaultwarden, Uptime Kuma, and n8n.
+
+### [Part 3: Local AI Stack — Ollama, Open WebUI, and Odysseus](/blog/windows-home-server-series/part-3-local-ai-ollama-odysseus)
+
+The physics of CPU-only LLM inference on the i5-1035G1 (memory bandwidth
+math, quantization trade-offs), deploying Ollama inside Docker, selecting
+optimal models for 16 GB RAM, configuring Open WebUI as a ChatGPT-like
+interface, installing and connecting the Odysseus AI workspace, and building
+a local RAG pipeline with Qdrant and Flowise.
+
+### [Part 4: Automation, Monitoring, and Dual-Use Operations](/blog/windows-home-server-series/part-4-automation-monitoring)
+
+Automating WSL2 and Docker startup via Task Scheduler, building PowerShell
+health monitoring with Telegram alerts, managing the WSL2 port-forwarding
+script, handling Windows clock drift, DNS resolution issues, and
+configuring the laptop for seamless dual-use (server + personal computer).
+
+### [Part 5: Cost Analysis, Performance Audit, and Hybrid Architecture](/blog/windows-home-server-series/part-5-cost-analysis-hybrid)
+
+Calculating the exact electricity cost of running the HP 15s 24/7 in India
+(state-wise tariff analysis), comparing the 3-year Total Cost of Ownership
+against AWS, GCP, Hetzner, and budget VPS providers, auditing the WSL2
+performance overhead vs. bare-metal Linux, and designing a hybrid
+architecture that pairs local hardware with free cloud services.
+
+---
+
+*Ready to begin?*
+
+**[Start with Part 1: Windows Preparation, WSL2, and Docker Setup →](/blog/windows-home-server-series/part-1-windows-wsl2-docker)**

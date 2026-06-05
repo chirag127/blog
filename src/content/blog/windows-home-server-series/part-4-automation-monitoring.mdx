@@ -1,0 +1,1000 @@
+---
+title: "Windows Home Server on HP 15s — Part 4: Automation, Monitoring, and Dual-Use Operations"
+description: "Master the operational side of your HP 15s-du2077TU home server: advanced Task Scheduler reliability, a comprehensive PowerShell health monitor with Telegram alerts, WSL2 clock drift fixes, OOM recovery, DNS troubleshooting, Restic cloud backups, and configuring the laptop for seamless dual-use as a daily driver and background server simultaneously."
+pubDate: 2026-06-05
+tags:
+  - Home-Server
+  - Windows
+  - WSL2
+  - PowerShell
+  - Monitoring
+  - Automation
+  - Telegram
+  - Backup
+  - Self-Hosting
+category: "Engineering"
+author: "Chirag Singhal"
+series: "Windows Home Server on HP 15s"
+part: 4
+draft: false
+---
+
+# Windows Home Server on HP 15s — Part 4: Automation, Monitoring, and Dual-Use Operations
+
+Parts 1 through 3 built the stack. Part 4 is where you make it
+**production-grade**. A server that requires you to SSH in every few
+days to restart crashed containers, fix DNS issues, or deal with
+clock drift is not a server — it's a science project.
+
+This part covers everything needed to make the HP 15s-du2077TU a
+self-healing, self-monitoring, and self-maintaining system that you
+can genuinely forget about for weeks at a time.
+
+---
+
+## 1. Advanced Task Scheduler Reliability Configuration
+
+The Task Scheduler tasks from Part 1 are functional but need hardening
+to handle edge cases: failed startup attempts, process already running,
+and partial boot states.
+
+### 1.1 Fix Task Scheduler: Run Whether User is Logged On or Not
+
+By default, Task Scheduler runs tasks only when a user is logged in —
+unless you explicitly configure it otherwise. For the `WSL2_ServerStack_Startup`
+task, this means if the Autologon fails or someone else logs in, the server
+never starts.
+
+Open Task Scheduler → find `WSL2_ServerStack_Startup` → right-click →
+**Properties**:
+
+**General tab:**
+- ✅ Check **"Run whether user is logged on or not"**
+- ✅ Check **"Run with highest privileges"**
+- Change "Configure for:" to **Windows 10**
+
+**Conditions tab — uncheck everything:**
+- ☐ Start only if AC power → **Unchecked** (allows battery operation)
+- ☐ Stop if switches to battery → **Unchecked**
+- ☐ Start only if network available → **Unchecked**
+
+**Settings tab:**
+- ✅ **"If the task fails, restart every:"** → 5 minutes, up to 3 times
+- ✅ **"Stop the task if it runs longer than:"** → Uncheck (or set 24 hours)
+- ✅ **"If the running task does not end when requested, force it to stop"**
+- Change "If the task is already running, then the following rule applies:"
+  → **"Do not start a new instance"** (prevents duplicate WSL2 boots)
+
+Click **OK** → enter your Windows password when prompted.
+
+### 1.2 Create a Self-Healing Service Monitor Task
+
+This task runs every 15 minutes. It checks if critical containers are
+running, and if any are stopped or restarting, it automatically brings
+them back up.
+
+Create `C:\Server\heal-server.bat`:
+
+```batch
+@echo off
+:: ============================================================
+:: Self-Healing Server Monitor
+:: Runs every 15 minutes via Task Scheduler
+:: Restarts any stopped Docker services
+:: ============================================================
+
+:: Check if WSL2/Ubuntu is running first
+wsl.exe -d Ubuntu -e bash -c "exit 0" > nul 2>&1
+if %errorlevel% neq 0 (
+    echo [%date% %time%] WSL2 not running. Restarting... >> C:\Server\heal.log
+    wsl.exe -d Ubuntu -- bash -c "exit 0"
+    timeout /t 10 /nobreak > nul
+)
+
+:: Check if Docker daemon is running, restart if not
+wsl.exe -d Ubuntu -u root -e bash -c ^
+    "systemctl is-active docker || systemctl start docker"
+
+:: Restart any containers that are NOT in 'running' state
+wsl.exe -d Ubuntu -e bash -c ^
+    "cd ~/server && docker compose ps --services --filter status=exited | xargs -r docker compose restart 2>&1"
+
+:: Log the health check
+wsl.exe -d Ubuntu -e bash -c ^
+    "echo \"[$(date)] Health check done: $(docker ps --format '{{.Names}}' | wc -l) containers running\" >> ~/server/heal.log"
+```
+
+Register the heal task in PowerShell as Administrator:
+
+```powershell
+$healAction = New-ScheduledTaskAction `
+    -Execute "C:\Server\heal-server.bat"
+
+# Run every 15 minutes, starting 10 minutes after boot
+$healTrigger = New-ScheduledTaskTrigger `
+    -RepetitionInterval (New-TimeSpan -Minutes 15) `
+    -Once `
+    -At (Get-Date) `
+    -RepetitionDuration ([TimeSpan]::MaxValue)
+
+$healSettings = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
+
+Register-ScheduledTask `
+    -TaskName "ServerSelfHeal" `
+    -Description "Checks and restarts any stopped Docker services every 15 minutes" `
+    -Action $healAction `
+    -Trigger $healTrigger `
+    -Settings $healSettings `
+    -RunLevel Highest `
+    -Force
+
+Write-Host "Self-healing monitor registered successfully."
+```
+
+### 1.3 Optimize Windows Processor Scheduling for Background Services
+
+Windows 10 by default prioritizes foreground applications over background
+services. For server operation, reverse this:
+
+1. Press `Win + Pause/Break` → **Advanced system settings**.
+2. **Performance** → **Settings** → **Advanced** tab.
+3. Under **Processor scheduling**, select **"Background services"**.
+4. Click **OK** × 2 → no restart needed.
+
+This gives your Docker containers, the WSL2 VM, and cloudflared more
+consistent CPU time even when you are actively using Windows.
+
+### 1.4 Disable Startup Programs That Compete for Resources
+
+Open Task Manager (`Ctrl + Shift + Esc`) → **Startup apps** tab.
+
+Disable everything you do not need running when the server is in background
+mode. Common candidates to disable:
+
+| Program                       | Can Disable? | Reason                           |
+| :---------------------------- | :----------- | :------------------------------- |
+| Microsoft Teams               | ✅ Yes        | High RAM usage (~200 MB at idle) |
+| OneDrive                      | ✅ Yes        | Constant disk/network I/O        |
+| Spotify                       | ✅ Yes        | Not needed for server            |
+| Discord                       | ✅ Yes        | High RAM (~300 MB)               |
+| Adobe updaters                | ✅ Yes        | Unnecessary background processes |
+| Windows Security              | ❌ No         | Keep — protects against malware  |
+| cloudflared (if it appears)   | ❌ No         | This IS your tunnel service      |
+
+---
+
+## 2. Comprehensive PowerShell Health Monitor with Telegram Alerts
+
+This is the most important script in this guide. It runs on Windows every
+10 minutes, collects server health metrics from both the Windows host and
+the WSL2 Docker environment, and sends Telegram alerts when anything
+exceeds safe thresholds.
+
+### 2.1 Create a Telegram Bot
+
+1. Open Telegram → search for `@BotFather`.
+2. Type `/newbot` → follow prompts → choose a name and username.
+3. BotFather gives you an **HTTP API Token** (format: `1234567890:ABC...`).
+4. Send a message to your new bot (any message to initialize the chat).
+5. Get your Chat ID: visit
+   `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates`
+   in a browser → find `"chat":{"id":XXXXXXXXXX}` in the response.
+   That number is your Chat ID.
+
+### 2.2 The Complete Health Monitor Script
+
+Create `C:\Server\health-monitor.ps1`:
+
+```powershell
+#Requires -Version 5.0
+# ════════════════════════════════════════════════════════════════════
+# HP 15s Home Server — Comprehensive Health Monitor
+# Runs every 10 minutes via Task Scheduler
+# Monitors: CPU, RAM, Disk, Docker containers, Cloudflare tunnel
+# Alerts via Telegram when thresholds are exceeded
+# ════════════════════════════════════════════════════════════════════
+
+# ── Configuration ────────────────────────────────────────────────────
+$BOT_TOKEN      = "YOUR_TELEGRAM_BOT_TOKEN"  # Replace with your bot token
+$CHAT_ID        = "YOUR_TELEGRAM_CHAT_ID"    # Replace with your chat ID
+$HOSTNAME       = $env:COMPUTERNAME
+$LOG_FILE       = "C:\Server\health.log"
+
+# Thresholds
+$CPU_THRESHOLD   = 90   # Alert if CPU > 90% for this check cycle
+$RAM_THRESHOLD   = 92   # Alert if RAM usage > 92%
+$DISK_C_THRESHOLD = 85  # Alert if C: drive > 85% full
+$DISK_D_THRESHOLD = 90  # Alert if D: drive > 90% full (HDD for media)
+
+# Force TLS 1.2 for Telegram API (required on some Windows 10 configs)
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# ── Helper: Send Telegram Message ────────────────────────────────────
+function Send-TelegramAlert {
+    param ([string]$Message)
+    $Uri  = "https://api.telegram.org/bot$BOT_TOKEN/sendMessage"
+    $Body = @{
+        chat_id    = $CHAT_ID
+        text       = $Message
+        parse_mode = "HTML"
+    }
+    try {
+        Invoke-RestMethod -Uri $Uri -Method Post -Body $Body -ErrorAction Stop
+    } catch {
+        Add-Content -Path $LOG_FILE -Value "$(Get-Date -f 'yyyy-MM-dd HH:mm:ss') [ERROR] Telegram send failed: $_"
+    }
+}
+
+# ── Helper: Log Entry ────────────────────────────────────────────────
+function Write-Log {
+    param ([string]$Msg)
+    $entry = "$(Get-Date -f 'yyyy-MM-dd HH:mm:ss') $Msg"
+    Add-Content -Path $LOG_FILE -Value $entry
+}
+
+# ── 1. Collect Windows Host Metrics ──────────────────────────────────
+$alerts = [System.Collections.Generic.List[string]]::new()
+
+# CPU Load
+$cpu = (Get-CimInstance -ClassName Win32_Processor |
+        Measure-Object -Property LoadPercentage -Average).Average
+$cpuStr = "$([math]::Round($cpu, 1))%"
+
+# RAM Usage
+$os       = Get-CimInstance -ClassName Win32_OperatingSystem
+$totalRam = [math]::Round($os.TotalVisibleMemorySize / 1MB, 2)
+$freeRam  = [math]::Round($os.FreePhysicalMemory    / 1MB, 2)
+$usedRam  = [math]::Round($totalRam - $freeRam, 2)
+$ramPct   = [math]::Round(($usedRam / $totalRam) * 100, 1)
+$ramStr   = "$usedRam GB / $totalRam GB ($ramPct%)"
+
+# Check RAM threshold
+if ($ramPct -gt $RAM_THRESHOLD) {
+    $alerts.Add("⚠️ <b>High RAM</b>: $ramStr")
+}
+
+# Check CPU threshold
+if ($cpu -gt $CPU_THRESHOLD) {
+    $alerts.Add("⚠️ <b>High CPU</b>: $cpuStr")
+}
+
+# Disk Usage (C: — NVMe SSD)
+$diskC    = Get-PSDrive -Name C
+$diskCTot = [math]::Round(($diskC.Used + $diskC.Free) / 1GB, 1)
+$diskCUsd = [math]::Round($diskC.Used / 1GB, 1)
+$diskCPct = [math]::Round(($diskC.Used / ($diskC.Used + $diskC.Free)) * 100, 1)
+$diskCStr = "$diskCUsd GB / $diskCTot GB ($diskCPct%)"
+
+if ($diskCPct -gt $DISK_C_THRESHOLD) {
+    $alerts.Add("⚠️ <b>Low SSD Space (C:)</b>: $diskCStr")
+}
+
+# Disk Usage (D: — HDD, if exists)
+$diskDStr = "N/A"
+if (Get-PSDrive -Name D -ErrorAction SilentlyContinue) {
+    $diskD    = Get-PSDrive -Name D
+    $diskDTot = [math]::Round(($diskD.Used + $diskD.Free) / 1GB, 1)
+    $diskDUsd = [math]::Round($diskD.Used / 1GB, 1)
+    $diskDPct = [math]::Round(($diskD.Used / ($diskD.Used + $diskD.Free)) * 100, 1)
+    $diskDStr = "$diskDUsd GB / $diskDTot GB ($diskDPct%)"
+    if ($diskDPct -gt $DISK_D_THRESHOLD) {
+        $alerts.Add("⚠️ <b>Low HDD Space (D:)</b>: $diskDStr")
+    }
+}
+
+# Uptime
+$uptime    = (Get-Date) - (gcim Win32_OperatingSystem).LastBootUpTime
+$uptimeStr = "$([math]::Floor($uptime.TotalDays))d $($uptime.Hours)h $($uptime.Minutes)m"
+
+# ── 2. Collect Docker Container Status from WSL2 ─────────────────────
+$dockerStatusRaw = wsl.exe -d Ubuntu -e bash -c `
+    "docker ps --format '{{.Names}}|{{.Status}}' 2>/dev/null"
+$dockerStatus = @{}
+$stoppedContainers = [System.Collections.Generic.List[string]]::new()
+
+foreach ($line in $dockerStatusRaw -split "`n") {
+    $line = $line.Trim()
+    if ($line -match "^(.+)\|(.+)$") {
+        $name   = $Matches[1]
+        $status = $Matches[2]
+        $dockerStatus[$name] = $status
+        if ($status -notmatch "^Up") {
+            $stoppedContainers.Add("$name ($status)")
+        }
+    }
+}
+
+$runningCount = $dockerStatus.Count
+$stoppedCount = $stoppedContainers.Count
+
+if ($stoppedCount -gt 0) {
+    $stoppedList = $stoppedContainers -join ", "
+    $alerts.Add("🔴 <b>Stopped containers ($stoppedCount)</b>: $stoppedList")
+}
+
+# ── 3. Check Cloudflare Tunnel Status ────────────────────────────────
+$tunnelStatus = "Unknown"
+try {
+    $cfService = Get-Service -Name "cloudflared" -ErrorAction Stop
+    $tunnelStatus = $cfService.Status.ToString()
+    if ($tunnelStatus -ne "Running") {
+        $alerts.Add("🔴 <b>Cloudflare Tunnel DOWN</b>: Service status = $tunnelStatus")
+        Start-Service cloudflared -ErrorAction SilentlyContinue
+    }
+} catch {
+    $tunnelStatus = "Not installed"
+}
+
+# ── 4. Check WSL2 Clock Drift ─────────────────────────────────────────
+$wslTimeRaw    = wsl.exe -d Ubuntu -e bash -c "date +%s 2>/dev/null"
+$windowsTimeTs = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+$clockDrift    = [math]::Abs([int]$wslTimeRaw - $windowsTimeTs)
+
+$clockDriftStr = "${clockDrift}s"
+if ($clockDrift -gt 120) {
+    $alerts.Add("🕐 <b>WSL2 Clock Drift</b>: ${clockDrift}s (auto-fixing...)")
+    # Auto-fix: sync WSL2 clock
+    wsl.exe -d Ubuntu -u root -e bash -c "hwclock --hctosys 2>/dev/null || ntpdate -u pool.ntp.org 2>/dev/null" | Out-Null
+}
+
+# ── 5. Collect WSL2 Internal Memory Usage ────────────────────────────
+$wslMemRaw = wsl.exe -d Ubuntu -e bash -c `
+    "free -m | awk '/^Mem:/ {printf \"%d/%d\", \$3, \$2}' 2>/dev/null"
+$wslMemStr = if ($wslMemRaw) { "${wslMemRaw} MB" } else { "N/A" }
+
+# ── 6. Build Status Message ───────────────────────────────────────────
+$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm IST"
+$statusIcon = if ($alerts.Count -eq 0) { "✅" } else { "🚨" }
+
+$statusMsg = @"
+$statusIcon <b>Server Report — $HOSTNAME</b>
+🕐 $timestamp
+
+📊 <b>System Resources</b>
+├ CPU: $cpuStr
+├ RAM: $ramStr
+├ SSD (C:): $diskCStr
+└ HDD (D:): $diskDStr
+
+🐋 <b>Docker</b>
+├ Running: $runningCount containers
+├ WSL2 RAM: $wslMemStr
+└ Clock drift: $clockDriftStr
+
+🌐 <b>Cloudflare Tunnel</b>
+└ Status: $tunnelStatus
+
+⏱ <b>Uptime</b>: $uptimeStr
+"@
+
+# ── 7. Send Only if Alerts Exist (or every 6 hours for heartbeat) ───
+$lastHeartbeatFile = "C:\Server\.last_heartbeat"
+$shouldSendHeartbeat = $false
+
+if (Test-Path $lastHeartbeatFile) {
+    $lastTime = Get-Content $lastHeartbeatFile | Get-Date
+    if ((Get-Date) - $lastTime -gt [TimeSpan]::FromHours(6)) {
+        $shouldSendHeartbeat = $true
+    }
+} else {
+    $shouldSendHeartbeat = $true
+}
+
+if ($alerts.Count -gt 0) {
+    $alertBlock = "`n⚠️ <b>ALERTS ($($alerts.Count))</b>`n" + ($alerts -join "`n")
+    Send-TelegramAlert -Message ($statusMsg + $alertBlock)
+    Write-Log "ALERT: $($alerts.Count) alert(s) sent to Telegram."
+} elseif ($shouldSendHeartbeat) {
+    Send-TelegramAlert -Message $statusMsg
+    Set-Content -Path $lastHeartbeatFile -Value (Get-Date).ToString()
+    Write-Log "HEARTBEAT: Status report sent."
+} else {
+    Write-Log "OK: All checks passed. No alerts. Heartbeat not due yet."
+}
+```
+
+### 2.3 Register the Health Monitor Task
+
+```powershell
+$monitorAction = New-ScheduledTaskAction `
+    -Execute "powershell.exe" `
+    -Argument "-NonInteractive -ExecutionPolicy Bypass -File C:\Server\health-monitor.ps1"
+
+# Run every 10 minutes
+$monitorTrigger = New-ScheduledTaskTrigger `
+    -RepetitionInterval (New-TimeSpan -Minutes 10) `
+    -Once `
+    -At (Get-Date) `
+    -RepetitionDuration ([TimeSpan]::MaxValue)
+
+$monitorSettings = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 3)
+
+Register-ScheduledTask `
+    -TaskName "ServerHealthMonitor" `
+    -Description "Monitors system health and sends Telegram alerts every 10 minutes" `
+    -Action $monitorAction `
+    -Trigger $monitorTrigger `
+    -Settings $monitorSettings `
+    -RunLevel Highest `
+    -Force
+
+# Test it immediately
+Start-ScheduledTask -TaskName "ServerHealthMonitor"
+Write-Host "Health monitor registered. Check your Telegram for the first report."
+```
+
+---
+
+## 3. WSL2 Known Issues and Fixes
+
+### 3.1 Clock Drift After Sleep or Power Restore
+
+**Symptom:** After the laptop wakes from sleep or recovers from a power
+outage, Docker containers may produce SSL certificate errors, JWT token
+expiry, or database timestamp corruption. This is because the WSL2 Linux
+kernel clock drifts from Windows time during sleep.
+
+**Root cause:** When Windows suspends, the Hyper-V VM hosting WSL2 also
+suspends. Upon resume, the Linux kernel's internal clock is still at the
+pre-sleep time until a hardware clock sync occurs.
+
+**Fix 1 — On-demand sync (inside WSL2):**
+```bash
+sudo hwclock --hctosys
+```
+
+**Fix 2 — Automated sync via `.bashrc` (fires on every terminal open):**
+```bash
+echo '# Sync hardware clock to system on every shell start' >> ~/.bashrc
+echo 'sudo hwclock --hctosys > /dev/null 2>&1 &' >> ~/.bashrc
+```
+
+Allow passwordless sudo for this command:
+```bash
+echo "$USER ALL=(ALL) NOPASSWD: /sbin/hwclock" | sudo tee /etc/sudoers.d/hwclock-sync
+sudo chmod 440 /etc/sudoers.d/hwclock-sync
+```
+
+**Fix 3 — Windows Task Scheduler on resume (most reliable):**
+Create a task that runs when Windows wakes from sleep (Event ID 107
+from Kernel-Power source):
+
+```powershell
+# Create the resume event trigger
+$xml = @"
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <Triggers>
+    <EventTrigger>
+      <Enabled>true</Enabled>
+      <Subscription>&lt;QueryList&gt;&lt;Query Id="0"&gt;&lt;Select Path="System"&gt;*[System[Provider[@Name='Microsoft-Windows-Kernel-Power'] and EventID=107]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
+    </EventTrigger>
+  </Triggers>
+  <Actions>
+    <Exec>
+      <Command>wsl.exe</Command>
+      <Arguments>-d Ubuntu -u root -e hwclock --hctosys</Arguments>
+    </Exec>
+  </Actions>
+  <Settings>
+    <Hidden>true</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+  </Settings>
+</Task>
+"@
+$xml | Out-File -FilePath "C:\Server\wsl2-clock-sync.xml" -Encoding Unicode
+Register-ScheduledTask -Xml (Get-Content "C:\Server\wsl2-clock-sync.xml" -Raw) `
+    -TaskName "WSL2_ClockSync_OnResume" `
+    -User "SYSTEM" -RunLevel Highest -Force
+Write-Host "Clock sync task registered (triggers on Windows resume from sleep)."
+```
+
+### 3.2 WSL2 DNS Resolution Failures
+
+**Symptom:** Container tries to pull an image, hits an API, or Ollama
+tries to download model weights — and gets `ERR_NAME_NOT_RESOLVED` or
+`Temporary failure in name resolution`.
+
+**Cause:** The auto-generated `/etc/resolv.conf` inside WSL2 sometimes
+points to a Windows gateway IP that changes after network reconnection.
+
+**Fix (we did this in Part 1, but here is the recovery command):**
+```bash
+# Inside WSL2 — check current DNS config
+cat /etc/resolv.conf
+
+# If it shows anything other than 1.1.1.1/8.8.8.8, reset it
+sudo chattr -i /etc/resolv.conf 2>/dev/null || true
+sudo rm -f /etc/resolv.conf
+sudo bash -c 'echo "nameserver 1.1.1.1
+nameserver 8.8.8.8" > /etc/resolv.conf'
+sudo chattr +i /etc/resolv.conf
+
+# Test DNS resolution
+nslookup google.com
+dig @1.1.1.1 cloudflare.com
+```
+
+**Also check Windows Firewall isn't blocking WSL2 DNS queries:**
+```powershell
+# From Windows PowerShell (Admin)
+# Allow WSL2 to reach DNS
+New-NetFirewallRule `
+    -DisplayName "WSL2 DNS Allow" `
+    -Direction Outbound `
+    -Action Allow `
+    -Protocol UDP `
+    -RemotePort 53 `
+    -RemoteAddress Any `
+    -ErrorAction SilentlyContinue
+```
+
+### 3.3 Out-of-Memory (OOM) Container Kills
+
+**Symptom:** A container exits with code 137. `docker inspect <name>`
+returns `"OOMKilled": true`. The container may enter a restart loop.
+
+**Diagnosis:**
+```bash
+# Inside WSL2
+# Check which containers were OOM-killed
+docker ps -a --format "{{.Names}}: {{.Status}}" | grep -v "Up"
+
+# Inspect specific container
+docker inspect nextcloud --format '{{.State.OOMKilled}}'
+# Returns: true = OOM killed
+
+# Check current memory usage
+free -h
+docker stats --no-stream
+```
+
+**Recovery — Restart with memory cap confirmation:**
+```bash
+# Restart the killed container
+docker compose restart nextcloud
+
+# If it keeps crashing, temporarily unload Ollama model
+# to free RAM:
+curl -X POST http://localhost:11434/api/generate \
+  -d '{"model":"phi3.5","keep_alive":0}'
+# This forces immediate model unload
+
+# Then restart
+docker compose restart nextcloud
+```
+
+**Prevent future OOM by adjusting WSL2 memory limit** (if needed):
+```powershell
+# Edit .wslconfig
+notepad "$env:USERPROFILE\.wslconfig"
+# Change memory=10GB to memory=11GB if Windows headroom allows
+
+# Apply
+wsl --shutdown
+```
+
+**Root-cause fix — add swap inside WSL2:**
+```bash
+# Create a 2 GB swap file inside WSL2 (emergency memory overflow)
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+# Make permanent (add to /etc/fstab)
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+# Verify
+free -h
+# Should now show Swap: 2.0G
+```
+
+### 3.4 Cloudflare Tunnel Connectivity Failures
+
+**Symptom:** `cloudflared` service is running, but subdomains return
+"522 Connection Timed Out" or "502 Bad Gateway" from Cloudflare.
+
+**Diagnosis checklist:**
+```powershell
+# 1. Is the cloudflared service running?
+Get-Service cloudflared
+
+# 2. Can Windows resolve Cloudflare's API?
+Resolve-DnsName cloudflare.com
+
+# 3. Check the tunnel log
+Get-Content "C:\Server\cloudflared.log" -Tail 30
+
+# 4. Check if the local service is actually listening
+wsl.exe -d Ubuntu -e bash -c "curl -s http://localhost:8080 | head -5"
+# (Replace 8080 with the port of the failing service)
+```
+
+**Most common cause — service exited and port proxy is stale:**
+```powershell
+# Restart the service
+Restart-Service cloudflared
+
+# Re-run port forward script
+& "C:\Server\wsl2-port-forward.ps1"
+
+# Verify WSL2 IP updated
+wsl.exe -d Ubuntu -e bash -c "hostname -I"
+```
+
+**If Nextcloud specifically shows 502:**
+```bash
+# Inside WSL2 — Nextcloud often enters maintenance mode during crashes
+docker exec --user www-data nextcloud php occ maintenance:mode --off
+
+# Clear Nextcloud caches
+docker exec --user www-data nextcloud php occ cache:flush
+```
+
+---
+
+## 4. WSL2 VHDX Disk Management
+
+The WSL2 virtual disk (VHDX) grows as you add files but **never
+automatically shrinks**. After deleting Docker images or large files,
+the VHDX file on your C: drive can be gigabytes larger than necessary.
+
+### 4.1 Check Current VHDX Size
+
+```powershell
+# Find the VHDX file
+Get-ChildItem "$env:LOCALAPPDATA\Packages\*Ubuntu*\LocalState\" -Filter "*.vhdx" |
+    Select-Object Name, @{N="Size_GB";E={[math]::Round($_.Length/1GB,2)}}
+```
+
+### 4.2 Compact the VHDX (Free Up Space)
+
+This process is safe and non-destructive. It compacts the VHDX without
+losing data:
+
+```bash
+# Step 1: Inside WSL2 — run fstrim to mark unused blocks
+sudo fstrim -av
+```
+
+```powershell
+# Step 2: From Windows PowerShell as Administrator
+wsl --shutdown
+
+# Step 3: Find your VHDX path (usually like this)
+$vhdxPath = (Get-ChildItem "$env:LOCALAPPDATA\Packages\*Ubuntu*\LocalState\ext4.vhdx").FullName
+Write-Host "VHDX path: $vhdxPath"
+
+# Step 4: Use diskpart to compact
+$diskpartScript = @"
+select vdisk file="$vhdxPath"
+attach vdisk readonly
+compact vdisk
+detach vdisk
+exit
+"@
+$diskpartScript | diskpart
+Write-Host "VHDX compacted. Restart WSL2 to verify."
+```
+
+Run this monthly. A 3-month-old Docker setup can easily accumulate
+3–5 GB of recoverable space from deleted images and logs.
+
+### 4.3 Automate Monthly VHDX Compact
+
+```powershell
+$compactAction = New-ScheduledTaskAction `
+    -Execute "powershell.exe" `
+    -Argument @"
+-NonInteractive -ExecutionPolicy Bypass -Command "
+wsl --shutdown;
+Start-Sleep 5;
+`$vhdx = (Get-ChildItem `"$env:LOCALAPPDATA\Packages\*Ubuntu*\LocalState\ext4.vhdx`").FullName;
+`"select vdisk file=``"`$vhdx``\"`nattach vdisk readonly`ncompact vdisk`ndetach vdisk`nexit`" | diskpart;
+Write-EventLog -LogName Application -Source 'WSL2Compact' -EventId 1 -Message 'VHDX compacted' -EntryType Information 2>`$null
+"
+"@
+
+$compactTrigger = New-ScheduledTaskTrigger `
+    -Monthly -DaysOfMonth 1 -At "03:00AM"
+
+Register-ScheduledTask `
+    -TaskName "WSL2_VHDX_Monthly_Compact" `
+    -Description "Compacts the WSL2 VHDX file on the 1st of each month at 3 AM" `
+    -Action $compactAction `
+    -Trigger $compactTrigger `
+    -User "SYSTEM" `
+    -RunLevel Highest `
+    -Force
+
+Write-Host "Monthly VHDX compact task registered."
+```
+
+---
+
+## 5. Restic Cloud Backups to Backblaze B2
+
+Your Docker volumes live inside the WSL2 VHDX on your NVMe SSD.
+If that SSD fails, all your data (Nextcloud files, Vaultwarden vault,
+n8n workflows) is gone. Off-site backups are non-negotiable.
+
+Restic is a fast, encrypted, deduplicated backup tool. Backblaze B2
+offers 10 GB free storage and charges $0.006/GB/month beyond that —
+meaning a full backup of your server data typically costs under ₹50/month.
+
+### 5.1 Install Restic in WSL2
+
+```bash
+# Install via apt (Ubuntu 22.04+)
+sudo apt update
+sudo apt install restic -y
+
+# Verify
+restic version
+```
+
+### 5.2 Set Up Backblaze B2
+
+1. Create a free account at [backblaze.com](https://www.backblaze.com).
+2. Go to **B2 Cloud Storage** → **Create a Bucket**.
+3. Name: `hp15s-home-server-backup` → Private → Enable Object Lock (optional).
+4. Go to **App Keys** → **Add Application Key**.
+5. Key Name: `restic-server`, Bucket: your bucket, permissions: Read/Write.
+6. Save the `keyID` and `applicationKey` — you cannot view the key again.
+
+### 5.3 Initialize the Restic Repository
+
+```bash
+# Create a secure env file for credentials
+cat > ~/server/.backup-env << 'EOF'
+export B2_ACCOUNT_ID="your_key_id_here"
+export B2_ACCOUNT_KEY="your_application_key_here"
+export RESTIC_PASSWORD="choose_a_strong_encryption_password"
+export RESTIC_REPOSITORY="b2:hp15s-home-server-backup:/"
+EOF
+
+chmod 600 ~/server/.backup-env
+source ~/server/.backup-env
+
+# Initialize the repository (first time only)
+restic init
+# Output: created restic repository abc123 at b2:...
+# SAVE THE REPOSITORY ID — you need it for disaster recovery
+```
+
+### 5.4 Create the Automated Backup Script
+
+```bash
+nano ~/server/restic-backup.sh
+```
+
+```bash
+#!/bin/bash
+# ════════════════════════════════════════════════════════════════════
+# Restic Backup Script — HP 15s Home Server
+# Backs up all critical server data to Backblaze B2
+# Designed to run daily at 3 AM via cron
+# ════════════════════════════════════════════════════════════════════
+
+set -euo pipefail
+LOG_FILE="$HOME/server/backup.log"
+exec >> "$LOG_FILE" 2>&1
+
+echo ""
+echo "═══════════════════════════════════════════════════════════"
+echo "$(date '+%Y-%m-%d %H:%M:%S') Starting Restic backup"
+echo "═══════════════════════════════════════════════════════════"
+
+# Load credentials
+source "$HOME/server/.backup-env"
+
+# ── 1. Put Nextcloud in maintenance mode (prevents file corruption) ──
+echo "[1/6] Enabling Nextcloud maintenance mode..."
+docker exec --user www-data nextcloud php occ maintenance:mode --on 2>/dev/null || true
+
+# ── 2. Dump MariaDB (Nextcloud database) ────────────────────────────
+echo "[2/6] Dumping Nextcloud database..."
+mkdir -p "$HOME/server/db-dumps"
+docker exec nextcloud_db mysqldump \
+    -u nextcloud -pchangeme_ncpwd_here \
+    --single-transaction --routines --triggers \
+    nextcloud > "$HOME/server/db-dumps/nextcloud_$(date +%Y%m%d).sql"
+
+# ── 3. Disable Nextcloud maintenance mode ────────────────────────────
+echo "[3/6] Disabling Nextcloud maintenance mode..."
+docker exec --user www-data nextcloud php occ maintenance:mode --off 2>/dev/null || true
+
+# ── 4. Run Restic backup ──────────────────────────────────────────────
+echo "[4/6] Running Restic backup to B2..."
+restic backup \
+    --tag "daily" \
+    --tag "docker-volumes" \
+    --exclude "**/.cache" \
+    --exclude "**/lost+found" \
+    "$HOME/server/nextcloud" \
+    "$HOME/server/vaultwarden" \
+    "$HOME/server/n8n" \
+    "$HOME/server/db-dumps" \
+    "$HOME/server/flowise" \
+    "$HOME/server/uptime-kuma"
+
+# ── 5. Prune old snapshots ────────────────────────────────────────────
+echo "[5/6] Pruning old snapshots..."
+restic forget \
+    --keep-daily 7 \
+    --keep-weekly 4 \
+    --keep-monthly 3 \
+    --prune
+
+# ── 6. Verify repository integrity ──────────────────────────────────
+echo "[6/6] Verifying repository..."
+restic check --read-data-subset=5%
+
+echo "$(date '+%Y-%m-%d %H:%M:%S') Backup COMPLETE ✅"
+restic snapshots --last
+
+# Optional: Send success notification to Telegram
+# Add your Telegram notification here using curl
+```
+
+```bash
+chmod +x ~/server/restic-backup.sh
+
+# Test it manually first
+source ~/server/.backup-env
+~/server/restic-backup.sh
+
+# Schedule via cron: daily at 3:00 AM
+(crontab -l 2>/dev/null; echo "0 3 * * * $HOME/server/restic-backup.sh") | crontab -
+
+# Verify cron entry
+crontab -l
+```
+
+---
+
+## 6. Dual-Use Operations: Being a Normal User While the Server Runs
+
+The HP 15s is both a server and (sometimes) your personal laptop.
+Here is how to manage the dual-use scenario gracefully.
+
+### 6.1 Opening the Lid and Using Windows Normally
+
+When you open the laptop and start using Windows, the server keeps
+running. Docker containers, the Cloudflare Tunnel, and all services
+continue uninterrupted. The only impact is:
+
+- Your foreground applications compete with Docker for CPU time (minimal
+  impact for most tasks like browsing, documents, video calls).
+- RAM is split: ~2.5 GB for Windows apps + ~10 GB for WSL2 server.
+- If you load a large Ollama model while working, you may feel 500 MB–2 GB
+  of RAM pressure. Close the model with the `OLLAMA_KEEP_ALIVE=0` trick.
+
+```bash
+# Unload the current Ollama model immediately (free RAM)
+curl -X POST http://localhost:11434/api/generate \
+  -d '{"model":"phi3.5","keep_alive":0}'
+```
+
+### 6.2 Temporary Resource Boost for Heavy Tasks
+
+When you need maximum performance for video rendering, compiling code,
+or gaming, pause the server stack temporarily:
+
+```bash
+# From WSL2 terminal — pause all containers without destroying them
+docker compose pause
+
+# ... do your heavy work on Windows ...
+
+# Resume all containers when done
+docker compose unpause
+```
+
+Or from Windows PowerShell (calls WSL2):
+```powershell
+# Create convenient shortcuts on the Desktop
+# Server OFF script:
+'wsl.exe -d Ubuntu -e bash -c "cd ~/server && docker compose pause"' | `
+    Out-File "C:\Users\$env:USERNAME\Desktop\Server-Pause.bat"
+
+# Server ON script:
+'wsl.exe -d Ubuntu -e bash -c "cd ~/server && docker compose unpause"' | `
+    Out-File "C:\Users\$env:USERNAME\Desktop\Server-Resume.bat"
+```
+
+### 6.3 Managing Windows Updates Gracefully
+
+When Windows needs to restart for updates, your server goes down for
+the restart duration. With Autologon (configured in Part 1) and the
+Task Scheduler startup tasks, the server comes back automatically.
+
+**Estimated downtime for a Windows update restart:** 3–8 minutes.
+
+To minimize unexpected restarts, schedule your active hours window
+in Windows Update to cover your work hours:
+1. **Settings** → **Windows Update** → **Advanced options** → **Active hours**.
+2. Set: 07:00 to 23:00 (18-hour window — Windows updates only in 23:00–07:00).
+
+### 6.4 Closing the Lid Safely
+
+With the lid-close setting configured in Part 1 (Do nothing), you can
+close the lid and the server continues. However, when the lid is closed:
+
+- Some models trap heat between the keyboard and display.
+- The HP 15s exhaust vent is at the rear — closing the lid partially
+  blocks the heat exhaust path on some orientations.
+
+**Best practice:** Close the lid, then immediately stand the laptop
+vertically on its side using a laptop stand or bookend. This exposes
+the rear vent fully and lets heat rise naturally out of the chassis.
+
+### 6.5 Quick Reference Card for Daily Operations
+
+Pin this to your phone's notes app:
+
+```
+HP 15s Home Server — Quick Reference
+
+SERVICES:
+  files.yourdomain.com    → Nextcloud (cloud storage)
+  vault.yourdomain.com    → Vaultwarden (passwords)
+  automation.yourdomain.com → n8n (workflows)
+  status.yourdomain.com   → Uptime Kuma (monitoring)
+  ai.yourdomain.com       → Open WebUI (AI chat)
+  odysseus.yourdomain.com → Odysseus (AI agents)
+  portainer.yourdomain.com → Docker management
+
+COMMANDS (inside WSL2 terminal):
+  View all services:  docker compose ps
+  View logs:          docker compose logs -f [service]
+  Restart service:    docker compose restart [service]
+  Pause all:          docker compose pause
+  Resume all:         docker compose unpause
+  Fix DNS:            sudo systemctl restart systemd-resolved
+  Fix clock:          sudo hwclock --hctosys
+  Check RAM:          free -h && docker stats --no-stream
+
+COMMANDS (Windows PowerShell as Admin):
+  View Task status:   Get-ScheduledTask | Where State -ne 'Disabled'
+  Restart tunnel:     Restart-Service cloudflared
+  Run port forward:   & "C:\Server\wsl2-port-forward.ps1"
+  Check WSL2 IP:      wsl.exe hostname -I
+```
+
+---
+
+## Summary and What's Next
+
+In Part 4, you have:
+
+1. ✅ Hardened Task Scheduler with "Run whether user is logged on or not",
+   failure retry logic, and self-healing monitor running every 15 minutes.
+2. ✅ Built a comprehensive PowerShell health monitor that sends Telegram
+   alerts for CPU spikes, RAM pressure, disk space, stopped containers,
+   tunnel downtime, and clock drift — with a 6-hour heartbeat.
+3. ✅ Documented and automated fixes for every major WSL2 failure mode:
+   clock drift, DNS failures, OOM kills, tunnel connectivity, Nextcloud
+   maintenance mode stuck.
+4. ✅ Implemented monthly VHDX compaction to prevent SSD space creep.
+5. ✅ Set up encrypted Restic cloud backups to Backblaze B2 with daily
+   execution, 7-day daily retention, and repository integrity verification.
+6. ✅ Documented dual-use operating procedures — server continues running
+   while you work normally, with Docker pause/unpause for heavy tasks.
+
+**In Part 5**, we perform a full financial analysis: exact electricity
+cost calculation using Indian state-wise tariffs, 3-year Total Cost of
+Ownership comparison against AWS Lightsail, Hetzner Cloud, and Hostinger
+VPS, a WSL2 vs. bare-metal performance audit, and a hybrid architecture
+design that combines your home server with free cloud services (Cloudflare
+Pages, Neon DB, GitHub Actions) to create the best of both worlds.
+
+**[Continue to Part 5: Cost Analysis, Performance Audit, and Hybrid Architecture →](/blog/windows-home-server-series/part-5-cost-analysis-hybrid)**

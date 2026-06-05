@@ -1,0 +1,859 @@
+---
+title: "Windows Home Server on HP 15s — Part 2: Cloudflare Tunnel, Reverse Proxy, and Core Services"
+description: "Deploy cloudflared as a Windows system service for zero-port-forward HTTPS access, configure Caddy reverse proxy inside Docker, and build the core self-hosted stack: Portainer, Nextcloud, Vaultwarden, Uptime Kuma, and n8n — all on your HP 15s-du2077TU running Windows with WSL2."
+pubDate: 2026-06-05
+tags:
+  - Home-Server
+  - Cloudflare
+  - Caddy
+  - Docker
+  - Nextcloud
+  - Vaultwarden
+  - n8n
+  - Self-Hosting
+category: "Engineering"
+author: "Chirag Singhal"
+series: "Windows Home Server on HP 15s"
+part: 2
+draft: false
+---
+
+# Windows Home Server on HP 15s — Part 2: Cloudflare Tunnel, Reverse Proxy, and Core Services
+
+In Part 1, we built the foundation: Windows 10 configured for headless
+operation, WSL2 running Ubuntu with systemd, native Docker Engine with
+zero Docker Desktop overhead, and Task Scheduler automation that boots
+the entire stack on Windows startup.
+
+Now we expose those services to the world — securely — using Cloudflare
+Tunnel, and we deploy the core application stack that transforms this
+laptop into a productive home server.
+
+---
+
+## 1. Why Cloudflare Tunnel Is the Right Architecture
+
+Traditional approaches to exposing a home server involve opening ports on
+your router (port forwarding). This is problematic for several reasons:
+
+```
+Traditional Port Forwarding (RISKY):
+Internet → Router (port 80/443 open) → Windows Firewall → WSL2
+  - Your home IP address is publicly exposed
+  - Direct path from internet to your machine
+  - Dynamic IP requires DDNS configuration
+  - ISP CGNAT blocks port forwarding for many residential connections
+  - Each open port is a potential attack surface
+
+Cloudflare Tunnel (SECURE):
+Your Server → [outbound connection] → Cloudflare Edge → Internet
+  - No open inbound ports on your router
+  - Your home IP is completely hidden
+  - HTTPS/TLS handled automatically by Cloudflare
+  - Works behind ISP CGNAT (Jio, BSNL, Airtel fiber CGNAT)
+  - Works even if your router blocks port forwarding
+```
+
+Cloudflare Tunnel works by having `cloudflared` — a daemon running on
+your Windows machine — maintain a persistent **outbound** encrypted
+connection to Cloudflare's global edge network. When a request arrives
+at `app.yourdomain.com`, Cloudflare routes it down that tunnel to your
+local service. No inbound ports ever open.
+
+### What You Need Before Starting
+
+- A domain name (any registrar — GoDaddy, Namecheap, Porkbun, etc.)
+- Your domain's DNS nameservers must point to Cloudflare (free plan works)
+- A Cloudflare account (free)
+
+### Pointing Your Domain to Cloudflare DNS
+
+If your domain is not already on Cloudflare:
+1. Log in to [dash.cloudflare.com](https://dash.cloudflare.com) → Add a Site.
+2. Enter your domain name → choose **Free** plan.
+3. Cloudflare scans your existing DNS records and imports them.
+4. Cloudflare provides two nameservers (e.g., `kai.ns.cloudflare.com`).
+5. Log in to your domain registrar → find **"Change Nameservers"** →
+   replace existing nameservers with Cloudflare's two nameservers.
+6. Propagation takes 15 minutes to 24 hours.
+
+---
+
+## 2. Installing and Configuring cloudflared on Windows
+
+We install `cloudflared` as a **Windows system service** — it starts
+automatically with Windows, before any user logs in, and runs in the
+background even when the desktop is locked.
+
+### 2.1 Install cloudflared
+
+Open PowerShell as Administrator:
+
+```powershell
+# Method A: Install via winget (recommended — keeps it updatable)
+winget install --id Cloudflare.cloudflared -e --silent
+
+# Verify installation
+cloudflared --version
+# Should output: cloudflared version 2026.x.x
+
+# Method B: Manual download (if winget isn't available)
+# Download from: https://github.com/cloudflare/cloudflared/releases
+# Save as C:\Server\cloudflared.exe
+```
+
+Restart your PowerShell terminal after installation.
+
+### 2.2 Authenticate with Your Cloudflare Account
+
+```powershell
+# This opens your default browser for OAuth authentication
+cloudflared tunnel login
+```
+
+1. A browser window opens at `cloudflare.com/oauth2/...`
+2. Log in to your Cloudflare account.
+3. Select your domain from the dropdown.
+4. Click **Authorize**.
+5. A `cert.pem` file is downloaded to `C:\Users\<you>\.cloudflared\`.
+
+### 2.3 Create the Tunnel
+
+```powershell
+# Create a named tunnel
+# Choose a descriptive name — you cannot change it later
+cloudflared tunnel create hp-home-server
+```
+
+Output will look like:
+```
+Created tunnel hp-home-server with id a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+Note the **Tunnel UUID** (the long alphanumeric string). You'll need it
+for configuration.
+
+A credentials JSON file is saved at:
+`C:\Users\<you>\.cloudflared\<TUNNEL-UUID>.json`
+
+### 2.4 Create the Tunnel Configuration File
+
+Create `C:\Users\<you>\.cloudflared\config.yml`:
+
+> Note: Replace `<TUNNEL-UUID>`, `<YOUR-USERNAME>`, and `yourdomain.com`
+> with your actual values.
+
+```yaml
+# Cloudflare Tunnel Configuration
+# File: C:\Users\<YOUR-USERNAME>\.cloudflared\config.yml
+
+tunnel: <TUNNEL-UUID>
+credentials-file: C:\Users\<YOUR-USERNAME>\.cloudflared\<TUNNEL-UUID>.json
+
+# Log settings (for debugging)
+loglevel: warn
+logfile: C:\Server\cloudflared.log
+
+# Ingress rules — processed top-to-bottom
+# Traffic matching a hostname is forwarded to the specified local service
+ingress:
+  # Container management dashboard
+  - hostname: portainer.yourdomain.com
+    service: http://localhost:9000
+
+  # Private cloud storage
+  - hostname: files.yourdomain.com
+    service: http://localhost:8080
+    originRequest:
+      # Nextcloud needs larger upload sizes
+      connectTimeout: 30s
+      noTLSVerify: true
+
+  # Password manager
+  - hostname: vault.yourdomain.com
+    service: http://localhost:8081
+
+  # AI chat interface (Open WebUI)
+  - hostname: ai.yourdomain.com
+    service: http://localhost:8084
+
+  # Odysseus AI workspace
+  - hostname: odysseus.yourdomain.com
+    service: http://localhost:7000
+
+  # Visual AI workflow builder
+  - hostname: flowise.yourdomain.com
+    service: http://localhost:8083
+
+  # Uptime monitoring
+  - hostname: status.yourdomain.com
+    service: http://localhost:3001
+
+  # Workflow automation (n8n)
+  - hostname: automation.yourdomain.com
+    service: http://localhost:5678
+
+  # Catch-all rule — REQUIRED by cloudflared
+  # Unmatched requests return a 404
+  - service: http_status:404
+```
+
+### 2.5 Create DNS CNAME Records
+
+These records point your subdomains to the Cloudflare Tunnel:
+
+```powershell
+# Create a CNAME for each subdomain pointing to the tunnel
+cloudflared tunnel route dns hp-home-server portainer.yourdomain.com
+cloudflared tunnel route dns hp-home-server files.yourdomain.com
+cloudflared tunnel route dns hp-home-server vault.yourdomain.com
+cloudflared tunnel route dns hp-home-server ai.yourdomain.com
+cloudflared tunnel route dns hp-home-server odysseus.yourdomain.com
+cloudflared tunnel route dns hp-home-server flowise.yourdomain.com
+cloudflared tunnel route dns hp-home-server status.yourdomain.com
+cloudflared tunnel route dns hp-home-server automation.yourdomain.com
+```
+
+Each command creates a CNAME in Cloudflare DNS pointing to
+`<TUNNEL-UUID>.cfargotunnel.com`. You can verify in the Cloudflare
+Dashboard under DNS → Records.
+
+### 2.6 Install cloudflared as a Windows System Service
+
+```powershell
+# Install as a system service using the config file location
+cloudflared service install
+
+# Start the service immediately
+Start-Service cloudflared
+
+# Verify it is running
+Get-Service cloudflared
+# Should show: Status: Running, StartType: Automatic
+
+# Test connectivity
+cloudflared tunnel info hp-home-server
+```
+
+The service is now registered as `cloudflared` in Windows Services and
+will start automatically with Windows — even before user login. Check
+`C:\Server\cloudflared.log` if you encounter connection issues.
+
+### 2.7 Cloudflare Access: Add Authentication Layer (Optional but Recommended)
+
+For sensitive interfaces like Portainer, add an email-based access policy
+so only you can reach it from the internet:
+
+1. Cloudflare Dashboard → **Zero Trust** → **Access** → **Applications**
+2. **Add an application** → **Self-hosted**
+3. Application name: `Portainer Home Server`
+4. Application domain: `portainer.yourdomain.com`
+5. Under **Policies** → **Add a policy**:
+   - Rule name: `Owner Access`
+   - Action: `Allow`
+   - Include: **Emails** → add your email address
+6. Save. Now anyone visiting `portainer.yourdomain.com` must verify
+   via a one-time email link before reaching the interface.
+
+---
+
+## 3. The Complete Docker Compose Stack
+
+All services run inside WSL2 Ubuntu. Create and edit the compose file:
+
+```bash
+# Inside WSL2 Ubuntu terminal
+nano ~/server/docker-compose.yml
+```
+
+Paste the following complete configuration:
+
+```yaml
+# ~/server/docker-compose.yml
+# HP 15s-du2077TU Windows Home Server Stack
+# i5-1035G1 | 16 GB DDR4-2666 | 256 GB NVMe + 1 TB HDD
+# All services use memory limits calibrated for 16 GB
+# Deploy incrementally — see deployment order in Section 4
+
+networks:
+  server_net:
+    driver: bridge
+    # All services communicate via this internal network
+    # Caddy routes external traffic to containers using service names
+
+volumes:
+  # Caddy TLS certificates and configuration state
+  caddy_data:
+  caddy_config:
+
+services:
+
+  # ═══════════════════════════════════════════════════════════════
+  # REVERSE PROXY — CADDY
+  # Routes all external traffic from Cloudflare Tunnel to containers
+  # Handles subdomain routing internally (Cloudflare → localhost:80)
+  # ═══════════════════════════════════════════════════════════════
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"       # HTTP (receives traffic from cloudflared)
+      - "443:443"     # HTTPS (optional — Cloudflare handles TLS)
+      - "2019:2019"   # Caddy admin API (localhost only)
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - server_net
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
+
+  # ═══════════════════════════════════════════════════════════════
+  # CONTAINER MANAGEMENT — PORTAINER CE
+  # Web UI for managing Docker containers, images, volumes, networks
+  # Access: portainer.yourdomain.com (or localhost:9000)
+  # ═══════════════════════════════════════════════════════════════
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9000:9000"   # Web UI (localhost only — Cloudflare routes externally)
+      - "127.0.0.1:9443:9443"   # HTTPS port (optional)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker socket for container management
+      - ./portainer:/data                            # Persistent Portainer data
+    networks:
+      - server_net
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # ═══════════════════════════════════════════════════════════════
+  # NEXTCLOUD DATABASE — MARIADB
+  # Database backend for Nextcloud (private cloud storage)
+  # Not exposed externally — only reachable by Nextcloud container
+  # ═══════════════════════════════════════════════════════════════
+  nextcloud_db:
+    image: mariadb:lts
+    container_name: nextcloud_db
+    restart: unless-stopped
+    command: >
+      --transaction-isolation=READ-COMMITTED
+      --binlog-format=ROW
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: changeme_rootpwd_here
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: changeme_ncpwd_here
+    volumes:
+      - ./nextcloud/db:/var/lib/mysql
+    networks:
+      - server_net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+
+  # ═══════════════════════════════════════════════════════════════
+  # NEXTCLOUD — PRIVATE CLOUD
+  # Google Drive / Dropbox alternative, self-hosted
+  # File sync, calendar, contacts, notes, office suite
+  # Access: files.yourdomain.com
+  # ═══════════════════════════════════════════════════════════════
+  nextcloud:
+    image: nextcloud:29-apache
+    container_name: nextcloud
+    restart: unless-stopped
+    depends_on:
+      - nextcloud_db
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      # Database connection
+      MYSQL_HOST: nextcloud_db
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: changeme_ncpwd_here
+      # Nextcloud admin user (created on first start)
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: changeme_ncadmin_here
+      # Trusted domains — add all hostnames you'll use to access Nextcloud
+      NEXTCLOUD_TRUSTED_DOMAINS: "files.yourdomain.com localhost 192.168.1.x"
+      # Enable background tasks via cron
+      NEXTCLOUD_UPDATE: "1"
+    volumes:
+      # Application files (themes, apps, configs)
+      - ./nextcloud/app:/var/www/html
+      # User data — point to HDD for large storage capacity
+      # - /mnt/d/server-data/nextcloud-media:/var/www/html/data
+    networks:
+      - server_net
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: "2.0"
+
+  # ═══════════════════════════════════════════════════════════════
+  # VAULTWARDEN — PASSWORD MANAGER
+  # Self-hosted Bitwarden-compatible password manager (Rust)
+  # Extremely lightweight: ~15 MB RAM at idle
+  # Access: vault.yourdomain.com
+  # ═══════════════════════════════════════════════════════════════
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:80"
+    environment:
+      # Set your public-facing domain (required for WebSocket notifications)
+      DOMAIN: "https://vault.yourdomain.com"
+      # Disable open registration after your account is created
+      SIGNUPS_ALLOWED: "true"  # Change to "false" after setup
+      # Admin panel token (generate: openssl rand -base64 48)
+      ADMIN_TOKEN: "replace_with_openssl_rand_output"
+      # Enable emergency access feature
+      EMERGENCY_ACCESS_ALLOWED: "true"
+      # Send email notifications (optional — configure SMTP below)
+      # SMTP_HOST: smtp.gmail.com
+      # SMTP_PORT: 587
+      # SMTP_USERNAME: youremail@gmail.com
+      # SMTP_PASSWORD: your_app_password
+      # SMTP_FROM: vaultwarden@yourdomain.com
+    volumes:
+      - ./vaultwarden:/data
+    networks:
+      - server_net
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
+
+  # ═══════════════════════════════════════════════════════════════
+  # UPTIME KUMA — SERVICE MONITORING
+  # Monitors all your services and alerts via Telegram/email
+  # Shows beautiful status page at status.yourdomain.com
+  # Access: status.yourdomain.com
+  # ═══════════════════════════════════════════════════════════════
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime_kuma
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - ./uptime-kuma:/app/data
+    networks:
+      - server_net
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # ═══════════════════════════════════════════════════════════════
+  # N8N — WORKFLOW AUTOMATION
+  # Self-hosted Zapier / Make.com alternative
+  # 400+ integrations, visual workflow builder, webhooks
+  # Access: automation.yourdomain.com
+  # ═══════════════════════════════════════════════════════════════
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      # Public-facing URL — CRITICAL for webhooks to work
+      N8N_HOST: "automation.yourdomain.com"
+      WEBHOOK_URL: "https://automation.yourdomain.com/"
+      N8N_PROTOCOL: "https"
+      N8N_PORT: "5678"
+      # Timezone for cron scheduling
+      GENERIC_TIMEZONE: "Asia/Kolkata"
+      # Enable basic auth (change to env variables or OAuth for production)
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: "admin"
+      N8N_BASIC_AUTH_PASSWORD: "changeme_n8n_password"
+      # Database (default SQLite — switch to PostgreSQL for heavy use)
+      DB_TYPE: "sqlite"
+    volumes:
+      - ./n8n:/home/node/.n8n
+    networks:
+      - server_net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+```
+
+---
+
+## 4. Caddy Reverse Proxy Configuration
+
+The Cloudflare Tunnel sends all traffic to your server's port 80 (HTTP).
+Caddy reads the `Host` header and routes each request to the correct
+container on the internal Docker network.
+
+Since Cloudflare handles TLS (HTTPS) between the user's browser and
+Cloudflare's edge, Caddy only needs to handle HTTP routing internally.
+
+```bash
+nano ~/server/caddy/Caddyfile
+```
+
+```caddyfile
+# ~/server/caddy/Caddyfile
+# Caddy reverse proxy configuration
+# Cloudflare handles external HTTPS — Caddy routes internally via HTTP
+
+# Global settings
+{
+    # Disable automatic HTTPS provisioning
+    # Cloudflare Tunnel terminates TLS; Caddy handles HTTP internally
+    auto_https off
+
+    # Admin API bound to localhost only
+    admin 0.0.0.0:2019
+}
+
+# ── Container Management ──────────────────────────────────────────────
+portainer.yourdomain.com {
+    reverse_proxy portainer:9000
+    log {
+        output file /data/logs/portainer.log
+    }
+}
+
+# ── Private Cloud ──────────────────────────────────────────────────────
+files.yourdomain.com {
+    reverse_proxy nextcloud:80 {
+        # Required headers for Nextcloud behind a proxy
+        header_up X-Forwarded-Proto "https"
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up Host {host}
+    }
+    # Nextcloud CalDAV/CardDAV redirect
+    redir /.well-known/carddav /remote.php/dav/ 301
+    redir /.well-known/caldav /remote.php/dav/ 301
+}
+
+# ── Password Manager ──────────────────────────────────────────────────
+vault.yourdomain.com {
+    reverse_proxy vaultwarden:80
+    # WebSocket support for Vaultwarden notifications
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets vaultwarden:80
+}
+
+# ── Uptime Monitor ────────────────────────────────────────────────────
+status.yourdomain.com {
+    reverse_proxy uptime_kuma:3001
+    # WebSocket support for Uptime Kuma real-time updates
+    @ws {
+        header Upgrade websocket
+    }
+    reverse_proxy @ws uptime_kuma:3001
+}
+
+# ── Workflow Automation ───────────────────────────────────────────────
+automation.yourdomain.com {
+    reverse_proxy n8n:5678
+    # n8n requires WebSocket for its UI
+    @wsn8n {
+        header Upgrade websocket
+    }
+    reverse_proxy @wsn8n n8n:5678
+}
+
+# ── AI Chat (Open WebUI) ──────────────────────────────────────────────
+ai.yourdomain.com {
+    reverse_proxy open_webui:8080
+}
+
+# ── Odysseus Workspace ────────────────────────────────────────────────
+odysseus.yourdomain.com {
+    reverse_proxy odysseus:7000
+}
+
+# ── Flowise Builder ───────────────────────────────────────────────────
+flowise.yourdomain.com {
+    reverse_proxy flowise:3000
+}
+```
+
+---
+
+## 5. Deploying Services Incrementally
+
+Deploy services in order of dependency. Do not start everything at once
+on a first run — verify each tier before adding the next.
+
+### Tier 1: Networking Foundation
+
+```bash
+cd ~/server
+
+# Start only Caddy and Portainer first
+docker compose up -d caddy portainer
+
+# Check they are running
+docker compose ps
+
+# Check Caddy logs for any errors
+docker compose logs caddy
+
+# Verify Portainer is accessible on localhost
+curl -s -o /dev/null -w "%{http_code}" http://localhost:9000
+# Should return 200
+```
+
+Open a browser on your Windows machine and go to `http://localhost:9000`.
+You should see the Portainer initial setup screen. Create your admin
+account within the 5-minute window.
+
+### Tier 2: Core Services
+
+```bash
+# Start the database and wait for it to initialize
+docker compose up -d nextcloud_db
+sleep 30
+
+# Start Nextcloud (takes 2-3 minutes on first run to initialize)
+docker compose up -d nextcloud
+
+# Start Vaultwarden (starts almost instantly)
+docker compose up -d vaultwarden
+
+# Check logs
+docker compose logs --tail=20 nextcloud
+docker compose logs --tail=20 vaultwarden
+```
+
+### Tier 3: Productivity Tools
+
+```bash
+docker compose up -d uptime-kuma n8n
+
+# Verify all services are up
+docker compose ps
+```
+
+You should see all services in the "running" state.
+
+### Tier 4: Post-Deploy Configuration
+
+**Nextcloud — Add Trusted Domain:**
+```bash
+docker exec --user www-data nextcloud \
+  php occ config:system:set trusted_domains 1 \
+  --value="files.yourdomain.com"
+
+# Set recommended performance settings
+docker exec --user www-data nextcloud \
+  php occ config:system:set default_phone_region \
+  --value="IN"
+
+docker exec --user www-data nextcloud \
+  php occ config:system:set maintenance_window_start \
+  --type=integer --value=1
+```
+
+**Vaultwarden — Admin Panel:**
+1. Navigate to `https://vault.yourdomain.com/admin`
+2. Enter your `ADMIN_TOKEN` from the compose file.
+3. Verify settings → under **User Settings**: set **Allow new signups** to
+   disabled after you've created your Bitwarden account.
+4. Under **General Settings**: verify domain is `https://vault.yourdomain.com`.
+
+**Generate Vaultwarden Admin Token (run this first):**
+```bash
+# Inside WSL2, generate a secure token
+openssl rand -base64 48
+# Copy the output and use it as ADMIN_TOKEN in your compose file
+```
+
+**Uptime Kuma — Add Monitors:**
+
+After accessing `https://status.yourdomain.com`:
+1. Click **"Add New Monitor"**.
+2. Add an HTTP monitor for each service:
+   - Name: `Nextcloud`, URL: `https://files.yourdomain.com`
+   - Name: `Vaultwarden`, URL: `https://vault.yourdomain.com`
+   - Name: `n8n`, URL: `https://automation.yourdomain.com`
+3. Set notification: **Telegram** (add your Bot Token + Chat ID).
+4. Heartbeat interval: 60 seconds.
+
+**n8n — Configure Webhooks:**
+
+n8n webhooks require the `WEBHOOK_URL` to match your public domain.
+After accessing `https://automation.yourdomain.com`:
+1. Create a simple test workflow: **Webhook trigger** → **Set** → **Respond**.
+2. Copy the webhook URL — it should show
+   `https://automation.yourdomain.com/webhook/...` (not `localhost`).
+3. If it shows `localhost`, restart the container:
+   ```bash
+   docker compose restart n8n
+   ```
+
+---
+
+## 6. Complete Service Reference
+
+After deploying all services, your server provides:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│              YOUR HOME SERVER — DEPLOYED SERVICES                    │
+├──────────────────────────┬──────────────────────────────────────────┤
+│ Service                  │ URL                                       │
+├──────────────────────────┼──────────────────────────────────────────┤
+│ Portainer (Docker UI)    │ portainer.yourdomain.com                 │
+│ Nextcloud (Private Cloud)│ files.yourdomain.com                     │
+│ Vaultwarden (Passwords)  │ vault.yourdomain.com                     │
+│ Uptime Kuma (Monitoring) │ status.yourdomain.com                    │
+│ n8n (Automation)         │ automation.yourdomain.com                │
+├──────────────────────────┼──────────────────────────────────────────┤
+│ Open WebUI (AI Chat)     │ ai.yourdomain.com (Part 3)               │
+│ Odysseus (AI Workspace)  │ odysseus.yourdomain.com (Part 3)         │
+│ Flowise (AI Builder)     │ flowise.yourdomain.com (Part 3)          │
+├──────────────────────────┼──────────────────────────────────────────┤
+│ Ollama API               │ localhost:11434 (internal only, Part 3)  │
+└──────────────────────────┴──────────────────────────────────────────┘
+```
+
+---
+
+## 7. Essential Docker Operations Reference
+
+Commands you will use frequently:
+
+```bash
+# View all running containers with status
+docker compose ps
+
+# View logs for a specific service (live)
+docker compose logs -f nextcloud
+
+# Restart a single service
+docker compose restart vaultwarden
+
+# Update a service to the latest image
+docker compose pull nextcloud
+docker compose up -d nextcloud
+
+# Update ALL services (use with caution — test one at a time)
+docker compose pull
+docker compose up -d
+
+# Stop all services gracefully
+docker compose stop
+
+# Stop and remove containers (preserves volumes)
+docker compose down
+
+# Remove all containers, volumes, and images (NUCLEAR — use only for full reset)
+docker compose down -v --rmi all
+
+# Check resource usage
+docker stats --no-stream
+
+# View disk usage by Docker
+docker system df
+```
+
+---
+
+## 8. Backup Strategy for Your Services
+
+Your data lives inside Docker named volumes in the WSL2 VHDX file. Always
+have a backup strategy:
+
+```bash
+# Create a backup script: ~/server/backup.sh
+cat > ~/server/backup.sh << 'EOF'
+#!/bin/bash
+# Home Server Backup Script
+# Run manually or via n8n cron workflow
+
+BACKUP_DIR="/mnt/d/server-data/backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+mkdir -p "$BACKUP_DIR"
+
+echo "[$TIMESTAMP] Starting backup..."
+
+# Backup Nextcloud data
+docker exec nextcloud php occ maintenance:mode --on
+tar -czf "$BACKUP_DIR/nextcloud_app_$TIMESTAMP.tar.gz" \
+  -C ~/server/nextcloud/app .
+docker exec nextcloud php occ maintenance:mode --off
+
+# Backup Vaultwarden
+tar -czf "$BACKUP_DIR/vaultwarden_$TIMESTAMP.tar.gz" \
+  -C ~/server/vaultwarden .
+
+# Backup n8n workflows
+tar -czf "$BACKUP_DIR/n8n_$TIMESTAMP.tar.gz" \
+  -C ~/server/n8n .
+
+# Backup Nextcloud database
+docker exec nextcloud_db mysqldump \
+  -u nextcloud -pchangeme_ncpwd_here nextcloud \
+  > "$BACKUP_DIR/nextcloud_db_$TIMESTAMP.sql"
+
+# Delete backups older than 14 days
+find "$BACKUP_DIR" -name "*.tar.gz" -mtime +14 -delete
+find "$BACKUP_DIR" -name "*.sql" -mtime +14 -delete
+
+echo "[$TIMESTAMP] Backup complete. Files in: $BACKUP_DIR"
+EOF
+chmod +x ~/server/backup.sh
+```
+
+Set up an automated weekly backup via n8n:
+1. In n8n, create a workflow with a **Cron** trigger (weekly, Sunday 02:00).
+2. Action: **Execute Command** → `bash /home/serveradmin/server/backup.sh`.
+3. On completion: **Telegram** notification with the backup summary.
+
+---
+
+## Summary and What's Next
+
+In Part 2, you have:
+
+1. ✅ Deployed Cloudflare Tunnel as a Windows system service — zero open
+   router ports, automatic HTTPS, home IP hidden, works behind CGNAT.
+2. ✅ Written the complete Docker Compose stack for all core services.
+3. ✅ Configured Caddy as the internal reverse proxy with subdomain routing
+   and WebSocket support for all services.
+4. ✅ Deployed Portainer, Nextcloud, Vaultwarden, Uptime Kuma, and n8n —
+   all accessible at your own domain.
+5. ✅ Configured post-deploy settings (trusted domains, admin panels,
+   webhook URLs).
+6. ✅ Built a backup script targeting the secondary 1 TB HDD.
+
+**In Part 3**, we install the local AI stack: Ollama (LLM inference engine),
+the physics of CPU-only inference on your i5-1035G1, model selection for
+16 GB RAM, Open WebUI as the ChatGPT-like chat interface, Odysseus AI
+workspace with its autonomous agents, Flowise for visual AI pipeline
+building, and Qdrant as the vector database for RAG pipelines.
+
+**[Continue to Part 3: Local AI Stack — Ollama, Open WebUI, and Odysseus →](/blog/windows-home-server-series/part-3-local-ai-ollama-odysseus)**
