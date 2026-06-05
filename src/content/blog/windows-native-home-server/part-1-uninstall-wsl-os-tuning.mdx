@@ -1,0 +1,249 @@
+---
+title: "Windows Home Server — Part 1: Wiping WSL, OS Hardening, and Service Wrapping"
+description: "Prepare your bare-metal Windows server. Learn how to completely uninstall WSL/Ubuntu and reclaim disk space, harden Windows power settings for 24/7 uptime, manage forced update reboots, configure auto-login, and wrap applications as native services using NSSM."
+pubDate: 2026-06-06
+tags:
+  - Home-Server
+  - Windows
+  - NSSM
+  - PowerShell
+  - OS-Hardening
+  - Self-Hosting
+category: "Engineering"
+author: "Chirag Singhal"
+series: "WSL-Free Windows Home Server"
+part: 1
+draft: false
+---
+
+# Windows Home Server — Part 1: Wiping WSL, OS Hardening, and Service Wrapping
+
+A true home server runs continuously and predictably. Windows is, by default, an interactive operating system designed to shut down, update, and sleep to conserve power.
+
+In this first part, we will dismantle virtualized layers like WSL2 (Windows Subsystem for Linux), reclaim storage, configure the OS for 24/7 uptime, and introduce the tool we will use to manage background applications: **NSSM (Non-Sucking Service Manager)**.
+
+---
+
+## 1. Wiping WSL and Ubuntu Completely
+
+If you previously experimented with WSL2 or Ubuntu on this machine, it probably left behind multi-gigabyte virtual disks (`ext4.vhdx`) and hypervisor configurations that waste RAM and disk space. Let's uninstall them completely.
+
+### Step 1: List and Unregister Distributions
+Open PowerShell as Administrator and check what distributions are registered:
+
+```powershell
+wsl --list --verbose
+```
+
+Unregister your distribution (e.g., `Ubuntu`). **Warning**: This permanently deletes all files inside the WSL instance.
+
+```powershell
+wsl --unregister Ubuntu
+```
+
+This immediately deletes the distribution and reclaims the virtual hard drive space.
+
+### Step 2: Disable Windows Features
+Disable the optional features that power WSL2 and the virtual machine platform:
+
+```powershell
+# Disable Virtual Machine Platform
+Disable-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform" -NoRestart
+
+# Disable WSL Feature
+Disable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Windows-Subsystem-Linux" -NoRestart
+```
+
+### Step 3: Uninstall the WSL Application
+If you installed WSL from the Microsoft Store, uninstall it:
+
+```powershell
+Get-AppxPackage -AllUsers *WindowsSubsystemForLinux* | Remove-AppxPackage -AllUsers
+```
+
+### Step 4: Restart the System
+Restart Windows to complete the feature uninstallation:
+
+```powershell
+Restart-Computer
+```
+
+Your system is now a clean, bare-metal Windows machine, with all Hyper-V and WSL overhead removed.
+
+---
+
+## 2. Windows Power and Sleep Hardening
+
+Laptops are designed to sleep when the lid is closed or when left idle. We must disable these mechanisms to run a headless server.
+
+### 2.1 Prevent Sleep on Lid Close
+Open PowerShell as Administrator and run the following commands to configure what happens when you close the laptop lid:
+
+```powershell
+# Lid close action on AC power (0 = Do Nothing)
+powercfg /setacvalueindex SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
+
+# Lid close action on Battery power (0 = Do Nothing)
+powercfg /setdcvalueindex SCHEME_CURRENT SUB_BUTTONS LIDACTION 0
+
+# Apply the current power scheme
+powercfg /setactive SCHEME_CURRENT
+```
+
+### 2.2 Disable All Sleep and Standby Timeouts
+Make sure the machine never sleeps automatically:
+
+```powershell
+# Disable sleep timeout on AC power (0 = Never)
+powercfg /change standby-timeout-ac 0
+
+# Disable sleep timeout on battery (0 = Never)
+powercfg /change standby-timeout-dc 0
+
+# Set monitor timeout to 5 minutes on AC (turns off display without sleeping)
+powercfg /change monitor-timeout-ac 5
+
+# Disable hibernation entirely (frees up SSD space equal to your RAM capacity)
+powercfg /hibernate off
+```
+
+### 2.3 Disable Modern Standby (S0) Sleep
+Many modern Windows laptops use "Modern Standby" (S0), which allows background tasks to wake the CPU, causing overheating when the lid is closed. To disable it and force standard S3 sleep or disable standby altogether:
+
+Create a registry file named `disable-modern-standby.reg` (or run this PowerShell command to apply it directly):
+
+```powershell
+$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Power"
+New-ItemProperty -Path $regPath -Name "PlatformAoAcOverride" -Value 0 -PropertyType DWord -Force
+```
+
+---
+
+## 3. Windows Update Control (Block Forced Reboots)
+
+Windows Update can force a system restart at the worst possible time. On Windows 10/11 Home, we cannot fully disable updates through Group Policy, but we can prevent forced restarts.
+
+### 3.1 Configure Active Hours
+1. Go to **Settings** → **Update & Security** → **Windows Update**.
+2. Click **Change active hours**.
+3. Set your active hours to the maximum allowable duration (e.g., `08:00` to `02:00` next day). Windows will not reboot the system during this window.
+
+### 3.2 Apply "Notify Before Restart" Registry Key
+Run this in PowerShell to configure Windows to notify you instead of auto-rebooting when a user is logged on:
+
+```powershell
+$auPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
+if (-not (Test-Path $auPath)) {
+    New-Item -Path $auPath -Force | Out-Null
+}
+# 1 = Do not auto-reboot with logged-on users
+Set-ItemProperty -Path $auPath -Name "NoAutoRebootWithLoggedOnUsers" -Value 1 -Type DWord
+# 3 = Notify before download and install
+Set-ItemProperty -Path $auPath -Name "AUOptions" -Value 3 -Type DWord
+```
+
+---
+
+## 4. Configuring Automatic Logon (Autologon)
+
+If your laptop loses power and restarts, it will boot to the Windows login screen. None of your user-level startup applications or network routes will run until you log in.
+
+To fix this, use Microsoft's official **Autologon** tool:
+
+### Step 1: Install Autologon
+Install it via Windows Package Manager (winget):
+
+```powershell
+winget install --id Microsoft.Sysinternals.AutoLogon -e --accept-source-agreements --accept-package-agreements
+```
+
+### Step 2: Configure Auto-Login
+1. Launch Autologon from the Start menu (or run `Autologon64.exe` as Administrator).
+2. Enter your Windows username, domain (leave as your computer name for local accounts), and password.
+3. Click **Enable**.
+
+Your credentials are now securely encrypted in the registry, and Windows will bypass the lock screen and boot straight to the desktop on start.
+
+---
+
+## 5. BIOS/UEFI Settings (AC Recovery)
+
+To ensure the laptop turns back on automatically after a total power outage, configure the BIOS.
+
+1. Shut down the laptop.
+2. Turn it on, and immediately spam the **`F10`** key (or **`Esc`** followed by **`F10`** on HP laptops) to enter the BIOS configuration.
+3. Navigate to **System Configuration** or **Power Management**.
+4. Configure the following settings:
+
+| Setting | Value | Purpose |
+| :--- | :--- | :--- |
+| **AC Power Recovery** (or **After Power Loss**) | **On** / **Last State** | Boot automatically as soon as the charger receives power. |
+| **Fan Always On** | **Enabled** | Keep cooling consistent, avoiding high-heat spikes. |
+| **Intel Virtualization Technology (VT-x)** | **Enabled** | Keep hardware acceleration enabled for general use. |
+
+Press **`F10`** to save your settings and exit.
+
+---
+
+## 6. NSSM: The Non-Sucking Service Manager
+
+Many applications we want to self-host (like Caddy, OwnCloud, and Uptime Kuma) are command-line utilities. If you run them in a terminal window, they will close if the terminal is closed, and they won't automatically restart if they crash.
+
+**NSSM** wraps any application or script inside a native Windows System Service. It runs them in the background, starts them at system boot (even before user login), redirects log outputs, and monitors their health.
+
+### Step 1: Install NSSM
+You can download NSSM from [nssm.cc](https://nssm.cc/) or install it using winget:
+
+```powershell
+winget install --id Softwareae.NSSM -e --accept-source-agreements --accept-package-agreements
+```
+
+Verify that NSSM is in your path:
+
+```powershell
+nssm --version
+```
+
+### Step 2: Basic NSSM Commands
+Here is how you will wrap, start, and edit services:
+
+```powershell
+# Install a service (opens a GUI configuration panel)
+nssm install [ServiceName]
+
+# Start a service
+nssm start [ServiceName]
+
+# Stop a service
+nssm stop [ServiceName]
+
+# Restart a service
+nssm restart [ServiceName]
+
+# Edit an existing service (opens the GUI configuration panel)
+nssm edit [ServiceName]
+
+# Remove a service
+nssm remove [ServiceName] confirm
+```
+
+### Step 3: Service Configuration Best Practices
+When installing a service via NSSM, always configure these settings in the GUI:
+
+1. **Application Tab**:
+   - **Path**: Path to the executable (e.g., `C:\Caddy\caddy.exe`).
+   - **Startup directory**: Directory containing the executable.
+   - **Arguments**: Any start arguments (e.g., `run --config C:\Caddy\Caddyfile`).
+2. **Details Tab**:
+   - **Startup type**: Change to **Automatic** so it boots with the OS.
+3. **I/O Tab**:
+   - **Output (stdout)**: Redirect console output to a log file (e.g., `C:\Logs\caddy.log`).
+   - **Error (stderr)**: Redirect error output to the same or a different log file (e.g., `C:\Logs\caddy-errors.log`).
+4. **Rotation Tab**:
+   - Check **Rotate files** and set a limit (e.g., `10 MB`) to prevent log files from growing too large.
+
+---
+
+*In the next part, we will use NSSM to set up our networking layer.*
+
+**[Proceed to Part 2: Native Caddy Server and Bare-Metal Cloudflare Tunnels →](/blog/windows-native-home-server/part-2-caddy-cloudflare-tunnels)**

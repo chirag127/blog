@@ -1,0 +1,243 @@
+---
+title: "Windows Home Server — Part 4: Automation and Monitoring (n8n & Uptime Kuma Natively)"
+description: "Deploy essential management tools natively via Node.js. Setup Uptime Kuma and n8n directly on Windows Node.js runtimes, run them as background services, and configure process management with PM2 for Windows."
+pubDate: 2026-06-06
+tags:
+  - Home-Server
+  - Windows
+  - Nodejs
+  - Uptime-Kuma
+  - n8n
+  - Automation
+  - Monitoring
+category: "Engineering"
+author: "Chirag Singhal"
+series: "WSL-Free Windows Home Server"
+part: 4
+draft: false
+---
+
+# Windows Home Server — Part 4: Automation and Monitoring (n8n & Uptime Kuma Natively)
+
+With our networking, storage, and database engines running natively on bare-metal Windows, we now need tools to monitor our infrastructure and build automation workflows.
+
+Instead of running Docker containers for monitoring and automation, we will install the **Node.js runtime** directly on Windows and set up **Uptime Kuma** (infrastructure monitoring) and **n8n** (workflow automation) as native Node applications wrapped in Windows services.
+
+---
+
+## 1. Preparing the Node.js Environment on Windows
+
+Both Uptime Kuma and n8n run on Node.js. Let's install the Long Term Support (LTS) release of Node.js natively.
+
+### Step 1: Install Git and Node.js
+Open PowerShell as Administrator and run:
+
+```powershell
+# Install Git
+winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements
+
+# Install Node.js LTS
+winget install --id OpenJS.NodeJS.LTS -e --accept-source-agreements --accept-package-agreements
+```
+
+### Step 2: Verify Installations
+Close and reopen your PowerShell terminal to reload the environment variables, then run:
+
+```powershell
+node --version
+npm --version
+git --version
+```
+
+---
+
+## 2. Deploying Uptime Kuma Natively
+
+Uptime Kuma is a self-hosted monitoring tool that tracks the status of your websites, APIs, and local services, sending alerts when they go offline.
+
+### Step 1: Clone the Repository
+Clone the codebase into our server folder:
+
+```powershell
+git clone https://github.com/louislam/uptime-kuma.git C:\Server\uptime-kuma
+```
+
+### Step 2: Install Dependencies and Setup
+Navigate to the directory, install npm packages, and run the production build:
+
+```powershell
+cd C:\Server\uptime-kuma
+
+# Install dependencies
+npm install
+
+# Build the frontend assets
+npm run download-dist
+```
+
+### Step 3: Test Run Uptime Kuma
+Run it manually to ensure everything compiles correctly:
+
+```powershell
+node server/server.js
+```
+
+Press `Ctrl+C` to stop it. Uptime Kuma creates its SQLite database at `C:\Server\uptime-kuma\data\kuma.db` by default.
+
+### Step 4: Wrap Uptime Kuma in NSSM
+Create a service so it runs continuously in the background:
+
+```powershell
+nssm install UptimeKuma
+```
+
+In the configuration window:
+- **Path**: `node.exe` (NSSM automatically finds it if it is in your system PATH)
+- **Startup directory**: `C:\Server\uptime-kuma`
+- **Arguments**: `server/server.js --port 3001 --host 127.0.0.1`
+- **Details Tab → Startup Type**: `Automatic`
+- **I/O Tab → Output (stdout)**: `C:\Server\logs\uptime-kuma.log`
+- **I/O Tab → Error (stderr)**: `C:\Server\logs\uptime-kuma-errors.log`
+
+Start the service:
+
+```powershell
+nssm start UptimeKuma
+```
+
+---
+
+## 3. Deploying n8n Natively
+
+n8n is an incredibly powerful workflow automation tool that lets you connect APIs, databases, and local scripts with minimal code.
+
+> [!WARNING]
+> **The Windows n8n Gotcha**:
+> By default, n8n attempts to check Unix-style file permissions on its configuration files. On Windows (which uses NTFS Access Control Lists), this will cause n8n to crash on startup. We must set `N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false` to bypass this check.
+
+### Step 1: Install n8n Locally
+To keep our installation isolated and avoid global permission conflicts, we will install n8n locally within our server directory:
+
+```powershell
+# Create n8n folder
+New-Item -ItemType Directory -Force -Path "C:\Server\n8n"
+cd C:\Server\n8n
+
+# Initialize package config and install n8n
+npm init -y
+npm install n8n
+```
+
+### Step 2: Create the Startup Script
+Create a PowerShell wrapper script `C:\Server\n8n\start-n8n.ps1` to configure our environment variables and launch n8n:
+
+```powershell
+# Set n8n configurations
+$env:N8N_PORT = "5678"
+$env:N8N_LISTEN_ADDRESS = "127.0.0.1"
+
+# Critical Windows patch: bypass Unix file permissions check
+$env:N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = "false"
+
+# Define database location (SQLite)
+$env:N8N_USER_FOLDER = "C:\Server\data\n8n_data"
+
+# Launch n8n
+npx n8n start
+```
+
+### Step 3: Install n8n as a Windows Service
+Create the service using NSSM:
+
+```powershell
+nssm install n8n
+```
+
+In the configuration window:
+- **Path**: `powershell.exe`
+- **Startup directory**: `C:\Server\n8n`
+- **Arguments**: `-ExecutionPolicy Bypass -File C:\Server\n8n\start-n8n.ps1`
+- **Details Tab → Startup Type**: `Automatic`
+- **I/O Tab → Output (stdout)**: `C:\Server\logs\n8n.log`
+- **I/O Tab → Error (stderr)**: `C:\Server\logs\n8n-errors.log`
+
+Start the service:
+
+```powershell
+nssm start n8n
+```
+
+---
+
+## 4. Alternative: Node Process Management via PM2
+
+While NSSM is the gold standard for starting processes at boot, Node developers often prefer **PM2** for managing Node runtimes. PM2 lets you monitor multiple Node processes from a single dashboard.
+
+### Step 1: Install PM2 and Windows Startup Hook
+Install PM2 globally and configure it to hook into the Windows startup system:
+
+```powershell
+npm install -g pm2
+npm install -g pm2-windows-startup
+pm2-startup install
+```
+
+### Step 2: Create a PM2 Ecosystem File
+Create `C:\Server\ecosystem.config.js`:
+
+```javascript
+module.exports = {
+  apps: [
+    {
+      name: 'uptime-kuma',
+      script: './uptime-kuma/server/server.js',
+      cwd: 'C:/Server',
+      env: {
+        PORT: 3001,
+        HOST: '127.0.0.1'
+      }
+    },
+    {
+      name: 'n8n',
+      script: './n8n/node_modules/n8n/bin/n8n',
+      cwd: 'C:/Server',
+      env: {
+        N8N_PORT: 5678,
+        N8N_LISTEN_ADDRESS: '127.0.0.1',
+        N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'false',
+        N8N_USER_FOLDER: 'C:/Server/data/n8n_data'
+      }
+    }
+  ]
+};
+```
+
+### Step 3: Start and Save State
+Launch the processes and freeze the state to run on system boots:
+
+```powershell
+# Start apps
+pm2 start C:\Server\ecosystem.config.js
+
+# Save configuration
+pm2 save
+```
+
+Using PM2, you can monitor resource utilization, logs, and process status with:
+
+```powershell
+# Show active processes
+pm2 status
+
+# Real-time logs
+pm2 logs
+
+# Resource dashboard
+pm2 monit
+```
+
+---
+
+*In the next part, we will turn our server into a media streaming hub.*
+
+**[Proceed to Part 5: Bare-Metal Media Server (Jellyfin with Intel QuickSync Acceleration) →](/blog/windows-native-home-server/part-5-media-transcoding-jellyfin)**

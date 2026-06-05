@@ -1,0 +1,267 @@
+---
+title: "Windows Home Server — Part 6: Native Local AI and PowerShell Maintenance Automation"
+description: "Unlock offline AI capabilities and set up long-term automation. Install Ollama for Windows with direct GPU integration, run Open WebUI natively via Python/pip, and write PowerShell automation for disk cleaning, service monitoring, and Telegram health notifications."
+pubDate: 2026-06-06
+tags:
+  - Home-Server
+  - Windows
+  - Ollama
+  - Python
+  - Open-WebUI
+  - PowerShell
+  - Automation
+  - FinOps
+category: "Engineering"
+author: "Chirag Singhal"
+series: "WSL-Free Windows Home Server"
+part: 6
+draft: false
+---
+
+# Windows Home Server — Part 6: Native Local AI and PowerShell Maintenance Automation
+
+In this final part of the series, we will set up our Local AI stack and write system administration scripts to ensure our Windows home server runs continuously and efficiently without manual intervention.
+
+We will install **Ollama for Windows** (with hardware-accelerated CPU and GPU inference) and configure **Open WebUI** natively using Python. We will then write a custom **PowerShell monitoring script** that checks disk space, monitors service health, and alerts you via **Telegram** if any service fails. We will conclude with a battery health review and an electricity cost calculation.
+
+---
+
+## 1. Setting Up the Native Local AI Stack
+
+Running large language models (LLMs) inside WSL2 requires passing GPU access through a virtualized kernel. On native Windows, Ollama can communicate directly with the graphics drivers.
+
+### Step 1: Install Ollama for Windows
+Install Ollama via winget:
+
+```powershell
+winget install --id Ollama.Ollama -e --accept-source-agreements --accept-package-agreements
+```
+
+This installs Ollama as a startup user application. To verify Ollama is running and download a lightweight, high-performance model (like `Qwen2.5-Coder-1.5B` or `Llama-3.2-3B`), open PowerShell and run:
+
+```powershell
+# Pull a lightweight model suitable for 16GB RAM
+ollama run qwen2.5-coder:1.5b
+```
+
+### Step 2: Install Python and Open WebUI
+Open WebUI is a beautiful, feature-rich web frontend for Ollama. Instead of Docker, we can install it using Python's package manager.
+
+First, install Python 3.11:
+
+```powershell
+winget install --id Python.Python.3.11 -e --accept-source-agreements --accept-package-agreements
+```
+
+Close and reopen PowerShell, then set up a virtual environment and install Open WebUI:
+
+```powershell
+# Create environment
+python -m venv C:\Server\open-webui-venv
+
+# Activate environment
+C:\Server\open-webui-venv\Scripts\Activate.ps1
+
+# Install Open WebUI
+pip install open-webui
+```
+
+### Step 3: Wrap Open WebUI in NSSM
+Create a service using NSSM to run Open WebUI in the background:
+
+```powershell
+nssm install OpenWebUI
+```
+
+In the configuration window:
+- **Path**: `C:\Server\open-webui-venv\Scripts\open-webui.exe`
+- **Startup directory**: `C:\Server\open-webui-venv\Scripts`
+- **Arguments**: `serve`
+- **Details Tab → Startup Type**: `Automatic`
+- **I/O Tab → Output (stdout)**: `C:\Server\logs\open-webui.log`
+- **I/O Tab → Error (stderr)**: `C:\Server\logs\open-webui-errors.log`
+
+Start the service:
+
+```powershell
+nssm start OpenWebUI
+```
+
+Open WebUI runs on port `8080`, which our Caddy server reverse proxies to `ai.yourdomain.com`.
+
+### Step 4: Simple Native Python RAG Script
+To prove how easy it is to write custom AI automation natively on Windows without container networks, here is a Python script that indexes text files from `D:\server-data\` and queries them using Ollama:
+
+Create `C:\Server\bin\rag-query.py`:
+
+```python
+import os
+import urllib.request
+import json
+
+OLLAMA_API = "http://localhost:11434/api/generate"
+DOCS_DIR = "D:\\server-data\\knowledge-base"
+
+if not os.path.exists(DOCS_DIR):
+    os.makedirs(DOCS_DIR)
+
+def get_context():
+    context = ""
+    for file in os.listdir(DOCS_DIR):
+        if file.endswith(".txt"):
+            with open(os.path.join(DOCS_DIR, file), "r", encoding="utf-8") as f:
+                context += f.read() + "\n"
+    return context
+
+def query_ollama(prompt, context):
+    full_prompt = f"Context:\n{context}\n\nQuestion: {prompt}\n\nAnswer using context:"
+    data = json.dumps({
+        "model": "qwen2.5-coder:1.5b",
+        "prompt": full_prompt,
+        "stream": False
+    }).encode("utf-8")
+    
+    req = urllib.request.Request(OLLAMA_API, data=data, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req) as res:
+        response = json.loads(res.read().decode("utf-8"))
+        return response["response"]
+
+# Example Query
+if __name__ == "__main__":
+    test_context = get_context()
+    if not test_context:
+        print(f"Please add some text files to {DOCS_DIR} to test RAG.")
+    else:
+        query = "Summarize my notes."
+        print(f"Querying: {query}")
+        print(query_ollama(query, test_context))
+```
+
+---
+
+## 2. Server Monitoring and Telegram Alerts (PowerShell)
+
+We will write a PowerShell script that checks system health, SSD and HDD space, and verifies that our critical Windows services (Caddy, Cloudflare, OCIS, UptimeKuma, n8n, Jellyfin, OpenWebUI) are running. If a service is down, the script will attempt to restart it and send a Telegram alert.
+
+### Step 1: Create the Monitoring Script
+Create `C:\Server\bin\monitor-system.ps1`:
+
+```powershell
+# Configurations
+$TelegramToken = "YOUR_TELEGRAM_BOT_TOKEN"
+$TelegramChatId = "YOUR_TELEGRAM_CHAT_ID"
+$DiskThresholdPercent = 10  # Alert if free space is less than 10%
+
+$ServicesToCheck = @("Caddy", "cloudflared", "OCIS", "FileBrowser", "PocketBase", "UptimeKuma", "n8n", "Jellyfin", "OpenWebUI")
+
+function Send-TelegramAlert ($message) {
+    $body = @{
+        chat_id = $TelegramChatId
+        text = "⚠️ Server Alert: $message"
+    } | ConvertTo-Json
+    
+    $uri = "https://api.telegram.org/bot$TelegramToken/sendMessage"
+    Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json" | Out-Null
+}
+
+# 1. Check Service Statuses
+foreach ($service in $ServicesToCheck) {
+    $serviceObj = Get-Service -Name $service -ErrorAction SilentlyContinue
+    if ($null -eq $serviceObj) {
+        Send-TelegramAlert "Service '$service' is not installed."
+        continue
+    }
+    
+    if ($serviceObj.Status -ne "Running") {
+        Send-TelegramAlert "Service '$service' is stopped. Attempting restart..."
+        Start-Service -Name $service
+        Start-Sleep -Seconds 5
+        
+        # Re-check status
+        $serviceObj = Get-Service -Name $service
+        if ($serviceObj.Status -ne "Running") {
+            Send-TelegramAlert "FAILED to restart service '$service'."
+        } else {
+            Send-TelegramAlert "Successfully restarted service '$service'."
+        }
+    }
+}
+
+# 2. Check Disk Space
+Get-Volume | Where-Object { $_.DriveLetter -in @('C', 'D') } | ForEach-Object {
+    $freePercent = ($_.SizeRemaining / $_.Size) * 100
+    if ($freePercent -lt $DiskThresholdPercent) {
+        $formattedPercent = [math]::Round($freePercent, 2)
+        Send-TelegramAlert "Disk space is low on Drive $($_.DriveLetter): ($formattedPercent% free)."
+    }
+}
+```
+
+*Replace `YOUR_TELEGRAM_BOT_TOKEN` and `YOUR_TELEGRAM_CHAT_ID` with your bot credentials.*
+
+### Step 2: Configure Task Scheduler to Run Every 15 Minutes
+To run this script automatically without opening a console window:
+
+1. Open **Task Scheduler** (`taskschd.msc`).
+2. Click **Create Task** (not Basic Task).
+3. **General Tab**:
+   - Name: `Server System Monitor`
+   - Run whether user is logged on or not: Checked
+   - Run with highest privileges: Checked
+4. **Triggers Tab** → Click **New**:
+   - Begin the task: **At startup**
+   - Repeat task every: **15 minutes** for a duration of: **Indefinitely**
+5. **Actions Tab** → Click **New**:
+   - Action: **Start a program**
+   - Program/script: `powershell.exe`
+   - Add arguments: `-ExecutionPolicy Bypass -WindowStyle Hidden -File C:\Server\bin\monitor-system.ps1`
+6. Click **OK** and enter your Windows credentials.
+
+---
+
+## 3. Battery Swelling Prevention & Maintenance
+
+If you keep the battery in your laptop to act as a built-in UPS, you must limit its charge limit to protect it from thermal stress.
+
+1. **HP Battery Care (BIOS)**: Restart the computer, enter BIOS (`F10`), go to the **System Configuration** tab, and look for **Battery Health Manager**. Select **Maximize Battery Health** (this limits charging to 80%).
+2. **Lenovo Vantage**: If using a Lenovo laptop, enable **Conservation Mode** in Lenovo Vantage to limit charging to 60%.
+3. **Dell Power Manager**: Set charging settings to **Custom** and limit charging between 50% and 60%.
+
+---
+
+## 4. FinOps: Cost and Electricity Audit
+
+Let's calculate the exact cost of running our HP 15s laptop 24/7 in India:
+
+- **Idle Power Consumption**: ~7 watts.
+- **Under Load (AI inference / transcoding)**: ~25 watts peak.
+- **Average Daily Load**: ~10 watts (assuming mostly idle, with occasional streaming/inference).
+
+### Electricity Math:
+$$10 \text{ W} \times 24 \text{ hours} = 240 \text{ Wh per day} = 0.24 \text{ kWh (Units) per day}$$
+$$0.24 \text{ Units/day} \times 365 \text{ days} = 87.6 \text{ Units per year}$$
+
+At typical domestic utility tariffs in India:
+- **Low-tier (e.g., Delhi, up to 200 units)**: ~₹3.00 per unit $\rightarrow$ **₹262.80 per year**.
+- **Average tier (e.g., Maharashtra/Karnataka, ₹8.00 per unit)**: $\rightarrow$ **₹700.80 per year**.
+- **High-tier (₹11.00 per unit)**: $\rightarrow$ **₹963.60 per year**.
+
+### Cloud vs. Local TCO (3-Year Comparison):
+Renting a 16GB RAM, 4-Core CPU virtual machine with 1TB of HDD and 256GB of SSD storage from AWS or GCP would cost roughly **₹3,500 per month** (over ₹1,26,000 across 3 years).
+
+Running your old laptop on bare-metal Windows costs under **₹1,000 per year** in power—reclaiming valuable hardware with zero monthly subscription fees.
+
+---
+
+## Summary of the Completed Stack
+
+You have built a fully functional home server running natively on Windows:
+1. **Network Layer**: Caddy Server and Cloudflare Tunnels (Zero ports forwarded, auto SSL).
+2. **Storage Layer**: OwnCloud OCIS, FileBrowser, and KeePass WebDAV (Fast, bare-metal Go runtimes).
+3. **Database Layer**: PocketBase (SQLite backend).
+4. **App Layer**: Uptime Kuma and n8n (Node.js backend, automated tasks).
+5. **Media Layer**: Jellyfin (Direct Intel QuickSync hardware transcoding).
+6. **AI Layer**: Ollama and Open WebUI (Local offline intelligence with GPU acceleration).
+7. **Maintenance**: PowerShell system monitor (Telegram alerts).
+
+Your server is now optimized, secure, and ready for use.

@@ -1,0 +1,227 @@
+---
+title: "Windows Home Server — Part 3: The WSL-Free Storage & Database Stack"
+description: "Establish data synchronization and lightweight backends. Install and configure OwnCloud Infinite Scale (OCIS)—a modern, single-binary Go-based Nextcloud alternative—alongside FileBrowser and PocketBase running natively on Windows."
+pubDate: 2026-06-06
+tags:
+  - Home-Server
+  - Windows
+  - OwnCloud-OCIS
+  - PocketBase
+  - FileBrowser
+  - Self-Hosting
+  - Storage
+category: "Engineering"
+author: "Chirag Singhal"
+series: "WSL-Free Windows Home Server"
+part: 3
+draft: false
+---
+
+# Windows Home Server — Part 3: The WSL-Free Storage & Database Stack
+
+To store files, sync data, and manage backends on a traditional Linux/Docker server, you would deploy Nextcloud, a PostgreSQL database, and Redis. However, running Nextcloud on Windows requires an IIS web server, manual PHP configurations, and a database—introducing significant complexity.
+
+Instead, we will build a modern, high-performance storage and database stack using compiled **Go binaries** that run natively on Windows with zero external dependencies. We will install **OwnCloud Infinite Scale (OCIS)** for cloud sync, **FileBrowser** for web-based file management, and **PocketBase** for a lightweight, single-binary relational backend.
+
+---
+
+## 1. Cloud Sync: OwnCloud Infinite Scale (OCIS)
+
+OwnCloud Infinite Scale (OCIS) is a complete rewrite of OwnCloud in Go. Unlike Nextcloud, it does not require PHP or an external database. It runs as a single, self-contained binary, performs exceptionally fast, and includes built-in WebDAV support.
+
+We will configure OCIS to store its databases and metadata on our fast C: drive (NVMe SSD) and the actual user files on our large D: drive (SATA HDD).
+
+### Step 1: Download OCIS for Windows
+Download the latest Windows binary from the official repository:
+
+```powershell
+# Create directories for OCIS configs and data
+New-Item -ItemType Directory -Force -Path "C:\Server\ocis"
+New-Item -ItemType Directory -Force -Path "D:\server-data\ocis-files"
+
+# Download the executable
+Invoke-WebRequest -Uri "https://download.owncloud.com/ocis/ocis/stable/3.0.0/ocis-3.0.0-windows-amd64.exe" -OutFile "C:\Server\bin\ocis.exe"
+```
+
+Verify that it runs:
+
+```powershell
+C:\Server\bin\ocis.exe --version
+```
+
+### Step 2: Initialize OCIS
+Run the initialization step. This will generate key configurations and prompt you to set an admin password:
+
+```powershell
+C:\Server\bin\ocis.exe init
+```
+
+*Note the generated administrator credentials printed in the console.*
+
+### Step 3: Configure Environment Variables
+OCIS is configured using system environment variables. We will define these in a PowerShell script that NSSM runs.
+
+Create `C:\Server\ocis\start-ocis.ps1`:
+
+```powershell
+# Environment configurations for OCIS
+$env:OCIS_URL = "https://cloud.yourdomain.com"
+$env:OCIS_LOG_LEVEL = "info"
+$env:OCIS_INSECURE = "true"  # Let Caddy handle the SSL termination locally
+$env:OCIS_CONFIG_DIR = "C:\Server\ocis"
+
+# Store user data on the HDD
+$env:OCIS_BASE_DATA_PATH = "D:\server-data\ocis-files"
+
+# Start the OCIS process
+C:\Server\bin\ocis.exe server
+```
+
+### Step 4: Install OCIS as a Windows Service
+Run NSSM to wrap the launch script:
+
+```powershell
+nssm install OCIS
+```
+
+In the configuration window:
+- **Path**: `powershell.exe`
+- **Startup directory**: `C:\Server\ocis`
+- **Arguments**: `-ExecutionPolicy Bypass -File C:\Server\ocis\start-ocis.ps1`
+- **Details Tab → Startup Type**: `Automatic`
+- **I/O Tab → Output (stdout)**: `C:\Server\logs\ocis.log`
+- **I/O Tab → Error (stderr)**: `C:\Server\logs\ocis-errors.log`
+
+Click **Install service**, then start it:
+
+```powershell
+nssm start OCIS
+```
+
+OCIS will run on local port `9200`, which our Caddy Server is already configured to proxy to `cloud.yourdomain.com`.
+
+---
+
+## 2. Web File Manager: FileBrowser
+
+FileBrowser is a single Go binary that provides a clean, web-based interface for managing files on your server. It is perfect for accessing files on your D: drive when you're away from home.
+
+### Step 1: Download FileBrowser
+Download and extract the Windows binary from GitHub:
+
+```powershell
+# Create temporary folder
+New-Item -ItemType Directory -Force -Path "C:\Server\temp"
+
+# Download release archive
+Invoke-WebRequest -Uri "https://github.com/filebrowser/filebrowser/releases/latest/download/windows-amd64-filebrowser.zip" -OutFile "C:\Server\temp\filebrowser.zip"
+
+# Expand archive
+Expand-Archive -Path "C:\Server\temp\filebrowser.zip" -DestinationPath "C:\Server\temp" -Force
+
+# Move binary and clean up
+Move-Item "C:\Server\temp\filebrowser.exe" -Destination "C:\Server\bin\filebrowser.exe" -Force
+Remove-Item "C:\Server\temp" -Recurve -Force
+```
+
+### Step 2: Initialize Database and Settings
+We will configure FileBrowser to listen on port `8082` and point to our `D:\server-data` directory as the root:
+
+```powershell
+# Initialize empty database file on the SSD
+C:\Server\bin\filebrowser.exe config init --database=C:\Server\data\filebrowser.db
+
+# Configure listening address and port
+C:\Server\bin\filebrowser.exe config set --address=127.0.0.1 --port=8082 --database=C:\Server\data\filebrowser.db
+
+# Configure storage root directory
+C:\Server\bin\filebrowser.exe config set --root=D:\server-data --database=C:\Server\data\filebrowser.db
+
+# Create your admin user
+# Replace 'adminPassword' with a secure password
+C:\Server\bin\filebrowser.exe users add admin adminPassword --perm.admin=true --database=C:\Server\data\filebrowser.db
+```
+
+### Step 3: Wrap FileBrowser in NSSM
+Create the service:
+
+```powershell
+nssm install FileBrowser
+```
+
+In the configuration window:
+- **Path**: `C:\Server\bin\filebrowser.exe`
+- **Startup directory**: `C:\Server\bin`
+- **Arguments**: `--database C:\Server\data\filebrowser.db`
+- **Details Tab → Startup Type**: `Automatic`
+- **I/O Tab → Output (stdout)**: `C:\Server\logs\filebrowser.log`
+- **I/O Tab → Error (stderr)**: `C:\Server\logs\filebrowser-errors.log`
+
+Start the service:
+
+```powershell
+nssm start FileBrowser
+```
+
+---
+
+## 3. SQLite Database Engine: PocketBase
+
+If you develop apps or need a backend database, PocketBase is a fantastic choice. It is a single Go binary that wraps SQLite (with real-time subscriptions), file storage, and an administration UI.
+
+### Step 1: Download PocketBase
+Download and extract PocketBase:
+
+```powershell
+New-Item -ItemType Directory -Force -Path "C:\Server\temp"
+Invoke-WebRequest -Uri "https://github.com/pocketbase/pocketbase/releases/latest/download/pocketbase_0.22.14_windows_amd64.zip" -OutFile "C:\Server\temp\pocketbase.zip"
+Expand-Archive -Path "C:\Server\temp\pocketbase.zip" -DestinationPath "C:\Server\temp" -Force
+Move-Item "C:\Server\temp\pocketbase.exe" -Destination "C:\Server\bin\pocketbase.exe" -Force
+Remove-Item "C:\Server\temp" -Recurve -Force
+```
+
+### Step 2: Wrap PocketBase in NSSM
+Create the service:
+
+```powershell
+nssm install PocketBase
+```
+
+In the configuration window:
+- **Path**: `C:\Server\bin\pocketbase.exe`
+- **Startup directory**: `C:\Server\bin`
+- **Arguments**: `serve --http=127.0.0.1:8090 --dir=C:\Server\data\pocketbase_data`
+- **Details Tab → Startup Type**: `Automatic`
+- **I/O Tab → Output (stdout)**: `C:\Server\logs\pocketbase.log`
+- **I/O Tab → Error (stderr)**: `C:\Server\logs\pocketbase-errors.log`
+
+Start the service:
+
+```powershell
+nssm start PocketBase
+```
+
+You can access the admin panel at `http://localhost:8090/_/` when logged onto the server.
+
+---
+
+## 4. Bare-Metal Password Management: KeePass + WebDAV
+
+Instead of running Vaultwarden (which requires complex Rust compiler steps or heavy external dependencies on Windows), we can implement a highly secure, zero-overhead alternative: **KeePassXC combined with OCIS WebDAV**.
+
+### How It Works
+1. Create a secure, encrypted password database (`.kdbx`) using **KeePassXC** on your primary computer.
+2. Store the `.kdbx` database inside your **OwnCloud (OCIS)** folder.
+3. Configure the KeePassXC app on your devices (desktop/mobile) to sync directly with the `.kdbx` file over **WebDAV** via the URL:
+   `https://cloud.yourdomain.com/remote.php/dav/files/admin/passwords.kdbx`
+
+This architecture:
+- Uses **0 MB of server RAM** (since it utilizes the existing OCIS WebDAV endpoint).
+- Provides **military-grade security** (local decryption of the database on your client devices).
+- Bypasses the complexity of maintaining a containerized password database.
+
+---
+
+*In the next part, we will deploy our Node.js automation and monitoring tools.*
+
+**[Proceed to Part 4: Automation and Monitoring (n8n & Uptime Kuma Natively) →](/blog/windows-native-home-server/part-4-automation-monitoring-apps)**

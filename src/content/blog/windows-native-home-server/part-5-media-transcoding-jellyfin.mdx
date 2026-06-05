@@ -1,0 +1,140 @@
+---
+title: "Windows Home Server — Part 5: Bare-Metal Media Server (Jellyfin with Intel QuickSync Acceleration)"
+description: "Turn your server into an entertainment hub. Set up a native Windows installation of Jellyfin, leverage the integrated Intel UHD Graphics G1 GPU for hardware-accelerated transcoding (QuickSync QSV), and secure your streams."
+pubDate: 2026-06-06
+tags:
+  - Home-Server
+  - Windows
+  - Jellyfin
+  - QuickSync
+  - Hardware-Transcoding
+  - Media-Server
+category: "Engineering"
+author: "Chirag Singhal"
+series: "WSL-Free Windows Home Server"
+part: 5
+draft: false
+---
+
+# Windows Home Server — Part 5: Bare-Metal Media Server (Jellyfin with Intel QuickSync Acceleration)
+
+A home server is often used as a personal media center. Instead of Plex (which is proprietary and locks features behind a paywall), we will deploy **Jellyfin**—a completely free, open-source media library system.
+
+Because we are running natively on Windows, we have direct access to the computer's graphics hardware. We will configure Jellyfin to use the **Intel UHD Graphics G1** GPU on our Core i5 processor for **Intel QuickSync Video (QSV)** hardware transcoding. This allows the server to stream 4K and HEVC videos to mobile devices or TVs, converting them in real-time with less than 5% CPU usage.
+
+---
+
+## 1. Installing Jellyfin Natively on Windows
+
+Jellyfin provides a native Windows installer that configures the application to run as a Windows System Service.
+
+### Step 1: Install Jellyfin
+Download and run the installer using PowerShell:
+
+```powershell
+# Download the official installer
+Invoke-WebRequest -Uri "https://repo.jellyfin.org/releases/server/windows/stable/installer/jellyfin_10.9.6.exe" -OutFile "C:\Server\bin\jellyfin_installer.exe"
+
+# Launch the installer
+Start-Process -FilePath "C:\Server\bin\jellyfin_installer.exe" -Wait
+```
+
+*During the installation wizard:*
+1. Select **Install as a Service** when prompted. This registers Jellyfin with Windows Service Manager (`services.msc`) so it runs at boot.
+2. Accept the default paths for data (`C:\ProgramData\Jellyfin\Server`).
+3. Complete the installation and click **Finish**.
+
+### Step 2: Establish Media Folders on the HDD
+We must keep our media libraries on the large D: drive (SATA HDD) to save our fast SSD (C: drive) for application logs, metadata, and database reads.
+
+Create the media directories:
+
+```powershell
+New-Item -ItemType Directory -Force -Path "D:\server-data\media\movies"
+New-Item -ItemType Directory -Force -Path "D:\server-data\media\tv-shows"
+New-Item -ItemType Directory -Force -Path "D:\server-data\media\music"
+```
+
+---
+
+## 2. Enabling Intel QuickSync (QSV) Hardware Transcoding
+
+If two users are watching videos that their devices do not support natively (e.g., streaming a 10-bit HEVC video on a web browser), the CPU has to transcode the video. CPU transcoding will max out the 4-core i5-1035G1, causing buffer lag, high heat, and potential system crashes.
+
+Intel QuickSync Video (QSV) offloads this task to dedicated silicon blocks on the integrated GPU.
+
+### Step 1: Update Graphics Drivers
+Before configuring Jellyfin, ensure you have the latest Intel DCH Graphics drivers installed:
+
+```powershell
+# Install Intel Driver & Support Assistant to update graphics drivers
+winget install --id Intel.DriverAndSupportAssistant -e --accept-source-agreements --accept-package-agreements
+```
+
+Restart the computer if the graphics drivers are updated.
+
+### Step 2: Configure Jellyfin Transcoding Options
+1. Open a browser on the server and navigate to `http://localhost:8096`.
+2. Complete the initial wizard, setting up your username, password, and adding your libraries pointing to `D:\server-data\media\`.
+3. In the left sidebar of the Admin Dashboard, click **Playback**.
+4. In the **Transcoding** tab, configure the following:
+
+| Setting | Value |
+| :--- | :--- |
+| **Hardware acceleration** | **Intel QuickSync** |
+| **Enable hardware decoding for** | H.264, HEVC, MPEG2, VC1, VP8, VP9, AV1 (Disable AV1 as G1 doesn't support AV1 decode) |
+| **Prefer 10-bit HEVC decoding** | **Checked** |
+| **Prefer 10-bit VP9 decoding** | **Checked** |
+| **Enable Hardware Encoding** | **Checked** |
+| **Enable VPP Tone Mapping** | **Checked** (essential for playing HDR videos on SDR screens) |
+| **Hardware tone mapping** | **Checked** |
+
+Click **Save** at the bottom of the page.
+
+### 2.3 Headless GPU Workaround (Dummy HDMI Plug)
+> [!IMPORTANT]
+> **Headless Server Gotcha**:
+> If your laptop is running with its lid closed and no external monitor is plugged in, the Windows kernel may put the Intel GPU into a deep sleep state (or disable the display driver context entirely). When Jellyfin tries to transcode, it will fail with an `OpenCL device not found` or `MediaSDK initialization failed` error.
+> 
+> **How to Fix This**:
+> 1. **Option A (Hardware)**: Connect an **HDMI Dummy Plug** (a small $3 adapter that plugs into the HDMI port, mimicking an active 1080p display). This forces the Windows OS to keep the GPU active.
+> 2. **Option B (Software Virtual Driver)**: Use a driver like the open-source **Virtual Display Driver (IddSampleDriver)** to create a persistent virtual monitor in Windows.
+
+---
+
+## 3. Integrating with Caddy
+
+Our `Caddyfile` from Part 2 is already configured to proxy `media.yourdomain.com` to `localhost:8096`.
+
+Open the Jellyfin Admin Dashboard → **Dashboard** → **Networking** and verify:
+- **Local HTTP Port**: `8096`
+- **Bind to Local Network Address**: (Leave blank or bind to `127.0.0.1` so external users cannot bypass Caddy).
+- **Allow remote connections to this server**: **Checked** (required so Caddy's reverse proxy requests are accepted).
+
+---
+
+## 4. Bandwidth and Cloudflare Terms of Service (TOS) Warning
+
+> [!WARNING]
+> **Cloudflare Tunnel limits**:
+> Section 2.8 of Cloudflare's Terms of Service restricts the use of their free CDN/proxies (including standard Cloudflare Tunnels) for routing large amounts of non-HTML media (like video streams). Doing so heavily can result in Cloudflare disabling your tunnel or account.
+> 
+> **Alternative: Private Streaming via Tailscale**
+> If you plan to stream video outside your home local network, do not expose Jellyfin over the public Cloudflare Tunnel. Instead:
+> 1. Install **Tailscale** natively on your laptop and your client devices (phone, laptop, tablet).
+> 2. Access Jellyfin directly using your laptop's secure Tailscale IP (e.g., `http://100.x.y.z:8096`).
+> 3. This routes media over a direct, encrypted wireguard mesh peer-to-peer connection, bypassing Cloudflare entirely.
+
+Install Tailscale on Windows:
+
+```powershell
+winget install --id Tailscale.Tailscale -e --accept-source-agreements --accept-package-agreements
+```
+
+Start the application, sign in, and you will receive a permanent IP address that works anywhere in the world.
+
+---
+
+*In the final part, we will add our Local AI stack and write our PowerShell automation scripts.*
+
+**[Proceed to Part 6: Native Local AI and PowerShell Maintenance Automation →](/blog/windows-native-home-server/part-6-local-ai-maintenance)**

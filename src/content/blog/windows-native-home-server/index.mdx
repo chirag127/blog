@@ -1,0 +1,93 @@
+---
+title: "WSL-Free Windows Home Server: Master Index"
+description: "A comprehensive 6-part engineering series on transforming an old Windows laptop into a full-featured bare-metal home server without installing WSL, Linux, or virtual machines—hosting Caddy, Cloudflare Tunnels, OwnCloud OCIS, Jellyfin, Ollama, n8n, and more."
+pubDate: 2026-06-06
+tags:
+  - Home-Server
+  - Windows
+  - Bare-Metal
+  - Self-Hosting
+  - Jellyfin
+  - Local-AI
+  - Caddy
+  - Cloudflare
+category: "Engineering"
+author: "Chirag Singhal"
+series: "WSL-Free Windows Home Server"
+part: 0
+draft: false
+---
+
+# WSL-Free Windows Home Server: Master Index
+
+## The Power of Bare-Metal Windows Self-Hosting
+
+Most home server guides assume you want to wipe your machine and install Linux, or at least run a heavy virtualization layer like Proxmox, Hyper-V, or Docker Desktop with WSL2 (Windows Subsystem for Linux). 
+
+While virtualization is powerful, it adds massive complexity. Running WSL2 means running a complete Linux kernel alongside Windows. This introduces:
+- **High Idle Memory Consumption**: The WSL2 virtual machine (`vmmem`) grabs 2GB to 4GB of RAM just sitting idle. On an older laptop with 16GB of RAM, this leaves little room for applications and the host OS.
+- **Port Forwarding Overhead**: WSL2 uses a dynamic virtual switch, changing its IP address on every boot. Keeping local services exposed to your network requires complex port-forwarding scripts.
+- **Filesystem Latency**: Accessing files across the Windows-Linux boundary (the `9P` server translation protocol) degrades read/write speeds by up to 90%.
+- **GPU Transcoding Barriers**: Getting native Intel QuickSync or NVIDIA NVDEC hardware acceleration working inside a virtualized Linux kernel under Windows is a driver configuration nightmare.
+
+**What if you could run a production-grade home server natively on Windows, with zero virtualization?**
+
+This series walks through every step of configuring an old laptop (modeled on the HP 15s-du2077TU with an i5-1035G1 and 16GB of RAM) as a native Windows home server. We run everything—web servers, databases, media streams, automation workflows, and local AI—as bare-metal Windows binaries, native Windows Services, and standard Node.js/Python runtimes.
+
+---
+
+## Hardware Specification Profile
+
+Our build target is a typical mid-range laptop, showing what you can achieve with retired consumer hardware.
+
+| Component       | Specification                                          |
+| :-------------- | :----------------------------------------------------- |
+| **CPU**         | Intel Core i5-1035G1 (4C/8T, 1.0–3.6 GHz, 15W TDP)     |
+| **RAM**         | 16 GB DDR4-2666 Dual-Channel (Crucial Upgrade)         |
+| **SSD**         | 256 GB PCIe NVMe M.2 (OS, Active databases, metadata)  |
+| **HDD**         | 1 TB SATA 5400 RPM (Bulk media, backups, archival)     |
+| **GPU**         | Intel UHD Graphics G1 (Integrated, QuickSync QSV support)|
+| **OS**          | Windows 10 / 11 Home or Pro (Kept bare-metal)          |
+
+---
+
+## Architectural Comparison: WSL2 vs. Native Windows
+
+Before we write a single line of config, let's understand exactly what we gain and lose by bypassing the Linux virtualization layer:
+
+| Dimension | WSL2 / Docker Desktop | Native Windows (Bare-Metal) |
+| :--- | :--- | :--- |
+| **Idle RAM Usage** | 2.5 GB – 4.5 GB (Windows + Linux Kernel) | **500 MB – 1.2 GB** (Host OS + lightweight services) |
+| **I/O Performance** | Fast inside VM; extremely slow on `/mnt/c` | **Maximum NVMe SSD / SATA HDD bare-metal throughput** |
+| **Networking** | Virtual NAT switch (dynamic IP, requires scripts) | **Native localhost (fixed IP on host LAN)** |
+| **GPU Access** | Virtualized pass-through (high latency) | **Direct driver access (Intel QuickSync, CUDA)** |
+| **Service Control** | WSL systemd management | **Native Windows Services (`services.msc`)** |
+| **Setup Complexity**| High (hypervisors, virtual networks, Linux bash) | **Low** (single executables, standard PowerShell) |
+
+---
+
+## The 6-Part Series Layout
+
+### [Part 1: Wiping WSL, OS Hardening, and Windows Power Tuning](/blog/windows-native-home-server/part-1-uninstall-wsl-os-tuning)
+Learn how to completely uninstall WSL/Ubuntu to reclaim disk space, optimize Windows power profiles (lid close actions, Modern Standby disabling), configure Windows Updates to block forced restarts, and use **NSSM (Non-Sucking Service Manager)** to wrap command-line programs into native Windows Services.
+
+### [Part 2: Native Caddy Server and Bare-Metal Cloudflare Tunnels](/blog/windows-native-home-server/part-2-caddy-cloudflare-tunnels)
+Configure local routing and secure WAN exposure. Install the native Windows port of **Caddy Server** as a service, write a lightweight `Caddyfile` for automated HTTPS, and deploy a native Windows **Cloudflare Tunnel (`cloudflared.exe`)** to bypass ISP CGNAT without opening router ports.
+
+### [Part 3: The WSL-Free Storage & Database Stack](/blog/windows-native-home-server/part-3-storage-database-stack)
+Establish data synchronization and lightweight backends. Install and configure **OwnCloud Infinite Scale (OCIS)**—a modern, single-binary Go-based Nextcloud alternative—alongside **FileBrowser** and **PocketBase** running natively on Windows.
+
+### [Part 4: Automation and Monitoring (n8n & Uptime Kuma Natively)](/blog/windows-native-home-server/part-4-automation-monitoring-apps)
+Deploy essential management tools natively via Node.js. Setup **Uptime Kuma** and **n8n** directly on Windows Node.js runtimes, run them as background services, and configure process management with **PM2 for Windows**.
+
+### [Part 5: Bare-Metal Media Server (Jellyfin with Intel QuickSync Acceleration)](/blog/windows-native-home-server/part-5-media-transcoding-jellyfin)
+Turn your server into an entertainment hub. Set up a native Windows installation of **Jellyfin**, leverage the integrated Intel UHD Graphics G1 GPU for hardware-accelerated transcoding (QuickSync QSV), and secure your streams.
+
+### [Part 6: Native Local AI and PowerShell Maintenance Automation](/blog/windows-native-home-server/part-6-local-ai-maintenance)
+Unlock offline AI capabilities and set up long-term automation. Install **Ollama for Windows** with direct GPU integration, run **Open WebUI** natively via Python/pip, and write PowerShell automation for disk cleaning, service monitoring, and Telegram health notifications.
+
+---
+
+*Ready to reclaim your hardware and build a zero-overhead home server?*
+
+**[Proceed to Part 1: Wiping WSL, OS Hardening, and Windows Power Tuning →](/blog/windows-native-home-server/part-1-uninstall-wsl-os-tuning)**

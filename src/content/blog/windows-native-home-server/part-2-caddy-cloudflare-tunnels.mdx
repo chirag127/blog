@@ -1,0 +1,261 @@
+---
+title: "Windows Home Server — Part 2: Native Caddy Server and Bare-Metal Cloudflare Tunnels"
+description: "Configure local routing and secure WAN exposure. Install the native Windows port of Caddy Server as a service, write a lightweight Caddyfile for automated HTTPS, and deploy a native Windows Cloudflare Tunnel (cloudflared.exe) to bypass ISP CGNAT without opening router ports."
+pubDate: 2026-06-06
+tags:
+  - Home-Server
+  - Windows
+  - Caddy
+  - Cloudflare-Tunnels
+  - Reverse-Proxy
+  - Networking
+category: "Engineering"
+author: "Chirag Singhal"
+series: "WSL-Free Windows Home Server"
+part: 2
+draft: false
+---
+
+# Windows Home Server — Part 2: Native Caddy Server and Bare-Metal Cloudflare Tunnels
+
+A self-hosted home server needs a clean way to route local traffic and expose services securely to the internet. 
+
+In a WSL2 or Docker setup, this involves virtual networks and bridge adapters. On bare-metal Windows, we can use native Windows tools. We will set up **Caddy Server** to handle local routing and automatic SSL, and **Cloudflare Tunnels** to expose our services to the web securely, bypassing ISP CGNAT (Carrier-Grade NAT) without opening firewall ports.
+
+---
+
+## 1. Establishing the Server Directory Structure
+
+To keep our server tidy, we will establish a structured layout on the C: drive for configuration files, binaries, and logs.
+
+Run this PowerShell command to create the directory layout:
+
+```powershell
+# Create the root server folder and sub-folders
+New-Item -ItemType Directory -Force -Path "C:\Server\bin"
+New-Item -ItemType Directory -Force -Path "C:\Server\caddy"
+New-Item -ItemType Directory -Force -Path "C:\Server\cloudflared"
+New-Item -ItemType Directory -Force -Path "C:\Server\logs"
+New-Item -ItemType Directory -Force -Path "C:\Server\data"
+```
+
+Here is how our file layout will look:
+- `C:\Server\bin\`: Executables for standalone apps.
+- `C:\Server\caddy\`: Caddy configuration (`Caddyfile`) and SSL state.
+- `C:\Server\cloudflared\`: Cloudflare tunnel credentials and configuration.
+- `C:\Server\logs\`: Centralized log files for all NSSM services.
+- `C:\Server\data\`: Datastores and user files for our self-hosted stack.
+
+---
+
+## 2. Installing and Configuring Native Caddy Server
+
+Caddy is an incredibly lightweight, modern web server and reverse proxy written in Go. Its killer feature is automatic HTTPS: it will automatically request, renew, and apply Let's Encrypt or ZeroSSL TLS certificates for any domain name you configure.
+
+### Step 1: Download Caddy for Windows
+Download Caddy using PowerShell:
+
+```powershell
+Invoke-WebRequest -Uri "https://caddyserver.com/api/download?os=windows&arch=amd64" -OutFile "C:\Server\bin\caddy.exe"
+```
+
+Verify Caddy runs:
+
+```powershell
+C:\Server\bin\caddy.exe version
+```
+
+### Step 2: Write the Caddyfile
+The `Caddyfile` is Caddy's configuration file. Create the file:
+
+```powershell
+New-Item -ItemType File -Force -Path "C:\Server\caddy\Caddyfile"
+```
+
+Open `C:\Server\caddy\Caddyfile` in a text editor and add the following configuration. We will proxy internal services we plan to install in future parts:
+
+```caddy
+# Global configuration block
+{
+    # Store certificates in our Server directory instead of AppData
+    meta_dir C:\Server\caddy\metadata
+    cert_dir C:\Server\caddy\certificates
+}
+
+# OwnCloud storage mapping
+cloud.yourdomain.com {
+    reverse_proxy localhost:9200
+}
+
+# Uptime Kuma mapping
+status.yourdomain.com {
+    reverse_proxy localhost:3001
+}
+
+# n8n workflow editor mapping
+n8n.yourdomain.com {
+    reverse_proxy localhost:5678
+}
+
+# Jellyfin media client mapping
+media.yourdomain.com {
+    # Allow large media uploads
+    request_body_limit 100MB
+    
+    reverse_proxy localhost:8096
+}
+
+# Open WebUI mapping
+ai.yourdomain.com {
+    reverse_proxy localhost:8080
+}
+```
+
+*Replace `yourdomain.com` with your registered domain name.*
+
+### Step 3: Install Caddy as a Windows Service
+We will use NSSM to keep Caddy running in the background at startup.
+
+Run this in an Administrator command prompt to launch the NSSM installer:
+
+```powershell
+nssm install Caddy
+```
+
+In the configuration window, fill in:
+- **Path**: `C:\Server\bin\caddy.exe`
+- **Startup directory**: `C:\Server\caddy`
+- **Arguments**: `run --config C:\Server\caddy\Caddyfile --adapter caddyfile`
+- **Details Tab → Display Name**: `Caddy Server`
+- **Details Tab → Startup Type**: `Automatic`
+- **I/O Tab → Output (stdout)**: `C:\Server\logs\caddy.log`
+- **I/O Tab → Error (stderr)**: `C:\Server\logs\caddy-errors.log`
+- **Rotation Tab → Rotate files**: Checked
+- **Rotation Tab → Restrict rotation to files larger than**: `10000000` (10 MB)
+
+Click **Install service**. Then start Caddy:
+
+```powershell
+nssm start Caddy
+```
+
+---
+
+## 3. Secure Public Exposure via Cloudflare Tunnels
+
+A Cloudflare Tunnel connects your local server to the Cloudflare network using a lightweight agent (`cloudflared.exe`). 
+
+It establishes an outbound connection, which means:
+1. You **do not** need to forward port 80 or 443 on your home router.
+2. It bypasses Carrier-Grade NAT (CGNAT) and dynamic IP changes.
+3. Your home public IP address is hidden behind Cloudflare's proxies.
+
+### Step 1: Install cloudflared
+Install it via winget:
+
+```powershell
+winget install --id Cloudflare.cloudflared -e --accept-source-agreements --accept-package-agreements
+```
+
+Copy the executable to your `bin` folder for centralized access:
+
+```powershell
+Copy-Item "$env:ProgramFiles\cloudflared\cloudflared.exe" -Destination "C:\Server\bin\cloudflared.exe" -Force
+```
+
+### Step 2: Log In to Cloudflare
+Run the login command:
+
+```powershell
+C:\Server\bin\cloudflared.exe tunnel login
+```
+
+This will print a URL. Open it in a browser, log into your Cloudflare account, and select the domain you want to route.
+
+This downloads a credentials file (`cert.pem`) to your user directory (usually `C:\Users\Username\.cloudflare\cert.pem`). Move it to your server directory for security:
+
+```powershell
+Move-Item "$env:USERPROFILE\.cloudflare\cert.pem" -Destination "C:\Server\cloudflared\cert.pem" -Force
+```
+
+### Step 3: Create the Tunnel
+Create a tunnel named `homeserver`:
+
+```powershell
+C:\Server\bin\cloudflared.exe --origincert C:\Server\cloudflared\cert.pem tunnel create homeserver
+```
+
+This output will print a Tunnel ID (a UUID) and generate a credentials JSON file in your user directory. Move that credentials file to your tunnel directory:
+
+```powershell
+Move-Item "$env:USERPROFILE\.cloudflare\*.json" -Destination "C:\Server\cloudflared\" -Force
+```
+
+### Step 4: Write the Tunnel Configuration File
+Create `C:\Server\cloudflared\config.yml`:
+
+```yaml
+tunnel: homeserver
+credentials-file: C:\Server\cloudflared\YOUR_TUNNEL_ID.json
+
+ingress:
+  # Route all incoming domain traffic directly to Caddy (local port 80 or 443)
+  # Caddy will read the hostname header and route to the correct local app.
+  - hostname: "*.yourdomain.com"
+    service: http://localhost:80
+  - hostname: "yourdomain.com"
+    service: http://localhost:80
+  # Catch-all rule (required)
+  - service: http_status:404
+```
+
+*Make sure to replace `YOUR_TUNNEL_ID` with your actual UUID and `yourdomain.com` with your domain name.*
+
+### Step 5: Configure DNS Routing
+Tell Cloudflare to point your domain to the tunnel. Run this command:
+
+```powershell
+# Point the apex domain
+C:\Server\bin\cloudflared.exe --origincert C:\Server\cloudflared\cert.pem tunnel route dns homeserver yourdomain.com
+
+# Point wildcards (so cloud, status, media, n8n, etc. resolve automatically)
+C:\Server\bin\cloudflared.exe --origincert C:\Server\cloudflared\cert.pem tunnel route dns homeserver *.yourdomain.com
+```
+
+### Step 6: Install cloudflared as a Windows Service
+Cloudflare has built-in support for installing itself as a Windows Service without needing NSSM.
+
+Open PowerShell as Administrator and run:
+
+```powershell
+C:\Server\bin\cloudflared.exe service install
+```
+
+This registers the service and sets the configuration location. Open the Windows Services manager (`services.msc`), locate `Cloudflare Tunnel Agent`, right-click it, select **Properties**, change the **Startup type** to **Automatic**, and click **Start**.
+
+Alternatively, start it via PowerShell:
+
+```powershell
+Start-Service "cloudflared"
+```
+
+---
+
+## 4. Testing the Infrastructure
+
+At this stage, you have established your networking foundation:
+
+```
+[Internet] ──> [Cloudflare Edge] ──(Encrypted Tunnel)──> [cloudflared.exe]
+                                                               │
+                                                       (Local Host Port 80)
+                                                               │
+                                                               ▼
+[Target App] <──(Local Port Proxy)── [Subdomain Routing] ── [caddy.exe]
+```
+
+To test if it works, navigate to `http://status.yourdomain.com` in your browser. Since we haven't set up Uptime Kuma yet, you should see a Caddy error page or connection refused error (e.g. `502 Bad Gateway`). This confirms that the DNS resolves to Cloudflare, passes through the tunnel to `cloudflared.exe`, hits `caddy.exe`, and is correctly trying to route to port 3001.
+
+*In the next part, we will start building our storage and database stack to populate these routes.*
+
+**[Proceed to Part 3: The WSL-Free Storage & Database Stack →](/blog/windows-native-home-server/part-3-storage-database-stack)**
