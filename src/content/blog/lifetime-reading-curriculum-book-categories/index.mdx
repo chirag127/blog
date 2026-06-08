@@ -1,0 +1,1065 @@
+---
+title: "The Ultimate Lifetime Reading Curriculum: A Complete Category & Folder Architecture for 5000+ Books on GitHub"
+description: "A world-class, deeply reasoned taxonomy of all book categories, subcategories, and sub-subcategories for an ambitious 23-year-old software engineer in India — with a complete GitHub MDX folder architecture that scales to 5000 books."
+pubDate: 2026-06-08
+tags:
+  - Reading List
+  - Books
+  - Curriculum
+  - Software Engineering
+  - Investing
+  - Personal Finance
+  - Psychology
+  - Mental Models
+  - History
+  - Career
+  - Wealth Building
+category: "Learning & Growth"
+author: "Chirag Singhal"
+draft: false
+---
+
+# The Ultimate Lifetime Reading Curriculum: A Complete Category & Folder Architecture for 5000+ Books on GitHub
+
+> **Who this is for:** A 23-year-old Indian software engineer who wants to
+> become intellectually elite, build significant wealth, master engineering,
+> communicate excellently, and develop a robust mental-model framework for
+> life — using books as the primary vehicle.
+
+This article answers three questions at once:
+
+1. **What are ALL the categories and subcategories** a person like you
+   should read over a lifetime?
+2. **How should 5000+ books be structured** in a GitHub repository using
+   MDX files — with folders, subfolders, and sub-subfolders?
+3. **How should individual book content be defined** across
+   `index.mdx`, `analysis.mdx`, `narration.mdx`, and `metadata.json`?
+
+---
+
+## Part 1 — Why Categorisation Matters More Than Book Lists
+
+Most "reading lists" are popularity contests.
+They recommend what's trending on Twitter, what Charlie Munger mentioned once,
+or what sold the most copies. **This is the wrong optimisation.**
+
+The correct optimisation is:
+
+- **Knowledge density per hour** — does this book give you durable,
+  compounding mental models or just anecdotes?
+- **Interdisciplinary synergy** — does this category reinforce your
+  understanding of every other category?
+- **Long-term life outcomes** — does mastering this domain make you
+  wealthier, freer, sharper, or more capable of finding happiness for
+  your family?
+
+A well-designed taxonomy forces you to fill the gaps in your thinking
+you didn't know existed. That is the hidden power of categorisation.
+
+---
+
+## Part 2 — How the World's Best Libraries Classify Books
+
+Before designing your own system, understand what the professionals use:
+
+### 2.1 The Dewey Decimal System (Public Libraries)
+
+The DDC divides all human knowledge into **10 classes**, each with 10
+divisions, each with 10 sections — totalling 1000 base categories:
+
+| Range | Domain |
+|------:|:-------|
+| 000–099 | Computer science, information & general works |
+| 100–199 | Philosophy & psychology |
+| 200–299 | Religion & theology |
+| 300–399 | Social sciences, law, economics |
+| 400–499 | Language & linguistics |
+| 500–599 | Pure sciences (mathematics, physics, biology) |
+| 600–699 | Applied sciences & technology |
+| 700–799 | Arts & recreation |
+| 800–899 | Literature |
+| 900–999 | History & geography |
+
+### 2.2 The Library of Congress Classification (Academic Libraries)
+
+Large research libraries use alphanumeric codes — `QA` for mathematics,
+`HG` for finance, `T` for technology — allowing millions of books to be
+catalogued without collision. This is the model that scales to 5000+ books
+in a GitHub repository.
+
+### 2.3 The BISAC System (Publishers & Bookstores)
+
+The **Book Industry Standards and Communications** subject headings are the
+industry standard for publishing metadata. Each heading has subcategories:
+
+```
+BUSINESS & ECONOMICS / Investments & Securities / Stocks
+COMPUTERS / Software Development & Engineering / General
+PSYCHOLOGY / Cognitive Psychology & Cognition
+```
+
+BISAC is the closest model to what we will implement in our GitHub repo
+using directory slugs and frontmatter metadata.
+
+---
+
+## Part 3 — GitHub Repository: Can It Hold 5000 Books?
+
+**Yes — with the right architecture.**
+
+GitHub repositories have no practical file-count limit for text files.
+The constraints are:
+
+| Constraint | Limit | Our Strategy |
+|:-----------|------:|:-------------|
+| Repo size | 5 GB recommended | Text MDX files are tiny (~5–50 KB each) |
+| Single file size | 100 MB hard limit | No book file will exceed 1 MB |
+| Files per directory | No hard limit | Use deep hierarchy to keep dirs manageable |
+| Clone performance | Degrades past ~100k files | 5000 books × 4 files = 20k files — fine |
+
+A repository with 5000 books, each having 4 MDX/JSON files, produces
+roughly **20,000 files totalling ~200 MB** — well within GitHub's sweet
+spot for performance.
+
+> **Git LFS is NOT needed** for pure text content. Only use LFS if you
+> store high-resolution book cover images or audio narrations (MP3/WAV).
+
+---
+
+## Part 4 — The Complete Folder Architecture
+
+Every book lives in exactly **one** canonical category folder.
+The path structure is:
+
+```
+books/
+└── {category}/
+    └── {subcategory}/
+        └── {sub-subcategory}/           ← optional 3rd level
+            └── {author-slug}--{title-slug}/
+                ├── index.mdx            ← landing page (synopsis, why read)
+                ├── analysis.mdx         ← deep analysis, key arguments
+                ├── narration.mdx        ← chapter-by-chapter narration
+                └── metadata.json        ← structured data for search/filter
+```
+
+### 4.1 File Roles Explained
+
+#### `index.mdx` — The Book's Homepage
+
+This is what readers see first. It should answer: *What is this book,
+why does it matter to someone like me, and what will I get from it?*
+
+```mdx
+---
+title: "The Psychology of Money"
+author: "Morgan Housel"
+slug: "the-psychology-of-money-morgan-housel"
+category: "finance"
+subcategory: "behavioral-finance"
+sub_subcategory: "wealth-mindset"
+isbn: "9780857197689"
+published_year: 2020
+pages: 256
+rating: 5
+read_status: "completed"
+date_read: "2024-03-15"
+difficulty: "beginner"  # beginner | intermediate | advanced
+time_to_read_hours: 5
+tags:
+  - money
+  - psychology
+  - behavior
+  - wealth
+  - decision-making
+featured: true
+---
+
+# The Psychology of Money
+
+## Why Read This Book?
+
+Morgan Housel demonstrates that financial success is less about
+mathematical knowledge and more about behavioral discipline.
+For a 23-year-old software engineer building wealth in India,
+this book reframes money as a tool for freedom, not status.
+
+## Core Premise
+
+Wealth is built through patience, humility, and consistency —
+not through intelligence or aggressive risk-taking.
+
+## Who Should Read This
+
+Anyone earning their first ₹10 LPA and unsure what to do with it.
+Anyone who has made an irrational financial decision (everyone).
+
+## What You Will Learn
+
+- Why your personal history shapes your risk tolerance
+- How "enough" is the most underrated concept in finance
+- The difference between being rich and being wealthy
+- Why tail events (outliers) drive most of the returns
+
+---
+
+*[→ Deep Analysis](/books/finance/behavioral-finance/wealth-mindset/the-psychology-of-money/analysis)*
+*[→ Chapter Narration](/books/finance/behavioral-finance/wealth-mindset/the-psychology-of-money/narration)*
+```
+
+#### `analysis.mdx` — The Intellectual Dissection
+
+Goes beyond summary. Argues the book's place in the intellectual canon,
+critiques weak points, connects it to other works.
+
+```mdx
+---
+title: "Analysis: The Psychology of Money"
+type: "analysis"
+parent_book: "the-psychology-of-money-morgan-housel"
+---
+
+# Analysis: The Psychology of Money
+
+## Core Arguments Evaluated
+
+### Argument 1: No One Is Crazy
+Housel's central thesis is that every financial decision makes sense
+given the decision-maker's personal history...
+
+## Connections to Other Books
+
+| Concept | Complementary Book |
+|:--------|:-------------------|
+| Loss aversion | *Thinking, Fast and Slow* — Kahneman |
+| Compounding patience | *Poor Charlie's Almanack* — Munger |
+| Wealth vs. Rich | *The Millionaire Next Door* — Stanley |
+
+## Weaknesses & Blind Spots
+
+Housel underestimates the role of structural inequality...
+
+## Verdict
+
+**Essential.** Read before any other finance book.
+```
+
+#### `narration.mdx` — Chapter-by-Chapter Distillation
+
+Condenses each chapter into its core insight in 100–200 words.
+Useful for review without re-reading.
+
+```mdx
+---
+title: "Narration: The Psychology of Money"
+type: "narration"
+parent_book: "the-psychology-of-money-morgan-housel"
+chapters: 20
+---
+
+# Chapter-by-Chapter Narration
+
+## Chapter 1 — No One's Crazy
+Every financial decision, no matter how irrational it appears to an
+outsider, is logical given the decision-maker's lived experience...
+
+## Chapter 2 — Luck & Risk
+Bill Gates went to one of the only high schools in the world with
+a computer in 1968. His friend Kent Evans, equally talented, died
+in a mountaineering accident before college...
+```
+
+#### `metadata.json` — Structured Data for Search and Automation
+
+```json
+{
+  "id": "the-psychology-of-money-morgan-housel",
+  "title": "The Psychology of Money",
+  "subtitle": "Timeless Lessons on Wealth, Greed, and Happiness",
+  "author": {
+    "name": "Morgan Housel",
+    "slug": "morgan-housel",
+    "nationality": "American"
+  },
+  "category": "finance",
+  "subcategory": "behavioral-finance",
+  "sub_subcategory": "wealth-mindset",
+  "bisac_code": "BUS050020",
+  "dewey_decimal": "332.024",
+  "isbn_13": "9780857197689",
+  "published_year": 2020,
+  "publisher": "Harriman House",
+  "pages": 256,
+  "language": "en",
+  "difficulty": "beginner",
+  "estimated_read_hours": 5,
+  "rating": 5,
+  "date_read": "2024-03-15",
+  "tags": ["money", "psychology", "behavior", "wealth"],
+  "prerequisite_books": [],
+  "companion_books": [
+    "thinking-fast-and-slow-daniel-kahneman",
+    "poor-charlies-almanack-charlie-munger"
+  ],
+  "where_to_buy": {
+    "amazon_in": "https://amzn.in/...",
+    "flipkart": "https://flipkart.com/..."
+  }
+}
+```
+
+---
+
+## Part 5 — The Complete Category Taxonomy
+
+This is the heart of this article. Every category below is designed for
+**one person: a 23-year-old Indian software engineer** optimising for
+wealth, intellectual depth, engineering excellence, and life outcomes.
+
+Each top-level category has its own folder. Each book belongs to
+**exactly one** leaf-level category.
+
+---
+
+### CATEGORY 01 — Software Engineering Foundations
+
+*The bedrock of your profession. These are not optional.*
+
+```
+books/software-engineering/
+├── code-quality/
+│   ├── clean-code/
+│   ├── refactoring/
+│   ├── code-complete/
+│   └── working-with-legacy-code/
+├── software-design/
+│   ├── design-patterns/
+│   ├── domain-driven-design/
+│   ├── clean-architecture/
+│   └── philosophy-of-software-design/
+├── programming-languages/
+│   ├── python/
+│   │   ├── fluent-python/
+│   │   ├── effective-python/
+│   │   ├── python-cookbook/
+│   │   └── python-tricks/
+│   ├── systems-programming/
+│   │   └── code-charles-petzold/
+│   └── sicp/
+│       └── structure-interpretation-computer-programs/
+├── pragmatic-craft/
+│   ├── the-pragmatic-programmer/
+│   └── programming-pearls/
+└── engineering-culture/
+    ├── software-engineering-at-google/
+    ├── accelerate/
+    └── the-mythical-man-month/
+```
+
+| Subcategory | Why It Matters |
+|:------------|:--------------|
+| Code Quality | Unreadable code kills productivity and careers |
+| Software Design | Architecture decisions have 10-year consequences |
+| Programming Languages | Python mastery at depth separates seniors from juniors |
+| Pragmatic Craft | Mindset and habits of exceptional engineers |
+| Engineering Culture | How elite teams actually ship software |
+
+---
+
+### CATEGORY 02 — Systems Design & Architecture
+
+*The domain that gets you to Staff Engineer and beyond.*
+
+```
+books/systems-design/
+├── distributed-systems/
+│   ├── designing-data-intensive-applications/
+│   ├── understanding-distributed-systems/
+│   ├── designing-distributed-systems/
+│   └── database-internals/
+├── system-design-interviews/
+│   ├── system-design-interview-volume-1/
+│   └── system-design-interview-volume-2/
+├── software-architecture/
+│   ├── fundamentals-of-software-architecture/
+│   ├── software-architecture-in-practice/
+│   └── clean-architecture/
+├── microservices/
+│   ├── building-microservices/
+│   ├── monolith-to-microservices/
+│   └── designing-event-driven-systems/
+├── reliability/
+│   ├── site-reliability-engineering/
+│   ├── release-it/
+│   └── the-art-of-scalability/
+└── web-performance/
+    ├── high-performance-browser-networking/
+    └── web-scalability-for-startup-engineers/
+```
+
+---
+
+### CATEGORY 03 — Computer Science Fundamentals
+
+*The mathematical bedrock that separates deep engineers from surface-level ones.*
+
+```
+books/computer-science/
+├── algorithms/
+│   ├── introduction-to-algorithms-cormen/
+│   ├── algorithm-design-manual-skiena/
+│   ├── grokking-algorithms/
+│   └── art-of-computer-programming-knuth/
+├── operating-systems/
+│   ├── operating-systems-three-easy-pieces/
+│   ├── modern-operating-systems-tanenbaum/
+│   └── linux-kernel-development/
+├── networking/
+│   ├── computer-networking-top-down-approach/
+│   ├── tcp-ip-illustrated/
+│   ├── high-performance-browser-networking/
+│   └── network-warrior/
+├── databases/
+│   ├── high-performance-mysql/
+│   ├── seven-databases-in-seven-weeks/
+│   ├── sql-antipatterns/
+│   └── database-internals/
+└── computer-architecture/
+    └── computer-systems-programmers-perspective/
+```
+
+---
+
+### CATEGORY 04 — Artificial Intelligence & Machine Learning
+
+*The defining technology of our era — you must own this domain.*
+
+```
+books/artificial-intelligence/
+├── foundations/
+│   ├── artificial-intelligence-modern-approach/
+│   └── mathematics-for-machine-learning/
+├── machine-learning/
+│   ├── hands-on-machine-learning-geron/
+│   ├── pattern-recognition-bishop/
+│   ├── practical-statistics-for-data-scientists/
+│   └── machine-learning-engineering-burkov/
+├── deep-learning/
+│   ├── deep-learning-goodfellow/
+│   └── deep-learning-with-python-chollet/
+├── large-language-models/
+│   ├── natural-language-processing-with-transformers/
+│   └── build-large-language-model-from-scratch/
+└── ml-systems/
+    └── designing-machine-learning-systems/
+```
+
+| Subcategory | Career Impact |
+|:------------|:-------------|
+| Foundations | Without the math, you can use AI but not build it |
+| Machine Learning | The practical toolkit every ML engineer needs |
+| Deep Learning | Neural networks at the fundamental level |
+| LLMs | The defining architecture of the 2020s and 2030s |
+| ML Systems | How to deploy and maintain AI in production |
+
+---
+
+### CATEGORY 05 — Personal Finance & Wealth Building
+
+*Your engineering salary is the raw material. This domain is the factory.*
+
+```
+books/personal-finance/
+├── foundations/
+│   ├── richest-man-in-babylon/
+│   ├── rich-dad-poor-dad/
+│   └── total-money-makeover/
+├── financial-independence/
+│   ├── your-money-or-your-life/
+│   ├── simple-path-to-wealth/
+│   └── die-with-zero/
+├── automated-wealth/
+│   ├── i-will-teach-you-to-be-rich/
+│   └── automatic-millionaire/
+├── india-specific/
+│   ├── coffee-can-investing/
+│   └── joys-of-compounding/
+└── cash-flow/
+    ├── cashflow-quadrant/
+    └── profit-first/
+```
+
+---
+
+### CATEGORY 06 — Investing & Capital Markets
+
+*Wealth preservation and growth at the asset allocation level.*
+
+```
+books/investing/
+├── value-investing/
+│   ├── intelligent-investor/
+│   ├── security-analysis/
+│   ├── common-stocks-uncommon-profits/
+│   ├── margin-of-safety/
+│   └── dhando-investor/
+├── warren-buffett/
+│   ├── berkshire-hathaway-shareholder-letters/
+│   ├── buffett-partnership-letters/
+│   ├── essays-of-warren-buffett/
+│   ├── warren-buffett-way/
+│   └── education-of-a-value-investor/
+├── charlie-munger/
+│   ├── poor-charlies-almanack/
+│   └── seeking-wisdom/
+├── index-investing/
+│   ├── little-book-common-sense-investing/
+│   ├── common-sense-on-mutual-funds/
+│   ├── random-walk-down-wall-street/
+│   └── investors-manifesto/
+├── market-cycles/
+│   ├── most-important-thing/
+│   └── mastering-the-market-cycle/
+├── growth-investing/
+│   ├── one-up-on-wall-street/
+│   ├── 100-baggers/
+│   └── what-works-on-wall-street/
+├── behavioral-finance/
+│   ├── psychology-of-money/
+│   ├── value-investing-behavioral-finance/
+│   └── investing-between-the-lines/
+├── quant-factor-investing/
+│   ├── stocks-for-the-long-run/
+│   └── a-random-walk-down-wall-street/
+└── venture-capital/
+    └── venture-deals/
+```
+
+---
+
+### CATEGORY 07 — Economics & Macroeconomics
+
+*Understanding the river your wealth swims in.*
+
+```
+books/economics/
+├── classical-economics/
+│   ├── wealth-of-nations/
+│   └── basic-economics/
+├── free-market/
+│   ├── capitalism-and-freedom/
+│   ├── free-to-choose/
+│   └── road-to-serfdom/
+├── applied-economics/
+│   ├── economics-in-one-lesson/
+│   ├── undercover-economist/
+│   └── freakonomics/
+├── institutional-economics/
+│   └── why-nations-fail/
+└── pop-economics/
+    ├── superfreakonomics/
+    └── factfulness/
+```
+
+---
+
+### CATEGORY 08 — Psychology & Human Behaviour
+
+*All wealth, communication, and influence runs on human psychology.*
+
+```
+books/psychology/
+├── cognitive-biases/
+│   ├── thinking-fast-and-slow/
+│   ├── predictably-irrational/
+│   ├── mistakes-were-made-but-not-by-me/
+│   └── scout-mindset/
+├── social-influence/
+│   ├── influence-cialdini/
+│   ├── laws-of-human-nature/
+│   └── pre-suasion/
+├── motivation-drive/
+│   ├── drive/
+│   ├── grit/
+│   └── flow/
+├── emotional-intelligence/
+│   ├── highly-sensitive-person/
+│   └── anxiety-phobia-workbook/
+├── existential-psychology/
+│   ├── mans-search-for-meaning/
+│   ├── denial-of-death/
+│   └── happiness-hypothesis/
+├── social-psychology/
+│   ├── righteous-mind/
+│   └── culture-of-fear/
+└── peak-performance/
+    ├── peak-anders-ericsson/
+    └── art-of-learning/
+```
+
+---
+
+### CATEGORY 09 — Mental Models & Decision Making
+
+*The operating system of an elite mind.*
+
+```
+books/mental-models/
+├── mental-model-systems/
+│   ├── great-mental-models-vol-1/
+│   ├── great-mental-models-vol-2/
+│   ├── great-mental-models-vol-5/
+│   └── algorithms-to-live-by/
+├── probabilistic-thinking/
+│   ├── thinking-in-bets/
+│   ├── superforecasting/
+│   └── black-swan/
+├── systems-thinking/
+│   ├── fooled-by-randomness/
+│   ├── antifragile/
+│   └── skin-in-the-game/
+├── rationality/
+│   ├── how-not-to-be-wrong/
+│   └── introduction-to-probability/
+└── multidisciplinary-wisdom/
+    └── seeking-wisdom-bevelin/
+```
+
+| Subcategory | What It Builds |
+|:------------|:--------------|
+| Mental Model Systems | A latticework of frameworks for any situation |
+| Probabilistic Thinking | Correct reasoning under uncertainty |
+| Systems Thinking | Seeing second-order effects before they happen |
+| Rationality | Avoiding the expensive cognitive errors |
+| Multidisciplinary Wisdom | Connecting ideas across all human knowledge |
+
+---
+
+### CATEGORY 10 — Philosophy & Stoicism
+
+*The foundation beneath all your mental models.*
+
+```
+books/philosophy/
+├── stoicism/
+│   ├── meditations-marcus-aurelius/
+│   ├── letters-from-a-stoic-seneca/
+│   └── daily-stoic/
+├── ancient-philosophy/
+│   ├── nicomachean-ethics-aristotle/
+│   └── republic-plato/
+├── modern-philosophy/
+│   ├── beyond-good-and-evil-nietzsche/
+│   └── thus-spoke-zarathustra/
+├── nature-and-self/
+│   └── walden-thoreau/
+└── existentialism/
+    └── mans-search-for-meaning/
+```
+
+---
+
+### CATEGORY 11 — History & Civilisation
+
+*History is the largest database of human experiments. Ignore it at your peril.*
+
+```
+books/history/
+├── world-history/
+│   ├── sapiens/
+│   ├── guns-germs-and-steel/
+│   ├── silk-roads/
+│   └── short-history-of-nearly-everything/
+├── intellectual-history/
+│   ├── lessons-of-history/
+│   └── infinite-powers/
+├── modern-history/
+│   ├── postwar/
+│   └── rise-and-fall-of-the-third-reich/
+├── civilisational-history/
+│   └── destiny-disrupted/
+├── biography-history/
+│   └── team-of-rivals/
+├── future-history/
+│   ├── homo-deus/
+│   └── factfulness/
+└── science-history/
+    ├── emperor-of-all-maladies/
+    ├── gene/
+    └── selfish-gene/
+```
+
+---
+
+### CATEGORY 12 — Business Strategy & Entrepreneurship
+
+*Build products, companies, or solo income streams.*
+
+```
+books/business-strategy/
+├── competitive-strategy/
+│   ├── good-strategy-bad-strategy/
+│   ├── blue-ocean-strategy/
+│   └── positioning/
+├── startups/
+│   ├── zero-to-one/
+│   ├── lean-startup/
+│   ├── hard-thing-about-hard-things/
+│   └── founders-at-work/
+├── entrepreneurship-frameworks/
+│   ├── disciplined-entrepreneurship/
+│   ├── startup-owners-manual/
+│   ├── mom-test/
+│   └── traction/
+├── product-market-fit/
+│   └── crossing-the-chasm/
+├── solo-business/
+│   ├── company-of-one/
+│   └── rework/
+└── business-narratives/
+    ├── built-to-last/
+    └── e-myth-revisited/
+```
+
+---
+
+### CATEGORY 13 — Management & Leadership
+
+*Lead without authority, then lead with it.*
+
+```
+books/management-leadership/
+├── management-fundamentals/
+│   ├── high-output-management/
+│   ├── effective-executive/
+│   └── first-90-days/
+├── leadership-philosophy/
+│   ├── extreme-ownership/
+│   ├── turn-the-ship-around/
+│   └── leaders-eat-last/
+├── team-dynamics/
+│   ├── five-dysfunctions-of-a-team/
+│   ├── radical-candor/
+│   └── multipliers/
+├── feedback-culture/
+│   ├── dare-to-lead/
+│   └── crucial-conversations/
+├── engineering-management/
+│   └── staff-engineer/
+└── okr-goals/
+    └── measure-what-matters/
+```
+
+---
+
+### CATEGORY 14 — Communication & Writing
+
+*Your career ceiling is set by how well you communicate, not how well you code.*
+
+```
+books/communication/
+├── writing-fundamentals/
+│   ├── on-writing-well/
+│   ├── everybody-writes/
+│   └── pyramid-principle/
+├── persuasion-rhetoric/
+│   ├── thank-you-for-arguing/
+│   ├── words-that-work/
+│   └── made-to-stick/
+├── presentation/
+│   ├── presentation-zen/
+│   ├── resonate/
+│   └── talk-like-ted/
+├── negotiation/
+│   ├── never-split-the-difference/
+│   └── crucial-conversations/
+├── interpersonal-skills/
+│   ├── how-to-win-friends-influence-people/
+│   └── charisma-myth/
+└── storytelling/
+    ├── storyworthy/
+    └── building-a-storybrand/
+```
+
+---
+
+### CATEGORY 15 — Marketing, Copywriting & Influence
+
+*How to move markets and minds with words and positioning.*
+
+```
+books/marketing-copywriting/
+├── advertising-classics/
+│   ├── scientific-advertising/
+│   ├── ogilvy-on-advertising/
+│   └── boron-letters/
+├── copywriting/
+│   ├── copywriters-handbook/
+│   └── everybody-writes/
+├── consumer-psychology/
+│   ├── influence-cialdini/
+│   └── pre-suasion/
+└── brand-positioning/
+    ├── positioning-al-ries/
+    └── blue-ocean-strategy/
+```
+
+---
+
+### CATEGORY 16 — Productivity & Deep Work
+
+*Your attention is your most precious capital. Guard it.*
+
+```
+books/productivity/
+├── deep-work/
+│   ├── deep-work-cal-newport/
+│   └── digital-minimalism/
+├── habit-systems/
+│   ├── atomic-habits/
+│   ├── the-one-thing/
+│   └── essentialism/
+├── task-management/
+│   ├── getting-things-done/
+│   └── eat-that-frog/
+├── learning-systems/
+│   ├── how-to-take-smart-notes/
+│   ├── how-to-read-a-book/
+│   └── make-it-stick/
+├── meta-learning/
+│   ├── ultralearning/
+│   ├── learning-how-to-learn/
+│   └── range/
+└── focus-flow/
+    ├── indistractable/
+    └── flow/
+```
+
+---
+
+### CATEGORY 17 — Career Development & Engineering Career
+
+*Strategy for your 30-year software engineering career.*
+
+```
+books/career-development/
+├── engineering-career/
+│   ├── software-engineers-guidebook/
+│   └── staff-engineer/
+├── first-90-days/
+│   └── the-first-90-days/
+├── self-promotion/
+│   ├── show-your-work/
+│   └── steal-like-an-artist/
+├── creativity/
+│   ├── originals/
+│   └── creative-confidence/
+└── resilience/
+    ├── mindset-carol-dweck/
+    └── war-of-art/
+```
+
+---
+
+### CATEGORY 18 — Mathematics & Quantitative Thinking
+
+*The language of every scientific and financial domain.*
+
+```
+books/mathematics/
+├── mathematical-thinking/
+│   ├── how-not-to-be-wrong/
+│   └── infinite-powers/
+├── probability-statistics/
+│   ├── introduction-to-probability/
+│   ├── naked-statistics/
+│   └── practical-statistics-for-data-scientists/
+└── mathematics-for-ai/
+    └── mathematics-for-machine-learning/
+```
+
+---
+
+### CATEGORY 19 — Science & Nature
+
+*Ground truth. Everything else is commentary.*
+
+```
+books/science/
+├── biology-evolution/
+│   ├── selfish-gene/
+│   └── gene/
+├── medicine-health/
+│   ├── emperor-of-all-maladies/
+│   └── why-we-sleep/
+└── popular-science/
+    ├── short-history-of-nearly-everything/
+    └── factfulness/
+```
+
+---
+
+### CATEGORY 20 — Global Perspectives & Immigration
+
+*Understanding the world enables you to move strategically within it.*
+
+```
+books/global-perspectives/
+├── geopolitics/
+│   ├── why-nations-fail/
+│   ├── guns-germs-and-steel/
+│   └── silk-roads/
+├── economic-development/
+│   └── capitalism-and-freedom/
+└── civilisational-understanding/
+    ├── destiny-disrupted/
+    └── postwar/
+```
+
+---
+
+## Part 6 — The Full Taxonomy at a Glance
+
+| # | Top-Level Category | Subcategories | Est. Books |
+|--:|:-------------------|:-------------:|----------:|
+| 01 | Software Engineering Foundations | 5 | 50–80 |
+| 02 | Systems Design & Architecture | 6 | 40–60 |
+| 03 | Computer Science Fundamentals | 5 | 40–60 |
+| 04 | Artificial Intelligence & ML | 5 | 40–60 |
+| 05 | Personal Finance & Wealth Building | 5 | 30–50 |
+| 06 | Investing & Capital Markets | 9 | 80–120 |
+| 07 | Economics & Macroeconomics | 5 | 30–50 |
+| 08 | Psychology & Human Behaviour | 7 | 50–80 |
+| 09 | Mental Models & Decision Making | 5 | 30–50 |
+| 10 | Philosophy & Stoicism | 5 | 30–50 |
+| 11 | History & Civilisation | 7 | 50–80 |
+| 12 | Business Strategy & Entrepreneurship | 6 | 50–80 |
+| 13 | Management & Leadership | 6 | 40–60 |
+| 14 | Communication & Writing | 6 | 40–60 |
+| 15 | Marketing, Copywriting & Influence | 4 | 20–40 |
+| 16 | Productivity & Deep Work | 6 | 40–60 |
+| 17 | Career Development & Engineering | 5 | 20–40 |
+| 18 | Mathematics & Quantitative Thinking | 3 | 20–30 |
+| 19 | Science & Nature | 3 | 20–30 |
+| 20 | Global Perspectives & Immigration | 3 | 20–30 |
+| **Total** | **20 categories / 111 subcategories** | — | **700–1100** |
+
+For 5000 books, the taxonomy scales by adding more books per subcategory,
+and by expanding into fiction, biography, poetry, and domain-specific
+technical references for each engineering specialty.
+
+---
+
+## Part 7 — Why Every Category Earns Its Place
+
+### Why Philosophy Before Business?
+
+Most people read business books without philosophy and end up optimising
+the wrong things. Reading Seneca before reading zero-to-one means you
+will not sacrifice relationships for revenue milestones you never needed.
+
+### Why History Before Investing?
+
+Howard Marks, the legendary investor, says: *"the first step to avoiding
+traps is knowing they exist."* History is the only place where every trap
+is documented with full consequences attached.
+
+### Why Communication Before Career Strategy?
+
+The highest-leverage career investment for a software engineer is not
+learning a new framework — it is learning to write and speak so clearly
+that people want to fund your ideas. This is documented across every
+engineering management book ever written.
+
+### Why Psychology Before Productivity?
+
+You cannot build good productivity systems without understanding why
+your own brain resists them. The best productivity book is *Thinking,
+Fast and Slow* — and it is not a productivity book.
+
+---
+
+## Part 8 — Scaling from 200 Books to 5000 Books
+
+When you start, you will have ~200 books.
+As the repository grows, the three-level hierarchy accommodates scale:
+
+```
+Level 1: Category (20 folders)
+Level 2: Subcategory (111 folders)
+Level 3: Sub-subcategory (~300 folders)
+Level 4: Book folder (~5000 folders)
+Level 5: Files (4 files per book = ~20,000 files)
+```
+
+At 5000 books, the repository stays manageable because:
+
+1. **No single directory has more than 30–40 book folders** thanks to
+   the three-level hierarchy.
+2. **Text files compress aggressively** — a 50,000-word analysis file
+   is only ~250 KB.
+3. **GitHub search and Actions** work on text metadata
+   (`metadata.json`) for filtering by tags, ratings, and read status.
+
+### Automation Scripts to Consider
+
+```
+scripts/
+├── validate-metadata.js    ← Checks all metadata.json for completeness
+├── generate-index.js       ← Auto-builds category index pages
+├── check-slugs.js          ← Ensures no duplicate book slugs
+└── export-csv.js           ← Exports full catalogue as spreadsheet
+```
+
+---
+
+## Part 9 — Reading Sequence Strategy
+
+Even the best taxonomy is useless without a reading sequence.
+The optimal reading order for someone with your profile is:
+
+### Year 1 — Foundation Layer (Age 23–24)
+
+**Start with these, in this order:**
+
+1. *How to Read a Book* — Adler (meta-skill: reading itself)
+2. *Atomic Habits* — Clear (building the daily reading habit)
+3. *Thinking, Fast and Slow* — Kahneman (your cognitive OS)
+4. *The Psychology of Money* — Housel (financial mindset first)
+5. *Deep Work* — Newport (protecting your learning time)
+6. *The Pragmatic Programmer* — Hunt & Thomas (engineering mindset)
+7. *Designing Data-Intensive Applications* — Kleppmann (systems anchor)
+8. *The Intelligent Investor* — Graham (investing foundation)
+9. *Sapiens* — Harari (civilisational context)
+10. *Poor Charlie's Almanack* — Munger (multidisciplinary wisdom)
+
+### Year 2 — Depth Layer (Age 24–25)
+
+Move into every category's intermediate books.
+You now have the mental scaffolding to absorb dense ideas.
+
+### Year 3+ — Advanced & Specialised (Age 25+)
+
+Primary sources. Academic texts.
+Books that require the previous 200 as prerequisites.
+
+---
+
+## Part 10 — Conclusion: The Compounding Library
+
+Your book collection is a compounding asset — exactly like a stock
+portfolio. The first 100 books give you frameworks.
+The next 400 give you applications of those frameworks.
+The next 1000 reveal patterns across domains you could not see before.
+By book 5000, you will have built something no university can give you:
+a private, personalised intellectual infrastructure assembled specifically
+for your goals, your context, and your era.
+
+The GitHub repository is just the structure.
+The reading is the compounding.
+Start today.
+
+---
+
+*This curriculum is maintained at [blog.oriz.in](https://blog.oriz.in).
+Each book entry is a living document, updated as understanding deepens.*
