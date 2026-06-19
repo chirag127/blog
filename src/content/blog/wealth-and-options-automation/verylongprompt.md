@@ -1,24 +1,15 @@
 ---
-title: "Part 20: The Master Prompt — Sovereign Wealth Engine (Copy-Paste
-  Ready for Any Coding Agent)"
-description: "A fully self-contained, ultra-detailed natural-language prompt
-  to generate the complete sovereign-wealth-engine repository — a zero-cost,
-  AI-driven, multi-strategy paper trading and wealth tracking system for
-  Indian markets, running entirely on GitHub Actions."
-pubDate: 2026-06-07
+title: "\"Part 20: The Master Prompt — Sovereign Wealth Engine (Copy-Paste"
+description: "\"A fully self-contained, ultra-detailed natural-language prompt"
+pubDate: "2026-06-07"
 tags:
-  - Prompt Engineering
-  - Algo Trading
-  - Paper Trading
-  - AI Agent
-  - GitHub Actions
-  - Turso
 category: "Wealth & Automation"
 author: "Chirag Singhal"
 series: "Wealth & Option Trading Automation"
 part: 20
 draft: false
 ---
+
 
 # Part 20: The Master Prompt — Sovereign Wealth Engine
 

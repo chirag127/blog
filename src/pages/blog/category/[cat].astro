@@ -1,0 +1,99 @@
+---
+/**
+ * /blog/category/[cat] — all published posts in a category.
+ * Category slug is the kebab-cased category name (slugifyTag()).
+ */
+import type { GetStaticPaths } from 'astro'
+import type { CollectionEntry } from 'astro:content'
+import BaseLayout from '~/components/layout/BaseLayout.astro'
+import PostCard from '~/components/blog/PostCard.astro'
+import { getPublishedPosts, slugifyTag } from '~/lib/blog'
+import { SITE_CONFIG } from '~/lib/config'
+
+export const getStaticPaths = (async () => {
+  const posts = await getPublishedPosts()
+  const byCat = new Map<string, { label: string; posts: CollectionEntry<'blog'>[] }>()
+  for (const post of posts) {
+    const label = post.data.category
+    const slug = slugifyTag(label)
+    if (!slug) continue
+    const existing = byCat.get(slug)
+    if (existing) {
+      existing.posts.push(post)
+    } else {
+      byCat.set(slug, { label, posts: [post] })
+    }
+  }
+  return [...byCat.entries()].map(([slug, value]) => ({
+    params: { cat: slug },
+    props: { categoryLabel: value.label, posts: value.posts },
+  }))
+}) satisfies GetStaticPaths
+
+interface PageProps {
+  categoryLabel: string
+  posts: CollectionEntry<'blog'>[]
+}
+const { categoryLabel, posts } = Astro.props as PageProps
+
+const title = `Category: ${categoryLabel}`
+const description = `${posts.length} ${posts.length === 1 ? 'post' : 'posts'} in the ${categoryLabel} category.`
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: title,
+  url: new URL(Astro.url.pathname, SITE_CONFIG.url).toString(),
+  description,
+}
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="container-page section">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/blog/">Blog</a> <span aria-hidden="true">/</span> <span>Category</span>
+    </nav>
+    <header class="head">
+      <h1>{categoryLabel}</h1>
+      <p class="lede">{posts.length} {posts.length === 1 ? 'post' : 'posts'} in this category.</p>
+    </header>
+
+    {posts.length === 0 ? (
+      <p class="muted">No posts in this category yet.</p>
+    ) : (
+      <ul class="post-grid">
+        {posts.map((p) => (
+          <li>
+            <PostCard post={p} />
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .section { padding-block: 3rem; }
+  .crumbs {
+    color: var(--color-fg-soft);
+    font-size: 0.8125rem;
+    margin-bottom: 0.75rem;
+  }
+  .crumbs a { color: var(--color-fg-muted); text-decoration: none; }
+  .crumbs a:hover { color: var(--color-fg); text-decoration: underline; }
+  .head { margin-bottom: 1.5rem; }
+  .head h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .lede { color: var(--color-fg-muted); margin: 0.5rem 0 0; }
+  .muted { color: var(--color-fg-muted); }
+  .post-grid {
+    list-style: none; margin: 0; padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+</style>

@@ -1,0 +1,712 @@
+---
+title: "GitHub Actions for Automated Web Scraping: Complete Guide"
+slug: "github-actions-automated-web-scraping-guide"
+description: "Learn to build automated web scraping pipelines with GitHub Actions. Schedule scrapers, store data, handle errors, and deploy production scraping workflows."
+author: "Chirag Singhal"
+authorBio: "Software Engineer & Deep Value Investor"
+pubDate: 2026-05-19
+updatedDate: 2026-05-19
+category: "tech"
+tags: ["github-actions", "web-scraping", "automation", "python", "cron"]
+series: "automation"
+seriesOrder: 1
+coverImage: ""
+coverImageAlt: "GitHub Actions automated web scraping Python cron scheduling"
+readingTime: 14
+canonical: "https://oriz.in/blog/github-actions-automated-web-scraping-guide"
+platforms:
+  devto: true
+  hashnode: true
+  medium: false
+  wordpress: false
+  blogger: true
+schema: "BlogPosting"
+keywords: ["github actions web scraping", "automated scraping python", "scheduled scraper github", "cron job github actions", "web scraping workflow", "scrape data automatically"]
+showAds: true
+---
+
+Web scraping is a powerful technique for extracting data from websites. When combined with GitHub Actions, you can build fully automated scraping pipelines that run on a schedule, store data, and trigger notifications without any manual intervention or server costs.
+
+This guide covers everything you need to know about building production-grade web scraping workflows with GitHub Actions, from basic setup to advanced error handling and data storage.
+
+## Why GitHub Actions for Web Scraping?
+
+### Advantages
+
+- **Free tier**: 2,000 minutes per month for free accounts
+- **No server management**: GitHub handles infrastructure
+- **Built-in scheduling**: Cron-like scheduling with `on.schedule`
+- **Version control**: Your scraping code is tracked with Git
+- **Secrets management**: Secure storage for API keys and credentials
+- **Integration**: Easy integration with GitHub APIs, notifications, and storage
+
+### Limitations
+
+- **Timeout**: Maximum 6 hours per job
+- **No persistent storage**: Need external storage for scraped data
+- **IP restrictions**: GitHub Actions runners use shared IP ranges that some sites block
+- **Memory**: Limited to 7 GB RAM on standard runners
+- **No browser GUI**: Headless browsers only (no display)
+
+## Setting Up Your First Scraping Workflow
+
+### Project Structure
+
+```
+web-scraper/
+├── .github/
+│   └── workflows/
+│       └── scrape.yml
+├── scraper.py
+├── requirements.txt
+└── README.md
+```
+
+### Basic Workflow
+
+```yaml
+# .github/workflows/scrape.yml
+name: Web Scraper
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # Runs daily at 6:00 AM UTC
+  workflow_dispatch:     # Allows manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run scraper
+        run: python scraper.py
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+```
+
+### Cron Schedule Syntax
+
+```
+┌───────────── minute (0 - 59)
+│ ┌───────────── hour (0 - 23)
+│ │ ┌───────────── day of month (1 - 31)
+│ │ │ ┌───────────── month (1 - 12)
+│ │ │ │ ┌───────────── day of week (0 - 6)
+│ │ │ │ │
+* * * * *
+```
+
+Common schedules:
+
+| Schedule | Cron | Description |
+|----------|------|-------------|
+| Every hour | `0 * * * *` | Runs at minute 0 of every hour |
+| Daily at 6 AM UTC | `0 6 * * *` | Runs once daily |
+| Every 6 hours | `0 */6 * * *` | Runs 4 times daily |
+| Weekdays at 9 AM | `0 9 * * 1-5` | Runs Monday-Friday |
+| First of month | `0 6 1 * *` | Runs monthly |
+
+Note: GitHub Actions uses UTC timezone. Adjust for your timezone accordingly.
+
+## Building the Scraper
+
+### Using BeautifulSoup (Static Pages)
+
+```python
+# scraper.py
+import requests
+from bs4 import BeautifulSoup
+import json
+from datetime import datetime
+
+def scrape_prices():
+    url = "https://example.com/prices"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; PriceScraper/1.0)"
+    }
+
+    response = requests.get(url, headers=headers, timeout=30)
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.content, "html.parser")
+    items = []
+
+    for item in soup.select(".product"):
+        name = item.select_one(".name").get_text(strip=True)
+        price = item.select_one(".price").get_text(strip=True)
+        items.append({
+            "name": name,
+            "price": price,
+            "scraped_at": datetime.utcnow().isoformat()
+        })
+
+    return items
+
+def save_to_json(data, filename="output.json"):
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+if __name__ == "__main__":
+    data = scrape_prices()
+    save_to_json(data)
+    print(f"Scraped {len(data)} items")
+```
+
+### Using Playwright (JavaScript-Rendered Pages)
+
+```python
+# scraper.py
+from playwright.sync_api import sync_playwright
+import json
+from datetime import datetime
+
+def scrape_dynamic_content():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("https://example.com/dynamic", wait_until="networkidle")
+
+        items = []
+        for element in page.query_selector_all(".data-row"):
+            items.append({
+                "title": element.query_selector(".title").inner_text(),
+                "value": element.query_selector(".value").inner_text(),
+                "scraped_at": datetime.utcnow().isoformat()
+            })
+
+        browser.close()
+        return items
+
+if __name__ == "__main__":
+    data = scrape_dynamic_content()
+    with open("output.json", "w") as f:
+        json.dump(data, f, indent=2)
+    print(f"Scraped {len(data)} items")
+```
+
+Workflow update for Playwright:
+
+```yaml
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install chromium
+
+      - name: Run scraper
+        run: python scraper.py
+```
+
+## Storing Scraped Data
+
+### Option 1: Commit to Repository
+
+```yaml
+      - name: Commit and push results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output.json
+          git diff --staged --quiet || git commit -m "Update scraped data $(date)"
+          git push
+```
+
+### Option 2: GitHub Gist
+
+```yaml
+      - name: Update Gist
+        run: |
+          curl -X PATCH \
+            -H "Authorization: token ${{ secrets.GIST_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/gists/${{ secrets.GIST_ID }} \
+            -d '{"files": {"data.json": {"content": "'"$(cat output.json)"'"}}}'
+```
+
+### Option 3: Google Sheets
+
+```python
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+def save_to_sheets(data):
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+    client = gspread.authorize(creds)
+    sheet = client.open("Scraped Data").sheet1
+
+    sheet.clear()
+    sheet.append_row(["Name", "Price", "Scraped At"])
+    for item in data:
+        sheet.append_row([item["name"], item["price"], item["scraped_at"]])
+```
+
+### Option 4: Database (Supabase, Firebase, etc.)
+
+```python
+import os
+from supabase import create_client
+
+def save_to_supabase(data):
+    supabase = create_client(
+        os.environ["SUPABASE_URL"],
+        os.environ["SUPABASE_KEY"]
+    )
+    supabase.table("scraped_data").insert(data).execute()
+```
+
+## Error Handling and Reliability
+
+### Retry Logic
+
+```python
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+def get_session():
+    session = requests.Session()
+    retry = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504]
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
+
+def scrape_with_retry():
+    session = get_session()
+    response = session.get("https://example.com", timeout=30)
+    response.raise_for_status()
+    return response.content
+```
+
+### Notification on Failure
+
+```yaml
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -X POST "${{ secrets.SLACK_WEBHOOK }}" \
+            -H 'Content-type: application/json' \
+            -d '{"text": "Scraper failed! Check: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'
+```
+
+### Health Check Output
+
+```python
+import json
+from datetime import datetime
+
+def create_health_report(success, items_count=0, error=""):
+    report = {
+        "status": "success" if success else "failure",
+        "timestamp": datetime.utcnow().isoformat(),
+        "items_scraped": items_count,
+        "error": error
+    }
+    with open("health.json", "w") as f:
+        json.dump(report, f, indent=2)
+```
+
+## Handling Anti-Scraping Measures
+
+### Rotating User Agents
+
+```python
+import random
+
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+]
+
+headers = {
+    "User-Agent": random.choice(USER_AGENTS),
+    "Accept": "text/html,application/xhtml+xml",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+```
+
+### Rate Limiting
+
+```python
+import time
+
+def scrape_with_delay(urls):
+    results = []
+    for url in urls:
+        response = requests.get(url, headers=headers, timeout=30)
+        results.append(parse(response))
+        time.sleep(2)  # 2 second delay between requests
+    return results
+```
+
+### Proxy Usage
+
+```yaml
+      - name: Run scraper with proxy
+        run: python scraper.py
+        env:
+          PROXY_URL: ${{ secrets.PROXY_URL }}
+```
+
+```python
+import os
+
+proxies = {
+    "http": os.environ.get("PROXY_URL"),
+    "https": os.environ.get("PROXY_URL"),
+}
+response = requests.get(url, proxies=proxies, timeout=30)
+```
+
+## Complete Production Workflow
+
+```yaml
+name: Production Web Scraper
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scraper
+        run: python scraper.py
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Upload output as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scraped-data
+          path: output.json
+          retention-days: 30
+
+      - name: Commit data if changed
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "chore: update scraped data"
+          git push
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -X POST "${{ secrets.NOTIFICATION_WEBHOOK }}" \
+            -H 'Content-type: application/json' \
+            -d '{"text": "Scraper failed: ${{ github.run_id }}"}'
+```
+
+## Data Processing and Transformation
+
+Raw scraped data often needs cleaning and transformation before it is useful.
+
+### Data Cleaning
+
+```python
+import re
+import pandas as pd
+
+def clean_scraped_data(data):
+    df = pd.DataFrame(data)
+
+    # Remove duplicates
+    df = df.drop_duplicates(subset=["url"])
+
+    # Clean text fields
+    df["title"] = df["title"].str.strip()
+    df["price"] = df["price"].str.replace("[^0-9.]", "", regex=True).astype(float)
+
+    # Handle missing values
+    df = df.dropna(subset=["title", "price"])
+
+    # Filter by criteria
+    df = df[df["price"] > 0]
+
+    return df.to_dict("records")
+```
+
+### Data Enrichment
+
+```python
+def enrich_data(data):
+    for item in data:
+        # Add derived fields
+        item["price_category"] = (
+            "low" if item["price"] < 1000
+            else "medium" if item["price"] < 5000
+            else "high"
+        )
+        item["processed_at"] = datetime.utcnow().isoformat()
+    return data
+```
+
+## Monitoring and Alerting
+
+### Slack Notifications
+
+```yaml
+      - name: Notify success
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.SLACK_WEBHOOK }}" \
+            -H 'Content-type: application/json' \
+            -d '{"text": "Scraper completed successfully. ${{ steps.count.outputs.items }} items scraped."}'
+```
+
+### Email Notifications
+
+```python
+import smtplib
+from email.mime.text import MIMEText
+
+def send_alert(subject, body, to_email):
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = "scraper@example.com"
+    msg["To"] = to_email
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login("your_email@gmail.com", "app_password")
+        server.send_message(msg)
+```
+
+### Dashboard Integration
+
+Store scraped data in a database and build a simple dashboard to visualize trends over time. Tools like:
+
+- **Grafana**: For time-series visualization
+- **Metabase**: For SQL-based dashboards
+- **Google Data Studio**: For free reporting
+- **Custom HTML dashboard**: Serve static files from your repository
+
+## Optimizing GitHub Actions Costs
+
+### Reduce Runtime
+
+- Cache pip dependencies to speed up installation
+- Use minimal Docker images
+- Avoid unnecessary steps in workflow
+
+### Use Self-Hosted Runners
+
+For heavy scraping workloads, self-hosted runners on a VPS can be more cost-effective than GitHub-provided runners.
+
+```yaml
+jobs:
+  scrape:
+    runs-on: self-hosted
+    steps:
+      # Same steps as before
+```
+
+### Parallel Scraping
+
+For large-scale scraping, split the workload across multiple jobs:
+
+```yaml
+jobs:
+  scrape-part-1:
+    runs-on: ubuntu-latest
+    steps:
+      - run: python scraper.py --range 1-1000
+
+  scrape-part-2:
+    runs-on: ubuntu-latest
+    steps:
+      - run: python scraper.py --range 1001-2000
+
+  scrape-part-3:
+    runs-on: ubuntu-latest
+    steps:
+      - run: python scraper.py --range 2001-3000
+```
+
+## Best Practices
+
+### Do
+- Respect `robots.txt` and website terms of service
+- Add delays between requests to avoid overwhelming servers
+- Use descriptive User-Agent strings identifying your bot
+- Implement proper error handling and retry logic
+- Store secrets in GitHub Secrets, never in code
+- Monitor scraper health with notifications
+- Cache responses when possible to reduce load
+- Use structured data formats (JSON, CSV)
+
+### Do Not
+- Scrape personal or sensitive data without consent
+- Ignore rate limits or terms of service
+- Hardcode credentials or API keys
+- Scrape at excessive frequency
+- Ignore website server load
+- Store scraped data in plain text in public repositories
+
+## Legal and Ethical Considerations
+
+Before scraping any website:
+
+1. **Check robots.txt**: `https://example.com/robots.txt`
+2. **Review Terms of Service**: Many sites explicitly prohibit scraping
+3. **Respect rate limits**: Do not overwhelm servers
+4. **Data privacy**: Do not scrape personal data without consent
+5. **Copyright**: Scraped content may be copyrighted
+6. **Commercial use**: Using scraped data commercially may have legal implications
+
+## Alternatives to GitHub Actions
+
+If GitHub Actions limitations do not meet your needs:
+
+- **AWS Lambda + EventBridge**: For more complex scraping with custom runtimes
+- **Google Cloud Functions + Cloud Scheduler**: Serverless with free tier
+- **Cloudflare Workers**: For lightweight scraping at edge
+- **Self-hosted runners**: For longer timeouts and custom environments
+- **Dedicated scraping services**: Apify, ScrapingBee, ScraperAPI
+
+## Real-World Use Cases
+
+### Price Tracking
+
+Monitor product prices across e-commerce platforms and receive alerts when prices drop below your target.
+
+```python
+def track_prices():
+    products = [
+        {"url": "https://amazon.in/product1", "target": 5000},
+        {"url": "https://flipkart.com/product2", "target": 3000},
+    ]
+
+    for product in products:
+        price = scrape_price(product["url"])
+        if price <= product["target"]:
+            send_alert(f"Price alert: {product['url']} is now Rs {price}!")
+```
+
+### Job Board Aggregation
+
+Scrape multiple job boards and consolidate listings into a single database.
+
+```python
+def aggregate_jobs():
+    sources = [
+        {"url": "https://naukri.com/search", "selector": ".job-card"},
+        {"url": "https://linkedin.com/jobs", "selector": ".job-listing"},
+        {"url": "https://indeed.co.in/jobs", "selector": ".result"},
+    ]
+
+    all_jobs = []
+    for source in sources:
+        jobs = scrape_jobs(source["url"], source["selector"])
+        all_jobs.extend(jobs)
+
+    # Deduplicate by job title + company
+    unique_jobs = deduplicate(all_jobs)
+    save_to_database(unique_jobs)
+```
+
+### News and Content Monitoring
+
+Track news websites for specific keywords or topics and compile daily digests.
+
+### Real Estate Listing Aggregation
+
+Monitor property listings across multiple real estate portals and track price trends in specific areas.
+
+### Stock Market Data Collection
+
+Scrape financial data, earnings reports, and market indicators for analysis and backtesting.
+
+## Debugging Failed Workflows
+
+When a scraper fails, debugging in GitHub Actions requires specific techniques:
+
+### Enable Debug Logging
+
+```yaml
+      - name: Run scraper with debug
+        run: python scraper.py --verbose
+        env:
+          ACTIONS_RUNNER_DEBUG: true
+          ACTIONS_STEP_DEBUG: true
+```
+
+### Save Screenshots for Headless Browser
+
+```python
+from playwright.sync_api import sync_playwright
+
+def debug_scrape():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("https://example.com")
+        page.screenshot(path="debug-screenshot.png")
+        browser.close()
+```
+
+Upload the screenshot as an artifact to visually inspect what went wrong.
+
+### Check GitHub Actions Runner Environment
+
+```yaml
+      - name: Debug environment
+        run: |
+          echo "Python version: $(python --version)"
+          echo "Installed packages:"
+          pip list
+          echo "Current directory: $(pwd)"
+          echo "Files:"
+          ls -la
+```
+
+## Final Thoughts
+
+GitHub Actions provides a free, reliable, and well-integrated platform for automated web scraping. With proper error handling, data storage, and monitoring, you can build production-grade scraping pipelines that run without manual intervention.
+
+The key to success is respecting website policies, implementing robust error handling, and choosing the right storage solution for your use case. Start simple, iterate, and scale your scraping infrastructure as your needs grow.
+
+---
+
+*Disclaimer: This article is for educational purposes only. Always respect website terms of service, robots.txt directives, and applicable laws when web scraping. Unauthorized scraping may violate terms of service or applicable laws. Consult legal counsel for your specific use case.*

@@ -1,22 +1,15 @@
 ---
 title: "Part 3: The Automated Library Organizer — Category Limits, Folder Manifests, and a Production-Grade Agent Prompt"
 description: "A research-backed guide to re-evaluating category limits for a large personal library. Introduces the concept of Category Manifest MDX files and provides a massive, actionable prompt for coding agents to organize and validate a library repository of 5000+ books."
-pubDate: 2026-06-08
+pubDate: "2026-06-08"
 tags:
-  - Reading List
-  - Books
-  - Library Science
-  - Automation
-  - LLM Prompt
-  - Scripting
-  - GitHub
-  - MDX
 category: "Learning & Growth"
 author: "Chirag Singhal"
 series: "Lifetime Reading Curriculum"
 part: 3
 draft: false
 ---
+
 
 # Part 3: The Automated Library Organizer
 
@@ -203,8 +196,6 @@ Here are the complete, production-grade scripts to execute this task. Write thes
 
 ### 3.1 Script: `scripts/organize-library.js`
 ```javascript
-import { promises as fs } from 'fs';
-import path from 'path';
 
 const FLAT_DIR = path.resolve('./books_flat');
 const DEST_DIR = path.resolve('./books');
@@ -359,8 +350,6 @@ runMigration();
 
 ### 3.2 Script: `scripts/validate-library.js`
 ```javascript
-import { promises as fs } from 'fs';
-import path from 'path';
 
 const DEST_DIR = path.resolve('./books');
 

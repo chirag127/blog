@@ -1,24 +1,13 @@
 ---
 title: "HP Pavilion 14-dv2077TU as a Windows Home Server: The Complete 2026 Guide"
 description: "A step-by-step guide to turning your HP Pavilion 14-dv2077TU (i5-1235U, 16GB DDR4 dual-channel) into a full-featured Windows home server—without wiping Windows—hosting Docker services, Cloudflare tunnels, Ollama, Open WebUI, Odysseus AI, Nextcloud, Vaultwarden, and more."
-pubDate: 2026-06-05
+pubDate: "2026-06-05"
 tags:
-  [
-    "Home-Server",
-    "Windows",
-    "WSL2",
-    "Docker",
-    "Cloudflare",
-    "Ollama",
-    "Local-AI",
-    "Odysseus",
-    "Self-Hosting",
-    "HP-Pavilion",
-  ]
 category: "Engineering"
 author: "Chirag Singhal"
 draft: false
 ---
+
 
 # HP Pavilion 14-dv2077TU as a Windows Home Server: The Complete 2026 Guide
 
@@ -291,7 +280,7 @@ sudo chattr +i /etc/resolv.conf  # Prevent WSL from overwriting it
 **Do not use Docker Desktop.** It adds 1.5–2.5 GB of idle RAM overhead from
 its GUI process, helper VMs, and service daemons.
 
-Installing Docker Engine directly inside WSL2 Ubuntu costs **< 100 MB at
+Installing Docker Engine directly inside WSL2 Ubuntu costs **&lt; 100 MB at
 idle** and integrates cleanly with systemd.
 
 Inside the Ubuntu WSL2 terminal:

@@ -1,7 +1,7 @@
 ---
 title: "Part 8: NoSQL & Document Modeling — MongoDB Deep Dive"
 description: "Master document schema design patterns, WiredTiger engine internals, aggregation pipeline stages, replica sets, and horizontal sharding. Complete with 30 curated resources."
-pubDate: 2026-05-29
+pubDate: "2026-05-29"
 tags: ["MongoDB", "NoSQL", "WiredTiger", "Aggregation Pipeline", "System Design", "Database Modeling"]
 category: "Career Guide"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "The 2026 IT Career Blueprint"
 part: 8
 draft: false
 ---
+
 
 # Part 8: NoSQL & Document Modeling — MongoDB Deep Dive
 
@@ -378,7 +379,7 @@ To demonstrate your database engineering and NoSQL optimization capabilities to 
     *   Apply the Equality, Sort, Range (ESR) rule to create a high-performance **Compound Index** on the collection:
         `db.orders.createIndex({"status": 1, "orderDate": -1, "items.category": 1})`
     *   Re-run the `.explain("executionStats")` pipeline.
-    *   Verify that the query planner now uses an **IXSCAN** (Index Scan) node, showing execution times dropping towards **$<2\text{ms}$** and `totalDocsExamined` dropping to match the exact output document subset size.
+    *   Verify that the query planner now uses an **IXSCAN** (Index Scan) node, showing execution times dropping towards **$&lt;2\text{ms}$** and `totalDocsExamined` dropping to match the exact output document subset size.
 6.  **GitHub Commitment:** Commit the complete Python optimizer script (`mongo_tuner.py`), raw JSON explain outputs (before and after indexing), and a `README.md` containing performance comparison tables to your public `2026-upskilling-roadmap` repository.
 
 ---

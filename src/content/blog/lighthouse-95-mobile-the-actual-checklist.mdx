@@ -1,0 +1,179 @@
+---
+title: "Lighthouse 95 mobile: the actual checklist"
+description: "What I did to keep oriz.in at Lighthouse 95+ mobile with AdSense scripts, fonts, and React 19 islands all loaded. Real numbers, real tactics."
+pubDate: 2026-05-22
+tags: [performance, lighthouse, web-vitals, web-dev]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "9 min"
+---
+
+Lighthouse 95+ on mobile, with AdSense loaded, is hard. Lighthouse 95+ on mobile of an empty static page is trivial — every framework hits 100 out of the box. The interesting question is what stays at 95 once you add real-world weight: ad scripts, fonts, comment widgets, syntax highlighting, image grids, and ten React islands.
+
+oriz.in currently scores 97 on the mobile profile across all four categories (Performance, Accessibility, Best Practices, SEO) with AdSense markup in the page source. Here is exactly what I did, with the trade-offs I made.
+
+## The targets
+
+I aim for these numbers, not just the Lighthouse aggregate score:
+
+- **TBT (Total Blocking Time)**: ≤150ms
+- **LCP (Largest Contentful Paint)**: ≤2.0s
+- **CLS (Cumulative Layout Shift)**: ≤0.05
+- **INP (Interaction to Next Paint)**: ≤150ms
+
+These are tighter than the "good" thresholds in Web Vitals (LCP ≤2.5s, CLS ≤0.1, INP ≤200ms). Hitting them means the Lighthouse aggregate score lands at 95+ even with the variance in the test rig.
+
+## Lazy AdSense via IntersectionObserver
+
+The single biggest performance win. The default AdSense embed loads `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js` synchronously and that script alone is about 250KB of compressed JS that runs on the main thread. If you put it in `<head>`, your TBT is ruined.
+
+The fix is to load AdSense only when an ad slot is about to enter the viewport. The pattern:
+
+```ts
+// src/lib/adsense.ts
+let loaded = false
+
+export function lazyLoadAdSense() {
+  if (loaded) return
+  loaded = true
+  const script = document.createElement('script')
+  script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'
+  script.async = true
+  script.crossOrigin = 'anonymous'
+  script.dataset.adClient = 'ca-pub-XXXXXXXXXXXXXXXX'
+  document.head.appendChild(script)
+}
+
+export function observeAdSlot(el: Element) {
+  const io = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        lazyLoadAdSense()
+        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+        io.unobserve(entry.target)
+      }
+    }
+  }, { rootMargin: '200px' })
+  io.observe(el)
+}
+```
+
+The `rootMargin: '200px'` triggers the load 200px before the ad enters the viewport, so by the time it is visible, the ad has rendered. On a typical blog post the first ad is below the fold, so AdSense does not load at all on initial paint. TBT goes from 850ms to 90ms.
+
+I do *not* use AdSense's "auto ads" feature. Auto ads inject ads via the AdSense script's heuristics, and the heuristics override the lazy-loading. Manual ad slots only.
+
+## Geo-gate Funding Choices
+
+[The AdSense post](/blog/how-to-get-google-adsense-approved-in-2026) covered the policy side. The performance side: Funding Choices' consent banner script is about 80KB. For non-EEA/UK traffic (95% of mine) the banner never shows — so the script should never load.
+
+Cloudflare Workers makes the geo-gate trivial. The Worker reads `cf-ipcountry` from the request and either includes or omits the Funding Choices script in the HTML response:
+
+```ts
+const EEA = new Set(['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','GB','IS','LI','NO'])
+
+const country = request.headers.get('cf-ipcountry') || 'XX'
+const includeCMP = EEA.has(country)
+```
+
+Then a `data-cmp="${includeCMP}"` attribute on `<html>` tells my Astro layout whether to render the script tag. For Indian users, the page ships without the CMP entirely. Lighthouse runs from a US/CDN PoP by default, so the test never includes Funding Choices either.
+
+## content-visibility for long pages
+
+`content-visibility: auto` is the most underused CSS property. It tells the browser to skip rendering off-screen sections until they scroll into view:
+
+```css
+.blog-post-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+```
+
+`contain-intrinsic-size` gives the browser a placeholder height so the scrollbar does not jump. On a 4,000-word blog post with 12 sections, this cuts initial layout cost by 40%. The trade-off: search-in-page (Ctrl+F) does not find content in skipped sections in some browsers. For my posts this is acceptable; for documentation sites it is not.
+
+I apply it on [book summary pages](/book-summaries) and on long-form blog posts. Short pages do not need it.
+
+## AVIF and WebP, pre-built, no runtime conversion
+
+The runtime image optimization that Vercel/Next.js sells is convenient and slow. Astro's built-in image pipeline does the same thing at build time, which means the production server does not run any image processing.
+
+Every image on oriz.in goes through `<Image src={...} formats={['avif', 'webp']} />` at build time. AVIF first, WebP fallback, JPEG/PNG as last resort. The output is committed to `dist/` and served as a static file with `Cache-Control: public, max-age=31536000, immutable`.
+
+For OG images I use the `generate:og` script (satori) at build time and produce a 1200×630 AVIF for every page. The script runs in CI, the AVIFs are in `public/og/`, and the cost at request time is zero. I covered this in [the rebuild post](/blog/why-i-rebuilt-oriz-in-from-scratch).
+
+## font-display: swap with size-adjust
+
+Web fonts are a CLS landmine. The default `font-display: block` blocks rendering until the font loads — bad LCP. `font-display: swap` shows the fallback first then swaps — good LCP, bad CLS because the swap shifts layout.
+
+The fix is a CSS `@font-face` with `size-adjust`, `ascent-override`, and `descent-override` to make the fallback font visually match the web font:
+
+```css
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  size-adjust: 107.4%;
+  ascent-override: 90%;
+  descent-override: 22.4%;
+  line-gap-override: 0%;
+}
+
+body {
+  font-family: 'Inter Variable', 'Inter Fallback', sans-serif;
+  font-display: swap;
+}
+```
+
+The swap from "Inter Fallback" (which is just Arial sized to match Inter) to actual Inter is visually subtle and does not shift layout. The numbers come from [fontsource](https://fontsource.org/) which publishes adjusted fallback metrics for popular fonts.
+
+CLS goes from 0.18 (visible jank) to 0.02 (essentially none).
+
+## Defer Puter.js to AI tool routes only
+
+The AI tools — PDF to Markdown, Image to Text, Text Summarizer — use Puter.js as their AI backend. Puter.js is about 300KB and not needed on any page that is not an AI tool route.
+
+The Astro pattern:
+
+```astro
+---
+const isAITool = Astro.url.pathname.match(/^\/tools\/(pdf-to-markdown|image-to-text|text-summarizer|grammar-checker|code-explainer)/)
+---
+{isAITool && <script src="https://js.puter.com/v2/" defer></script>}
+```
+
+Server-side gating. The script literally does not appear in HTML for non-AI-tool pages. The blog, the book summaries, the cards, the home page — none of them load Puter.js. Lighthouse runs against the home page by default and the home page has no Puter.js.
+
+## No Auto Ads
+
+This is a policy choice that doubles as performance. AdSense Auto Ads scans your DOM and injects ads automatically. The scan runs on the main thread, costs TBT, and produces ad slots in unpredictable places.
+
+I use manual ad placements. Two ad slots per blog post (one mid-article, one end-of-article), one ad slot in the [tools index](/tools) sidebar, none on the [book summaries](/book-summaries) listing pages. Manual placement is more predictable, fewer ads, better UX, and lower TBT.
+
+## What I did not do
+
+- I did not split the bundle by route. Astro does this by default — every route ships only the JS for its islands.
+- I did not write a service worker. The Cloudflare CDN cache is good enough.
+- I did not use HTTP/3 or QUIC tuning. Cloudflare uses both by default.
+- I did not preload the LCP image with `<link rel="preload">`. Astro does it for me when I use `<Image>`.
+
+## Running Lighthouse in CI
+
+`lhci autorun` against my preview build, with budgets:
+
+```json
+{
+  "ci": {
+    "assert": {
+      "preset": "lighthouse:recommended",
+      "assertions": {
+        "categories:performance": ["error", { "minScore": 0.95 }],
+        "total-blocking-time": ["error", { "maxNumericValue": 150 }],
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2000 }]
+      }
+    }
+  }
+}
+```
+
+If the build drops below the threshold, CI fails. This catches regressions before they ship — most often when I add a new third-party script and forget to lazy-load it. The lhci budget config has caught me three times in the last month.
+
+The full stack underneath all of this is [the Cloudflare free tier](/blog/free-tier-stack-for-a-solo-developer-in-india-2026) and [Astro 6 + Tailwind v4](/blog/tailwind-v4-migration-notes). The performance is mostly the framework being good, plus the seven specific tactics above.

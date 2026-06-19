@@ -1,0 +1,146 @@
+---
+/**
+ * /blog/page/[page] — pages 2+ of the paginated blog index.
+ * Page 1 lives at /blog/ (see ../index.astro).
+ *
+ * Uses Astro's `paginate()` and skips the first page so the canonical URL
+ * for it stays /blog/ (avoids /blog/page/1 duplicates).
+ */
+import type { GetStaticPaths, Page } from 'astro'
+import type { CollectionEntry } from 'astro:content'
+import BaseLayout from '~/components/layout/BaseLayout.astro'
+import PostCard from '~/components/blog/PostCard.astro'
+import {
+  getAllCategories,
+  getPublishedPosts,
+  slugifyTag,
+} from '~/lib/blog'
+import { SITE_CONFIG } from '~/lib/config'
+
+const PAGE_SIZE = 12
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const pageSize = 12
+  const posts = await getPublishedPosts()
+  return paginate(posts, { pageSize }).filter(
+    (p) => p.params.page !== '1' && p.params.page !== undefined,
+  )
+}) satisfies GetStaticPaths
+
+interface PageProps {
+  page: Page<CollectionEntry<'blog'>>
+}
+const { page } = Astro.props as PageProps
+const categories = await getAllCategories()
+
+const prevHref = page.currentPage === 2 ? '/blog/' : page.url.prev
+const nextHref = page.url.next
+
+const title = `Blog — page ${page.currentPage}`
+const description = `Page ${page.currentPage} of writing on software, AI agents, finance tooling, and the tools I build.`
+---
+
+<BaseLayout title={title} description={description} canonical={new URL(page.url.current, SITE_CONFIG.url).toString()}>
+  <div class="container-page section">
+    <header class="blog-head">
+      <h1>Blog</h1>
+      <p class="blog-lede">
+        Page {page.currentPage} of {page.lastPage}.
+      </p>
+    </header>
+
+    {categories.length > 0 && (
+      <nav class="chip-strip" aria-label="Filter posts by category">
+        <a class="chip" href="/blog/">All</a>
+        {categories.map((c) => (
+          <a class="chip" href={`/blog/category/${slugifyTag(c)}`}>{c}</a>
+        ))}
+      </nav>
+    )}
+
+    <ul class="post-grid">
+      {page.data.map((p) => (
+        <li>
+          <PostCard post={p} />
+        </li>
+      ))}
+    </ul>
+
+    <nav class="pager" aria-label="Pagination">
+      {prevHref ? (
+        <a class="pager-link" href={prevHref} rel="prev">← Prev</a>
+      ) : (
+        <span class="pager-link is-disabled" aria-hidden="true">← Prev</span>
+      )}
+      <span class="pager-info">Page {page.currentPage} of {page.lastPage}</span>
+      {nextHref ? (
+        <a class="pager-link" href={nextHref} rel="next">Next →</a>
+      ) : (
+        <span class="pager-link is-disabled" aria-hidden="true">Next →</span>
+      )}
+    </nav>
+  </div>
+</BaseLayout>
+
+<style>
+  .blog-head { margin-bottom: 1.5rem; }
+  .blog-head h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .blog-lede { color: var(--color-fg-muted); margin: 0.5rem 0 0; max-width: 60ch; }
+  .chip-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .chip {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    color: var(--color-fg-muted);
+    text-decoration: none;
+  }
+  .chip:hover {
+    color: var(--color-fg);
+    border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  }
+  .post-grid {
+    list-style: none; margin: 0; padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  .pager {
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .pager-info { color: var(--color-fg-muted); font-size: 0.875rem; }
+  .pager-link {
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-button);
+    font-size: 0.875rem;
+    text-decoration: none;
+    color: var(--color-fg);
+    background: var(--color-bg-soft);
+  }
+  .pager-link:hover {
+    border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  }
+  .pager-link.is-disabled { color: var(--color-fg-soft); opacity: 0.5; }
+  .section { padding-block: 3rem; }
+</style>

@@ -1,7 +1,7 @@
 ---
 title: "Part 16: Serverless Architectures - Cloudflare Workers & AWS Lambda"
 description: "Master V8 Isolates vs container virtualization, cold start latency, edge databases (D1, KV, R2), and AWS API Gateway triggers. Complete blueprint with exactly 30 curated resources."
-pubDate: 2026-05-29
+pubDate: "2026-05-29"
 tags: ["Serverless", "Cloudflare-Workers", "AWS-Lambda", "Backend", "Career-Guide"]
 category: "Career Guide"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "The 2026 IT Career Blueprint"
 part: 16
 draft: false
 ---
+
 
 # Part 16: Serverless Architectures - Cloudflare Workers & AWS Lambda
 
@@ -260,8 +261,8 @@ Testing serverless apps locally is key to engineering speed. Learn Wrangler and 
 Create a globally distributed, high-performance URL shortening and telemetry broker using a Cloudflare Worker, D1 SQLite database, and KV Edge Caching.
 
 ### Key Performance Specifications
-*   **Write Latency (KV write + D1 insert)**: `< 15ms` from any location globally.
-*   **Read Latency (KV Cache-Hit)**: `< 5ms` globally.
+*   **Write Latency (KV write + D1 insert)**: `&lt; 15ms` from any location globally.
+*   **Read Latency (KV Cache-Hit)**: `&lt; 5ms` globally.
 *   **Concurrency**: Capable of handling `10,000+ RPS` out-of-the-box.
 
 ### 1. D1 Database Schema Setup
@@ -286,7 +287,7 @@ wrangler d1 execute link-broker-db --local --file=./schema.sql
 ```
 
 ### 2. High-Performance Edge Worker Handler
-Save this script as `src/index.ts`. It implements a hybrid **Cache-Aside Edge strategy**: reads hit KV edge memory first (latency < 5ms). If a cache miss occurs, D1 is queried, and KV edge memory is updated asynchronously.
+Save this script as `src/index.ts`. It implements a hybrid **Cache-Aside Edge strategy**: reads hit KV edge memory first (latency &lt; 5ms). If a cache miss occurs, D1 is queried, and KV edge memory is updated asynchronously.
 
 ```typescript
 export interface Env {

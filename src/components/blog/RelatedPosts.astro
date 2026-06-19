@@ -1,0 +1,98 @@
+---
+/**
+ * RelatedPosts — three suggestions ranked by tag overlap, then category,
+ * then recency. Renders three PostCard tiles.
+ *
+ * Note: ranking lives in `~/lib/blog#getRelatedPosts`; this component
+ * only displays the result, but it accepts a pre-computed list for
+ * flexibility (e.g. when callers already loaded a wider candidate set).
+ */
+import type { CollectionEntry } from 'astro:content'
+import PostCard from './PostCard.astro'
+
+export interface Props {
+  current: CollectionEntry<'blog'>
+  candidates: CollectionEntry<'blog'>[]
+  limit?: number
+}
+
+const { current, candidates, limit = 3 } = Astro.props
+
+const currentTags = new Set(current.data.tags.map((t) => t.toLowerCase()))
+const currentCategory = current.data.category.toLowerCase()
+
+type Scored = {
+  post: CollectionEntry<'blog'>
+  tagOverlap: number
+  sameCategory: boolean
+}
+
+const scored: Scored[] = candidates
+  .filter((p) => p.id !== current.id)
+  .map((post) => ({
+    post,
+    tagOverlap: post.data.tags.filter((t) => currentTags.has(t.toLowerCase()))
+      .length,
+    sameCategory: post.data.category.toLowerCase() === currentCategory,
+  }))
+
+scored.sort((a, b) => {
+  if (b.tagOverlap !== a.tagOverlap) return b.tagOverlap - a.tagOverlap
+  if (a.sameCategory !== b.sameCategory) return a.sameCategory ? -1 : 1
+  return b.post.data.pubDate.valueOf() - a.post.data.pubDate.valueOf()
+})
+
+const picked: CollectionEntry<'blog'>[] = []
+const seen = new Set<string>()
+for (const s of scored) {
+  if (s.tagOverlap === 0 && !s.sameCategory) break
+  if (seen.has(s.post.id)) continue
+  picked.push(s.post)
+  seen.add(s.post.id)
+  if (picked.length >= limit) break
+}
+// Fallback: most-recent published candidates to fill up to `limit`.
+if (picked.length < limit) {
+  const fallback = candidates
+    .filter((p) => p.id !== current.id && !seen.has(p.id))
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  for (const p of fallback) {
+    if (picked.length >= limit) break
+    picked.push(p)
+    seen.add(p.id)
+  }
+}
+---
+
+{picked.length > 0 && (
+  <section class="related" aria-labelledby="related-heading">
+    <h2 id="related-heading" class="related-heading">Related posts</h2>
+    <ul class="related-grid">
+      {picked.map((p) => (
+        <li>
+          <PostCard post={p} />
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .related {
+    margin-top: 3rem;
+  }
+  .related-heading {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+  }
+  .related-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+</style>

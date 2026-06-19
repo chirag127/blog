@@ -1,0 +1,102 @@
+---
+/**
+ * GiscusComments — lazy-mounts the Giscus iframe via the official
+ * client script (https://giscus.app/client.js) once the placeholder
+ * scrolls into view. Keeps the homepage-class Lighthouse score by
+ * deferring until below-fold.
+ */
+import { SITE_CONFIG } from '~/lib/config'
+
+const g = SITE_CONFIG.giscus
+// If giscus IDs aren't configured yet (e.g. in dev), render nothing.
+const enabled = g.repoId.length > 0 && g.categoryId.length > 0
+---
+
+{enabled && (
+  <section class="comments" aria-labelledby="comments-heading">
+    <h2 id="comments-heading" class="comments-heading">Comments</h2>
+    <div
+      id="giscus-mount"
+      data-giscus-repo={g.repo}
+      data-giscus-repo-id={g.repoId}
+      data-giscus-category={g.category}
+      data-giscus-category-id={g.categoryId}
+      data-giscus-mapping={g.mapping}
+      data-giscus-reactions={g.reactionsEnabled ? '1' : '0'}
+      data-giscus-input-position={g.inputPosition}
+    >
+      <p class="comments-placeholder">Loading comments…</p>
+    </div>
+  </section>
+)}
+
+<script>
+  const mount = document.getElementById('giscus-mount')
+  if (mount) {
+    const init = () => {
+      if (mount.dataset.loaded === '1') return
+      mount.dataset.loaded = '1'
+
+      const script = document.createElement('script')
+      script.src = 'https://giscus.app/client.js'
+      script.async = true
+      script.crossOrigin = 'anonymous'
+      script.setAttribute('data-repo', mount.dataset.giscusRepo ?? '')
+      script.setAttribute('data-repo-id', mount.dataset.giscusRepoId ?? '')
+      script.setAttribute('data-category', mount.dataset.giscusCategory ?? '')
+      script.setAttribute('data-category-id', mount.dataset.giscusCategoryId ?? '')
+      script.setAttribute('data-mapping', mount.dataset.giscusMapping ?? 'pathname')
+      script.setAttribute('data-strict', '0')
+      script.setAttribute(
+        'data-reactions-enabled',
+        mount.dataset.giscusReactions ?? '1',
+      )
+      script.setAttribute('data-emit-metadata', '0')
+      script.setAttribute(
+        'data-input-position',
+        mount.dataset.giscusInputPosition ?? 'top',
+      )
+      script.setAttribute('data-theme', 'dark_dimmed')
+      script.setAttribute('data-lang', 'en')
+      script.setAttribute('data-loading', 'lazy')
+
+      // Replace the placeholder so giscus injects its iframe in-place.
+      mount.replaceChildren(script)
+    }
+
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              init()
+              io.disconnect()
+              break
+            }
+          }
+        },
+        { rootMargin: '200px' },
+      )
+      io.observe(mount)
+    } else {
+      init()
+    }
+  }
+</script>
+
+<style>
+  .comments {
+    margin-top: 3rem;
+  }
+  .comments-heading {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+  }
+  .comments-placeholder {
+    color: var(--color-fg-soft);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+</style>

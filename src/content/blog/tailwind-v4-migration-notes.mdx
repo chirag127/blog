@@ -1,0 +1,132 @@
+---
+title: "Tailwind v4 migration notes"
+description: "What broke when I moved oriz.in from Tailwind 3.4 to 4.3: CSS-first @theme, the border-color regression, and what I threw out from my old config."
+pubDate: 2026-06-06
+tags: [tailwind, css, web-dev, migration]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "8 min"
+---
+
+I migrated oriz.in from Tailwind 3.4 to 4.3.1 in May. The upgrade is sold as "drop in the new package and you're done", which is partially true and substantially misleading. Three things will break. One is intentional, one is a real regression you have to work around, and one is your own bad config catching up with you. Here are the notes.
+
+## The new package layout
+
+Tailwind v4 split the package. The old `tailwindcss` is now framework-agnostic CSS only. For Astro you need `@tailwindcss/vite`:
+
+```bash
+pnpm remove @astrojs/tailwind tailwindcss
+pnpm add tailwindcss @tailwindcss/vite
+```
+
+Then the integration moves from `astro.config.mjs` to a Vite plugin:
+
+```ts
+// astro.config.mjs
+
+export default defineConfig({
+  vite: { plugins: [tailwindcss()] },
+})
+```
+
+The `@astrojs/tailwind` package is deprecated and not maintained for v4. If you keep it, your build silently uses v3 semantics on top of v4 CSS, which produces some genuinely weird styling bugs. Remove it.
+
+## tailwind.config.js is gone
+
+This is the big one. v4 is CSS-first. Your theme lives in CSS, not in a JavaScript config file:
+
+```css
+/* src/styles/global.css */
+@import "tailwindcss";
+
+@theme {
+  --color-brand-500: oklch(0.65 0.18 250);
+  --color-brand-600: oklch(0.58 0.18 250);
+  --font-display: "Inter Variable", sans-serif;
+  --breakpoint-3xl: 120rem;
+}
+```
+
+The migration from `tailwind.config.js` to `@theme` is mostly mechanical, but two things bit me:
+
+1. **Custom colors must use OKLCH or color() syntax.** v4 uses OKLCH internally for `color-mix()` interpolation. If you paste in HSL values from v3, things look right until you hover-state with opacity — `bg-brand-500/50` will produce a slightly different color than v3 because the opacity math runs in OKLCH now. The fix is to convert your palette to OKLCH at migration time. I used [oklch.com](https://oklch.com) and a five-minute script.
+
+2. **The `theme.extend` pattern doesn't exist anymore.** In v3 you wrote `extend: { colors: { brand: '#...' } }` to add to Tailwind's defaults. In v4 every variable in `@theme` adds to the defaults — there is no overriding. If you want to *replace* the default red palette, you do `--color-red-*: initial;` first to clear it, then re-declare. This is documented but easy to miss.
+
+I dropped about 60% of my old config in the migration. The `extend.spacing` for custom values, the `screens` overrides, the `fontFamily` map — all of it was either wrong or unnecessary. The new `@theme` block in `src/styles/global.css` is 32 lines.
+
+## The border-color regression
+
+This is the real footgun and the one Tailwind announced loudly in their migration guide, but I still missed it.
+
+In v3, `border` (with no color class) defaulted to `border-color: rgb(229 231 235)` — gray-200. In v4 it defaults to `border-color: currentColor`. This is more correct CSS-wise (matches plain HTML) but it breaks every `<div className="border">` in an existing codebase.
+
+My oriz.in v0 had about 80 instances of bare `border`, `border-t`, `border-b`. All of them were rendering as the surrounding text color in v4 — usually black on white, which looks "fine" until you notice every card has a hard black 1px border instead of the soft gray it had before.
+
+The fix is one of:
+- Replace every `border` with `border border-gray-200`. Verbose but explicit.
+- Add a global compatibility rule: `*, ::before, ::after { border-color: var(--color-gray-200); }` at the top of `global.css`. This restores v3 behavior.
+
+I went with the global rule. It is two lines, it does not require touching 80 files, and `@layer base` keeps it overridable.
+
+## color-mix is the new opacity modifier
+
+v4 reimplemented opacity modifiers (`bg-brand-500/50`) using `color-mix()` under the hood. This means you can now use `color-mix()` directly in your CSS variables and it composes:
+
+```css
+.button-ghost {
+  background: color-mix(in oklch, var(--color-brand-500) 12%, transparent);
+}
+```
+
+The browser support is fine — Safari 16.4+, Chrome 111+, Firefox 113+. Caniuse says 96% global support as of mid-2026. This is the first time I have written modern CSS opacity logic without reaching for `rgba()` and a JavaScript helper.
+
+Where it pays off: focus rings. The old `focus:ring-brand-500/30` approach in v3 generated a hardcoded RGBA. In v4 it is a `color-mix()` and respects parent color shifts (e.g., dark mode) automatically.
+
+## Container queries are native
+
+v3 needed the `@tailwindcss/container-queries` plugin. v4 ships container queries in core:
+
+```html
+<div class="@container">
+  <div class="grid grid-cols-1 @md:grid-cols-2 @lg:grid-cols-3">
+    {/* ... */}
+  </div>
+</div>
+```
+
+I rewrote the [tools index card grid](/tools) to use container queries instead of viewport queries. The cards reflow based on their container width, so the same component works in the sidebar (1 column) and the main content (3 columns) without component-level breakpoints. This is the kind of win that justifies the migration on its own.
+
+## What I kept from v3
+
+Less than I expected.
+
+The custom `safelist` patterns for dynamic class names — gone. v4's CSS-first approach means classes are detected from your actual source files via the AST scanner, and dynamic class strings work as long as the literal substring appears somewhere in your code. I had safelist entries like `bg-(red|green|blue)-(100|200|300)` which were slow to compile in v3. v4 does not need them and the build is faster.
+
+The `@layer components` blocks for things like `.btn-primary`. I migrated these one-for-one and they work identically.
+
+The dark mode strategy (`darkMode: 'class'`). Now you write `@variant dark (&:where(.dark, .dark *))` in `global.css`. Slightly more verbose, exact same behavior.
+
+## What I threw out
+
+The 200-line tailwind.config.js. Replaced with 32 lines of CSS.
+
+Three custom plugins. Two were re-implementations of features now native in v4 (container queries, modern viewport units). One was a `prose` extension I had been carrying since 2023 — turns out the new `@tailwindcss/typography` v0.6 with v4 has the styling I wanted out of the box.
+
+The PurgeCSS escape hatch. v4's incremental engine is fast enough that I do not need to think about purging — it scans on save and produces a 14KB CSS file for the production build. v3's full build was 280KB before purging.
+
+## Performance
+
+The honest comparison, on my M1 MacBook Air, on the same Astro 6 site:
+
+- v3 + @astrojs/tailwind: 11 seconds for a clean Astro build.
+- v4 + @tailwindcss/vite: 4 seconds for a clean Astro build.
+
+CSS payload, after gzip:
+- v3: 18.2KB
+- v4: 13.7KB
+
+Some of that is cleanup I did during the migration, but the engine is genuinely faster. The Lighthouse score did not change (already 95+) but the build pipeline is noticeably snappier, especially on the [book summaries section](/book-summaries) which has thousands of pages. I covered the [performance budgets](/blog/lighthouse-95-mobile-the-actual-checklist) separately because the CSS engine is only one piece.
+
+I would do the migration again. I would do it earlier. The CSS-first approach is the future of Tailwind and the v3-to-v4 jump is the last hard one — minor versions of v4 will be drop-in.

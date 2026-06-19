@@ -1,12 +1,13 @@
 ---
 title: "Turn Your Old Windows Laptop Into a Home Server: The Complete WSL2, Docker, and High-Availability Guide"
 description: "A comprehensive guide to transforming a retired Windows Home laptop into a reliable, headless home server. Learn how to configure WSL2, install Docker natively inside Linux (saving 1.5GB RAM), bypass sleep/update reboots, automate startup with Task Scheduler, and monitor system health via PowerShell."
-pubDate: 2026-06-04
+pubDate: "2026-06-04"
 tags: ["Home-Server", "Windows", "WSL2", "Docker", "PowerShell", "Self-Hosting", "DevOps"]
 category: "Engineering"
 author: "Chirag Singhal"
 draft: false
 ---
+
 
 # Turn Your Old Windows Laptop Into a Home Server: The Complete WSL2, Docker, and High-Availability Guide
 
@@ -132,7 +133,7 @@ Most guides recommend installing **Docker Desktop for Windows** to run container
 *   It forces the creation of two separate helper distributions (`docker-desktop` and `docker-desktop-data`), adding overhead.
 *   On a resource-constrained 16 GB laptop, losing 2 GB of RAM to the Docker Desktop client leaves little room for your databases, APIs, and AI models.
 
-To maximize efficiency, we will bypass Docker Desktop entirely. Instead, we will install the **native Linux Docker Engine directly inside our WSL2 Ubuntu instance**. This configuration runs Docker daemon as a lightweight system service, consuming **\<100 MB of RAM** at idle.
+To maximize efficiency, we will bypass Docker Desktop entirely. Instead, we will install the **native Linux Docker Engine directly inside our WSL2 Ubuntu instance**. This configuration runs Docker daemon as a lightweight system service, consuming **\&lt;100 MB of RAM** at idle.
 
 ```
 Docker Desktop Setup (Heavy: ~2.0 GB Idle RAM)
@@ -692,7 +693,7 @@ Before committing to a production deployment, it is important to evaluate the pe
 ### 8.1 CPU and Memory Virtualization Overhead
 WSL2 is built on the Hyper-V hypervisor platform, which runs a lightweight VM containing a Microsoft-compiled Linux kernel.
 *   **CPU Performance**: WSL2 CPU execution is close to bare metal. The hypervisor delegates instruction scheduling directly to the host CPU, meaning database processing and compilation tasks run at **95% to 98%** of native bare-metal speeds.
-*   **Memory Overhead**: Because the VM must run both the Windows host services and the Linux guest kernel, memory allocation is less efficient. Windows Home uses roughly **2.0 GB to 3.0 GB of RAM** for base system processes (Desktop Window Manager, Explorer, Antivirus, Update daemons). When you allocate 10 GB of RAM to WSL2, your actual usable memory inside Linux is strictly limited to that amount. On a bare-metal Ubuntu Server installation, the OS consumes only **\<150 MB of RAM** at idle, leaving the remaining 15.8 GB entirely available for Docker and system caching.
+*   **Memory Overhead**: Because the VM must run both the Windows host services and the Linux guest kernel, memory allocation is less efficient. Windows Home uses roughly **2.0 GB to 3.0 GB of RAM** for base system processes (Desktop Window Manager, Explorer, Antivirus, Update daemons). When you allocate 10 GB of RAM to WSL2, your actual usable memory inside Linux is strictly limited to that amount. On a bare-metal Ubuntu Server installation, the OS consumes only **\&lt;150 MB of RAM** at idle, leaving the remaining 15.8 GB entirely available for Docker and system caching.
 
 ### 8.2 File I/O Performance: The Cross-OS Bottleneck
 The most critical performance bottleneck in WSL2 is **cross-OS file access**.
@@ -704,7 +705,7 @@ The most critical performance bottleneck in WSL2 is **cross-OS file access**.
 
 | Performance Dimension | Windows Home + WSL2 Server | Bare-Metal Ubuntu Server |
 | :--- | :--- | :--- |
-| **Idle Host Memory Cost** | High (2.0 GB – 3.0 GB RAM consumed by Windows). | **Extremely Low** (\<150 MB RAM at idle). |
+| **Idle Host Memory Cost** | High (2.0 GB – 3.0 GB RAM consumed by Windows). | **Extremely Low** (\&lt;150 MB RAM at idle). |
 | **Active Memory Overhead** | Virtualized memory mapping adds minor lookup latencies. | Zero overhead. All RAM is mapped directly. |
 | **Disk I/O Performance** | Fast within ext4 VHDX. **Slow** when mounting host files. | **Extremely Fast** across all partitions. |
 | **Host System Recovery** | Simple. Windows includes built-in recovery partitions. | Requires live USB boot tools for manual restoration. |

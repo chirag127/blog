@@ -1,0 +1,136 @@
+---
+title: "shadcn/ui without a framework: just Astro islands"
+description: "Using shadcn/ui copy-paste components in Astro 6 with React 19 islands. Why I rejected Park UI, DaisyUI, and Mantine, and how I picked 15 components instead of 50."
+pubDate: 2026-05-19
+tags: [shadcn, astro, react, design-system, web-dev]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "8 min"
+---
+
+shadcn/ui is not a component library. It is a set of files you copy into your project and own. This is the entire reason I picked it over Park UI, DaisyUI, Mantine, and the other 2026 options — the components belong to my codebase, not to a third-party `node_modules` directory I cannot edit. For oriz.in, an Astro 6 site with React 19 islands and Tailwind v4, this matters more than usual.
+
+Here is how the integration works, what I picked, and what I rejected.
+
+## The Astro + shadcn shape
+
+shadcn/ui assumes a Next.js or Vite app. Astro is neither, but the components themselves are framework-agnostic React — they just need React, Tailwind, and the radix-ui primitives at the package level. The `pnpm dlx shadcn@latest init` command targets Next.js by default; for Astro you skip that and copy the components manually.
+
+The setup I use:
+
+```bash
+# React 19 + Astro React integration
+pnpm add react@^19.2.7 react-dom@^19.2.7
+pnpm add @astrojs/react
+
+# shadcn dependencies
+pnpm add @radix-ui/react-dialog @radix-ui/react-dropdown-menu @radix-ui/react-slot
+pnpm add class-variance-authority clsx tailwind-merge lucide-react
+```
+
+Then a `src/components/ui/` directory with the components I copy from [ui.shadcn.com](https://ui.shadcn.com), modified as needed. There is no `components.json`, no shadcn CLI in my project, no auto-update mechanism. When shadcn updates a component, I read the diff and apply it manually if I want to.
+
+The Astro side uses islands:
+
+```astro
+---
+---
+<Button client:idle variant="outline">Click me</Button>
+```
+
+`client:idle` hydrates the React island when the browser is idle — non-blocking, low priority. For most components this is the right default. The home page has zero React islands; the [tools section](/tools) has one or two per page; the [blog posts](/blog) have none.
+
+## The 15 components I use
+
+Out of 50+ shadcn components, oriz.in uses these:
+
+1. Button — used everywhere
+2. Card — tool cards, blog post cards, book summary cards
+3. Dialog — confirmation modals on the [contact form](/contact)
+4. DropdownMenu — the user menu in the header
+5. Input — form inputs
+6. Label — form labels
+7. Sheet — the mobile navigation menu
+8. Tabs — the book summary detail pages have content/analysis/narration tabs
+9. Toast — notifications after form submission
+10. Tooltip — icon button labels
+11. Separator — visual dividers in long content
+12. Badge — tags on blog posts and book summaries
+13. ScrollArea — the long table of contents on book summary pages
+14. Skeleton — loading state on the AI tools while Puter.js boots
+15. Alert — disclaimer boxes on the [finance pages](/finance)
+
+That is it. I do not use:
+
+- Accordion, Collapsible — replaced with native `<details>`/`<summary>` plus Tailwind styling. No JS needed.
+- DataTable — overkill for my use case; native `<table>` with Tailwind classes works.
+- Calendar, DatePicker — no date inputs in oriz v1.
+- Carousel — I do not have any carousel UI; sliding image grids are an anti-pattern.
+- Command — no command palette in v1.
+- Popover — replaced by Tooltip for my use cases.
+- Avatar — I have one author photo on the about page; an `<img>` tag is fine.
+
+The point is not "shadcn is too big". The point is that I picked the components I need, copied them, and the rest do not exist in my codebase. There is no abandoned `Carousel.tsx` sitting in `node_modules`.
+
+## Why Park UI, DaisyUI, and Mantine were rejected
+
+These are the alternatives I evaluated.
+
+**Park UI** is shadcn-style copy-paste, but built on Ark UI primitives instead of Radix. Excellent component design. The reason I rejected it: ecosystem maturity. shadcn has 4× the GitHub stars, more StackOverflow answers, more blog posts. When I hit a Tailwind v4 + React 19 edge case, the chance of someone having already solved it for shadcn is much higher. For a solo project I optimize for "what has the most googleable answers".
+
+**DaisyUI** is a Tailwind v4 plugin that adds component classes (`btn`, `card`, `modal`). No JavaScript, no React dependency, just CSS. This is genuinely tempting for an Astro site that wants to minimize React. The reason I rejected it: theming clashes with my Tailwind v4 `@theme` block. DaisyUI defines its own color tokens (`--p`, `--s`, `--a`, etc.) that conflict with semantic Tailwind variables. Mixing the two requires careful CSS layering and I did not want to debug that ongoing.
+
+I do steal patterns from DaisyUI for components I do not need React for — buttons in the [legal pages](/blog/why-i-rebuilt-oriz-in-from-scratch), simple cards. But the components-as-CSS-classes model does not scale to interactive components like Dialog and DropdownMenu, where you need real keyboard handling.
+
+**Mantine** is a full component library — installed via npm, themed via a provider, with hooks and utilities. It is excellent for a SPA. For an Astro site with islands, it is wrong: you ship the entire `@mantine/core` bundle to every island that uses one component, and the provider model conflicts with the islands architecture (each island is a separate React tree).
+
+I have used Mantine on a Next.js project at work and like it. For static-first islands on Astro, copy-paste components are a better fit.
+
+## React 19 specifics
+
+React 19.2.7 has been the right pin for me since March. Two things matter for shadcn:
+
+**`ref` is now a prop**, not a separate `forwardRef` wrapper. shadcn components shipped before React 19 use `forwardRef`. They still work in React 19 because `forwardRef` is not removed, but the new components from shadcn's main branch (since November 2025) drop `forwardRef`. When I copy a component, I now write:
+
+```tsx
+function Button({ ref, className, ...props }: ButtonProps & { ref?: React.RefObject<HTMLButtonElement> }) {
+  return <button ref={ref} className={cn(buttonVariants(), className)} {...props} />
+}
+```
+
+instead of `forwardRef<HTMLButtonElement, ButtonProps>(...)`. Less ceremony.
+
+**Do not pin 19.2.6 or 19.1.7.** Both have a known FormData regression that causes form submissions in islands to occasionally drop fields. The fix is in 19.2.7. My CLAUDE.md notes warn against the bad pins specifically.
+
+## Sharing component CSS via @theme
+
+Tailwind v4 puts the theme in CSS, which means my shadcn components and my Astro layouts share the exact same theme tokens. The `@theme` block in `src/styles/global.css`:
+
+```css
+@theme {
+  --color-primary: oklch(0.65 0.18 250);
+  --color-primary-foreground: oklch(0.98 0.01 250);
+  --color-accent: oklch(0.85 0.05 80);
+  /* ... */
+  --radius: 0.625rem;
+}
+```
+
+shadcn components reference `var(--color-primary)` and `var(--radius)` directly. There is no `tailwind.config.js` to keep in sync — the CSS is the config. I covered this in [the Tailwind v4 migration post](/blog/tailwind-v4-migration-notes).
+
+## What this costs
+
+Bundle size on the [tools index page](/tools), which is the heaviest in terms of UI:
+
+- Button (used for filters): 0.4KB
+- Card (used for each tool): 0.2KB
+- Tabs (category tabs): 1.8KB
+- ScrollArea (mobile category list): 1.1KB
+- Tooltip (icon hover): 1.4KB
+
+Total React-island JS for the page: 8.2KB gzipped. Astro client overhead: 4KB. React 19 + ReactDOM: 42KB. Page total interactive JS: 54KB.
+
+The initial render is server-side; the islands hydrate when idle. The page is interactive (INP-wise) before the React bundle finishes downloading because the static parts work without JS.
+
+I covered the [performance side](/blog/lighthouse-95-mobile-the-actual-checklist) of keeping these numbers in budget. shadcn-on-Astro is a deliberately small footprint, and "I own the components" means I can always cut more if needed. For oriz.in v1 the 15-component set is final until a real product need pushes me to add the 16th.

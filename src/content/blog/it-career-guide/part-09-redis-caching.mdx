@@ -1,7 +1,7 @@
 ---
 title: "Part 9: In-Memory Databases & Caching — Redis"
 description: "Master Redis in-memory storage internals, event loop architectures, caching strategies, rate limiters, and Redlock distributed locks. Complete with 30 curated resources."
-pubDate: 2026-05-29
+pubDate: "2026-05-29"
 tags: ["Redis", "Caching", "Rate Limiting", "Distributed Locks", "System Design", "Backend Engineering"]
 category: "Career Guide"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "The 2026 IT Career Blueprint"
 part: 9
 draft: false
 ---
+
 
 # Part 9: In-Memory Databases & Caching — Redis
 
@@ -371,7 +372,7 @@ To demonstrate your platform engineering capabilities, you must build and commit
         3.  **Clean Log:** Remove all elements in the sorted set whose scores are older than the window boundary (Current Timestamp - 10,000ms) using `ZREMRANGEBYSCORE`.
         4.  **Count Active Logs:** Fetch the remaining element count in the set using `ZCARD`.
         5.  **Evaluate:** 
-            - If `ZCARD` count $<5$: Accept the request. Write the current timestamp into the sorted set using `ZADD` (using the timestamp as both member and score). Set a cache expiry (TTL) of 15 seconds to auto-clean inactive logs.
+            - If `ZCARD` count $&lt;5$: Accept the request. Write the current timestamp into the sorted set using `ZADD` (using the timestamp as both member and score). Set a cache expiry (TTL) of 15 seconds to auto-clean inactive logs.
             - If `ZCARD` count $\ge 5$: Reject the request. Return a custom JSON response with status code `429 Too Many Requests` and headers indicating retry intervals.
 4.  **Resiliency Optimization:**
     *   Since these commands (`ZREMRANGEBYSCORE`, `ZCARD`, `ZADD`) must execute without race conditions, wrap them inside a **Redis Transaction Pipeline** (`pipe.multi()`) or write them into a raw **Lua Script** and load it via `evalsha()`.

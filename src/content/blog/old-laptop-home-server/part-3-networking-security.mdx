@@ -1,7 +1,7 @@
 ---
 title: "Turn Your Old HP Laptop Into a Home Server — Part 3: Networking, Security, and Cloudflare Tunnels"
 description: "Securely expose your home server to the internet without port forwarding. Part 3 covers CGNAT workarounds, Cloudflare Tunnels, Tailscale VPN, Caddy reverse proxy, HTTPS Telegram webhooks, and advanced security hardening."
-pubDate: 2026-06-04
+pubDate: "2026-06-04"
 tags: ["Home-Server", "Networking", "Security", "Cloudflare-Tunnels", "Tailscale", "Caddy", "Telegram-Bots"]
 category: "Engineering"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "Turn Your Old HP Laptop Into a Home Server"
 part: 3
 draft: false
 ---
+
 
 # Turn Your Old HP Laptop Into a Home Server — Part 3: Networking, Security, and Cloudflare Tunnels
 
@@ -651,7 +652,6 @@ Bun.
 
 ### Elysia.js Webhook Blueprint (`src/webhook.ts`)
 ```typescript
-import { Elysia, t } from 'elysia';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;

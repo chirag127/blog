@@ -1,7 +1,7 @@
 ---
 title: "Turn Your Old HP Laptop Into a Home Server — Part 5: Complete Cost Analysis, Cloud Comparison, and Hybrid Architecture"
 description: "A comprehensive financial and operational comparison of a self-hosted laptop server vs cloud VPS providers. Covers power consumption math, state-wise electricity tariffs, 3-year TCO tables, a 15-dimension comparison matrix, hybrid architecture design, and battery/SSD health automation scripts."
-pubDate: 2026-06-04
+pubDate: "2026-06-04"
 tags: ["Home-Server", "Cost-Analysis", "VPS", "Hybrid-Cloud", "DevOps", "Self-Hosting", "Bash"]
 category: "Engineering"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "Turn Your Old HP Laptop Into a Home Server"
 part: 5
 draft: false
 ---
+
 
 # Turn Your Old HP Laptop Into a Home Server — Part 5: Complete Cost Analysis, Cloud Comparison, and Hybrid Architecture
 
@@ -221,7 +222,7 @@ Below is a comprehensive comparison matrix evaluating a home laptop server again
 | **3** | **CPU/RAM Performance** | **High**: Dedicated hardware access. No virtualization overhead or CPU stealing from noisy neighbors. | **Variable**: Shared CPU models are throttled during high loads. Dedicated instances are expensive. |
 | **4** | **Storage Cost** | **Extremely Cheap**: Direct SATA/NVMe slot access. A 1 TB drive costs a one-time fee of ~₹4,000. | **Expensive**: Cloud block storage volume rates range from ₹3.50 to ₹8.00 per GB, billed monthly. |
 | **5** | **Bandwidth Egress** | **Free / Uncapped**: Bound only by your home fiber plan (often 100 Mbps–1 Gbps, 3.3 TB/month cap). | **Highly Capped / Costly**: Hyper-scalers charge per GB. Budget clouds cap speeds after limit. |
-| **6** | **Network Latency** | **Local (\<1ms)** on LAN. Public access depends on residential ISP routing and tunnel hops. | **Low / Predictable**: Hosted in enterprise data centers with direct fiber backbones. |
+| **6** | **Network Latency** | **Local (\&lt;1ms)** on LAN. Public access depends on residential ISP routing and tunnel hops. | **Low / Predictable**: Hosted in enterprise data centers with direct fiber backbones. |
 | **7** | **Public IP & DNS** | **Complex**: Requires Cloudflare Tunnels, DDNS, or VPNs to bypass CGNAT and dynamic IPs. | **Simple**: Includes dedicated public static IPv4/IPv6 addresses out of the box. |
 | **8** | **Power & Network SLA** | **Variable**: Vulnerable to residential power grid failures and ISP maintenance dropouts. | **High (99.9%–99.99%)**: Automated failover grids, generator backups, redundant line routes. |
 | **9** | **Physical Security** | **Physical Risk**: Exposed to domestic theft, spillages, pets, or accidental power cords unplugging. | **Extremely High**: Biometric entry gates, video surveillance, climate-controlled cages. |

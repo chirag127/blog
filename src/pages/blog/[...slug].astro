@@ -1,33 +1,235 @@
 ---
-import { getCollection, render } from "astro:content";
-import BlogPostLayout from "../../layouts/BlogPostLayout.astro";
+/**
+ * /blog/[slug] — single blog post.
+ * Renders the MDX body inside `.prose-oriz .container-prose`, plus
+ * TOC, share buttons, series nav, related posts, and lazy giscus.
+ */
+import type { GetStaticPaths } from 'astro'
+import { type CollectionEntry, render } from 'astro:content'
+import BaseLayout from '~/components/layout/BaseLayout.astro'
+import GiscusComments from '~/components/blog/GiscusComments.astro'
+import RelatedPosts from '~/components/blog/RelatedPosts.astro'
+import SeriesNav from '~/components/blog/SeriesNav.astro'
+import ShareButtons from '~/components/blog/ShareButtons.astro'
+import TableOfContents from '~/components/blog/TableOfContents.astro'
+import { formatPostDate, getPublishedPosts, slugifyTag } from '~/lib/blog'
+import { SITE_CONFIG } from '~/lib/config'
 
-export async function getStaticPaths() {
-  const posts = await getCollection("blog", ({ data }) => !data.draft);
+export const getStaticPaths = (async () => {
+  const posts = await getPublishedPosts()
   return posts.map((post) => ({
     params: { slug: post.id },
     props: { post },
-  }));
+  }))
+}) satisfies GetStaticPaths
+
+interface PageProps {
+  post: CollectionEntry<'blog'>
 }
+const { post } = Astro.props as PageProps
+const { Content, headings } = await render(post)
 
-const { post } = Astro.props;
-const { Content, headings } = await render(post);
+const allPosts = await getPublishedPosts()
+const seriesPosts = post.data.series
+  ? allPosts.filter((p) => p.data.series === post.data.series)
+  : []
 
-const wordCount = post.body.split(/\s+/).length;
-const readingTime = `${Math.ceil(wordCount / 200)} min read`;
+const url = new URL(`/blog/${post.id}/`, SITE_CONFIG.url).toString()
+const datePublished = post.data.pubDate.toISOString()
+const dateModified = (post.data.updatedDate ?? post.data.pubDate).toISOString()
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished,
+  dateModified,
+  author: {
+    '@type': 'Person',
+    name: post.data.author,
+    url: SITE_CONFIG.author.url,
+  },
+  publisher: {
+    '@type': 'Person',
+    name: SITE_CONFIG.author.name,
+    url: SITE_CONFIG.author.url,
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': url,
+  },
+  keywords: post.data.tags.join(', '),
+  articleSection: post.data.category,
+  inLanguage: SITE_CONFIG.defaultLocale,
+  image: post.data.heroImage
+    ? new URL(post.data.heroImage, SITE_CONFIG.url).toString()
+    : undefined,
+}
 ---
 
-<BlogPostLayout
+<BaseLayout
   title={post.data.title}
   description={post.data.description}
+  type="article"
+  canonical={post.data.canonical ?? url}
   pubDate={post.data.pubDate}
   updatedDate={post.data.updatedDate}
-  heroImage={post.data.heroImage}
-  tags={post.data.tags}
-  category={post.data.category}
-  readingTime={readingTime}
-  headings={headings}
-  slug={post.id}
+  image={post.data.heroImage}
+  jsonLd={jsonLd}
 >
-  <Content />
-</BlogPostLayout>
+  <div class="post-shell container-page">
+    <article class="post-main">
+      <header class="post-header">
+        <p class="post-eyebrow">
+          <a href={`/blog/category/${slugifyTag(post.data.category)}`}>{post.data.category}</a>
+          {post.data.readingTime && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{post.data.readingTime}</span>
+            </>
+          )}
+        </p>
+        <h1 class="post-title">{post.data.title}</h1>
+        <p class="post-desc">{post.data.description}</p>
+        <p class="post-byline">
+          By <a href="/about" rel="author">{post.data.author}</a>
+          <span aria-hidden="true">·</span>
+          <time datetime={datePublished}>{formatPostDate(post.data.pubDate)}</time>
+          {post.data.updatedDate && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Updated {formatPostDate(post.data.updatedDate)}</span>
+            </>
+          )}
+        </p>
+      </header>
+
+      {post.data.series && seriesPosts.length > 1 && (
+        <SeriesNav post={post} allInSeries={seriesPosts} />
+      )}
+
+      <div class="post-body container-prose prose-oriz">
+        <Content />
+      </div>
+
+      {post.data.tags.length > 0 && (
+        <ul class="post-tags" aria-label="Tags">
+          {post.data.tags.map((t) => (
+            <li>
+              <a class="post-tag" href={`/blog/tag/${slugifyTag(t)}`}>#{t}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div class="post-share container-prose">
+        <ShareButtons title={post.data.title} url={url} />
+      </div>
+
+      <div class="post-related container-prose">
+        <RelatedPosts current={post} candidates={allPosts} />
+      </div>
+
+      <div class="post-comments container-prose">
+        <GiscusComments />
+      </div>
+    </article>
+
+    <aside class="post-aside" aria-label="Table of contents">
+      <TableOfContents headings={headings} />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .post-shell {
+    padding-block: 3rem;
+    display: grid;
+    gap: 2rem;
+  }
+  .post-main { min-width: 0; }
+  .post-header {
+    max-width: var(--container-prose);
+    margin-inline: auto;
+    text-align: left;
+    padding-inline: 1.25rem;
+  }
+  .post-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-fg-muted);
+    font-size: 0.8125rem;
+    margin: 0 0 0.5rem;
+  }
+  .post-eyebrow a { color: var(--color-fg-muted); }
+  .post-eyebrow a:hover { color: var(--color-fg); }
+  .post-title {
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    margin: 0 0 0.75rem;
+    color: var(--color-fg);
+  }
+  .post-desc {
+    color: var(--color-fg-muted);
+    font-size: 1.0625rem;
+    margin: 0 0 1rem;
+    max-width: 60ch;
+  }
+  .post-byline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    color: var(--color-fg-soft);
+    font-size: 0.875rem;
+    margin: 0 0 2rem;
+  }
+  .post-byline a { color: var(--color-fg-muted); }
+  .post-byline a:hover { color: var(--color-fg); }
+  .post-body {
+    margin-top: 2rem;
+  }
+  .post-tags {
+    list-style: none;
+    margin: 2.5rem auto 0;
+    padding-inline: 1.25rem;
+    max-width: var(--container-prose);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+  .post-tag {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    color: var(--color-fg-muted);
+    text-decoration: none;
+  }
+  .post-tag:hover {
+    color: var(--color-fg);
+    border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  }
+  .post-share { margin-top: 2rem; }
+  .post-related, .post-comments { margin-top: 2rem; }
+
+  .post-aside { display: none; }
+
+  @media (min-width: 1024px) {
+    .post-shell {
+      grid-template-columns: minmax(0, 1fr) 240px;
+      align-items: start;
+      gap: 3rem;
+    }
+    .post-aside {
+      display: block;
+      padding-top: 6rem;
+    }
+  }
+</style>

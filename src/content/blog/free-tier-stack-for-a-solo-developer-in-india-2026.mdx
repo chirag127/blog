@@ -1,0 +1,128 @@
+---
+title: "Free-tier stack for a solo developer in India, 2026 edition"
+description: "An honest audit of the services I run oriz.in on for zero rupees a month, with India-specific notes on PAN, UPI, and INR-friendly providers."
+pubDate: 2026-05-28
+tags: ["free-tier", "india", "indie-hacking", "stack", "2026"]
+category: "Tools"
+draft: false
+author: "Chirag Singhal"
+readingTime: "9 min"
+---
+
+I run oriz.in for ₹0 per month. No hosting bill, no transactional email bill, no analytics bill, no monitoring bill. The site is small — about 18,000 monthly page views — but the stack scales further than that on the free tier alone. This post is the audit. Every service named here, I currently use or have used in the last six months. Every limit is a 2026 number, not a 2024 number repeated.
+
+## Why this matters more in India
+
+Pricing pages are written in dollars. A "$20/month for the basics" SaaS bill is roughly ₹1,700 — and after GST and the FX markup on a foreign card it is closer to ₹2,000. That is a real cost when AdSense is paying you ₹40-200 per day. The math for an Indian indie hacker is different from the math for a US one. The free tiers were always good; in 2026 they are necessary.
+
+Some services bill in INR (Razorpay, Zoho, MSG91, Cashfree). I noted those below. For everything else, the rule I keep: if the free tier covers my use case, I do not pay. If I outgrow the free tier, I evaluate the INR-billed alternative first.
+
+## Hosting and edge: Cloudflare
+
+The whole stack starts with Cloudflare. I covered the [Workers Static Assets vs Pages decision](/blog/cloudflare-workers-static-assets-vs-pages-in-2026) separately, but the relevant numbers:
+
+- **Workers**: 100,000 invocations/day free, unlimited static asset requests.
+- **R2**: 10 GB storage free, zero egress, 1M Class A operations/month.
+- **D1**: 5 GB storage, 5M row reads/day, 100K row writes/day.
+- **Email Routing**: free, unlimited forwarding aliases.
+- **Web Analytics**: free, no cookies, no consent banner needed.
+- **Turnstile**: free CAPTCHA, no per-solve fee.
+- **Pages and Workers free plan**: usable for commercial sites — no Vercel-style "hobby is non-commercial" restriction. I [wrote about why this matters for AdSense sites](/blog/building-a-personal-dev-tools-site-on-cloudflare-free-tier).
+
+DNS, SSL certificates, DDoS protection, and the global CDN are all included. The only paid Cloudflare product I would consider is Workers Paid ($5/month) once I cross 10M requests, which is far away.
+
+## Newsletter: Buttondown
+
+100 subscribers free. Simple Markdown editor. RSS-to-email automation. Custom domain on the free tier (most competitors gate this). I picked Buttondown over ConvertKit/Substack because:
+
+- Substack takes 10% revenue share. Buttondown does not.
+- ConvertKit free tier caps at 1,000 subscribers but has aggressive upsells and the deliverability dashboard is locked behind paid.
+- MailerLite has a 1,000-subscriber free tier but the editor is heavier and the API is less pleasant.
+
+When I cross 100 subscribers, Buttondown is $9/month for 1,000. I will pay that.
+
+## Forms: Web3Forms
+
+250 form submissions/month free, no backend. I use it for the [contact form](/contact) and the AdSense feedback form. Submission data is delivered to my email — no dashboard, no database I have to maintain.
+
+Alternative: Formspree (50/month free, more polished). Static Forms (100/month free). Web3Forms is the most generous free tier for the same feature set.
+
+If I outgrow it, my migration plan is a Cloudflare Worker that posts to my own email via the Resend API (3,000 emails/month free with a domain).
+
+## Comments: Giscus
+
+Free, backed by GitHub Discussions, no third-party hosting. Lazy-loaded below the fold so it does not cost Lighthouse points. Spam is essentially zero because GitHub auth filters out drive-by spam.
+
+The catch: commenters need a GitHub account. For a developer-focused site like oriz.in this is fine. For a non-developer audience I would use Cusdis (free open-source) or Disqus (free with ads, but I am not putting their ads next to my AdSense ads).
+
+## Search: Pagefind
+
+Static-site search built at build time. About 200KB of generated index for 1,800+ pages. No runtime service, no API key, no rate limits. Loaded only on `/search`. Replaces Algolia (free tier is 10k searches/month and gates analytics) and MeiliSearch self-hosted (requires a server I do not want to run).
+
+## Errors: Sentry Developer plan
+
+5,000 events/month, 1 user, 30-day retention, unlimited projects. No card on file required.
+
+I tracked errors with `console.error` and Cloudflare logs for the first month. Sentry is overkill for a static site, but the React 19 islands in the [tools section](/tools) sometimes throw at runtime and I want to know. Sentry's source map upload integrates with my Cloudflare deploy, so the stack traces resolve to readable React component names.
+
+## Uptime: UptimeRobot
+
+50 monitors free, 5-minute check interval. I monitor `/`, `/tools`, `/blog`, `/book-summaries`, and a couple of the heavier tool routes. SMS alerts are paid; email alerts are free, which is what I use.
+
+Alternative: BetterStack has a free tier (10 monitors, 3-minute interval, status page). Slightly nicer dashboard. UptimeRobot's API is more pleasant for the rare scripting I do.
+
+## Analytics: Cloudflare Web Analytics + Umami self-hosted
+
+Cloudflare Web Analytics is the primary. Free, unmetered, no consent banner, server-side via Cloudflare so it does not cost any client-side JavaScript.
+
+For events (form submissions, tool usage, AdSense impressions), I have a tiny Umami instance on a Cloudflare Worker + D1 setup. It is 80 lines of code and zero rupees. The full Umami self-host is heavier than I needed.
+
+## CI/CD: GitHub Actions
+
+2,000 minutes/month free on private repos. oriz is private (I do not want every typo fix on the legal pages to be public history). My monthly usage is around 140 minutes — plenty of headroom.
+
+The deploy job is `wrangler deploy` after `pnpm build`, with caching for `node_modules` via the standard `actions/setup-node` cache. Deploy time end-to-end is about 90 seconds.
+
+## Code hosting: GitHub Free
+
+Unlimited private repos, 500MB Packages storage, 1GB LFS. The 500MB cap matters if you store images in git — I do not (OG images are pre-built and committed but they are AVIF and small; covers are external URLs).
+
+## Domain: ₹720/year for .in
+
+This is the only line item I pay for. A `.in` domain at GoDaddy India or Namecheap is around ₹600-900/year depending on the renewal cycle. ₹720/year averaged out is ₹60/month — close enough to free that I do not count it.
+
+## Optional: Firebase Spark for v2
+
+I am not using Firebase on oriz.in v1, but the v2 plan has Auth + Firestore + Storage. Spark plan limits as of 2026:
+
+- Auth: 50,000 MAUs free.
+- Firestore: 1 GB storage, 50K document reads/day, 20K writes/day.
+- Storage: 5 GB.
+
+If I add user accounts and saved tool history, Firebase Spark covers it. The reason I did not use Firebase in v1 is that everything is static — there is nothing to authenticate against.
+
+## Indian-context notes
+
+A few things specific to India that surprised me when I started:
+
+- **PAN is required** for any service that pays you (AdSense, Buttondown if you sell paid newsletters, etc.). Get it before you need it. I [wrote about the full AdSense-side prep](/blog/how-to-get-google-adsense-approved-in-2026).
+- **GST registration is not required** below ₹20 lakh annual turnover. AdSense at indie scale is nowhere near that.
+- **Foreign card transactions** carry a 1% TCS as of 2024 and are subject to LRS. For my small bills (Buttondown at $9, hypothetically) this is negligible. For larger bills, the INR-billed alternatives matter.
+- **UPI for INR-billed services**: Razorpay, MSG91, Cashfree, and Hostinger India all accept UPI. Foreign-billed services do not.
+- **DPDPA compliance** for any user data. Cloudflare Web Analytics is no-cookie and DPDPA-friendly. Sentry stores user IPs by default — I disabled IP storage in the Sentry config.
+
+## Total monthly cost
+
+- Cloudflare: ₹0
+- Buttondown: ₹0 (100 subs cap)
+- Web3Forms: ₹0
+- Giscus: ₹0
+- Pagefind: ₹0 (build-time)
+- Sentry: ₹0
+- UptimeRobot: ₹0
+- GitHub: ₹0
+- Domain: ₹60/month equivalent
+
+**Operating cost: ₹60/month.** AdSense at the very lowest indie scale should cover this 10x over. The free-tier-first approach is not a stunt — it is the only way the unit economics work.
+
+I track every service I use in [the dev tools section](/tools), and the [pnpm 10 setup post](/blog/pnpm-10-monorepo-setup-guide) covers the dependency layer underneath. The whole stack is boring on purpose.

@@ -1,0 +1,670 @@
+---
+title: "Firebase Auth on Static Sites: No Backend Needed"
+slug: "firebase-auth-static-sites-no-backend"
+description: "Add authentication to static websites with Firebase Auth. Complete guide covering Google Sign-In, email/password, session management, and security rules."
+author: "Chirag Singhal"
+authorBio: "Software Engineer & Deep Value Investor"
+pubDate: 2026-05-19
+updatedDate: 2026-05-19
+category: "tech"
+tags: ["firebase", "authentication", "static-site", "google-sign-in", "jamstack"]
+series: "modern-web-dev"
+seriesOrder: 2
+coverImage: ""
+coverImageAlt: "Firebase Authentication static sites no backend Google Sign-In JAMstack"
+readingTime: 14
+canonical: "https://oriz.in/blog/firebase-auth-static-sites-no-backend"
+platforms:
+  devto: true
+  hashnode: true
+  medium: false
+  wordpress: false
+  blogger: true
+schema: "BlogPosting"
+keywords: ["firebase auth static site", "google sign in javascript", "authentication without backend", "firebase auth tutorial", "jamstack authentication", "firebase security rules"]
+showAds: true
+---
+
+Adding user authentication to a website traditionally requires a backend server to handle registration, login, password resets, session management, and security. Firebase Authentication eliminates this complexity by providing a complete, production-ready auth system that works entirely from client-side JavaScript. You can add Google Sign-In, email/password authentication, phone verification, and more to a static site with zero backend code.
+
+This guide walks you through implementing Firebase Auth on a static website, from initial setup to production deployment.
+
+## Why Firebase Auth for Static Sites?
+
+### Advantages
+
+- **No backend required**: All auth logic runs in the browser
+- **Multiple providers**: Google, Facebook, GitHub, Apple, email/password, phone, and more
+- **Free tier**: Generous free tier (10,000 MAU for email/password, unlimited for Google)
+- **Security**: Handles password hashing, token management, and session security
+- **Integration**: Works seamlessly with Firestore, Cloud Storage, and other Firebase services
+- **SDK**: Well-documented JavaScript SDK with TypeScript support
+
+### Limitations
+
+- **Vendor lock-in**: Migrating away from Firebase auth requires effort
+- **Client-side only**: Some operations still require Firebase Cloud Functions for server-side logic
+- **Rate limits**: SMS verification has quotas and costs beyond free tier
+- **Customization**: UI customization is limited for built-in flows
+
+## Setting Up Firebase
+
+### Create a Firebase Project
+
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Click "Add project"
+3. Enter project name and follow the setup wizard
+4. Disable Google Analytics (not needed for auth-only)
+
+### Enable Authentication
+
+1. In Firebase Console, go to "Authentication"
+2. Click "Get started"
+3. Enable sign-in methods you want to support:
+   - Email/Password
+   - Google
+   - GitHub
+   - Phone
+
+### Add Authorized Domains
+
+1. Go to Authentication > Settings > Authorized domains
+2. Add your production domain (e.g., `oriz.in`)
+3. `localhost` is added automatically for development
+
+## Installing Firebase SDK
+
+### Using npm (Recommended)
+
+```bash
+npm install firebase
+```
+
+### Initialize Firebase
+
+```javascript
+// src/firebase.js
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export default app;
+```
+
+**Never hardcode Firebase config in client-side code.** Use environment variables. While the config itself is not secret, it is best practice to manage it through environment variables.
+
+## Email/Password Authentication
+
+### Sign Up
+
+```javascript
+
+async function signUp(email, password) {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const user = userCredential.user;
+    console.log("User created:", user.uid);
+    return user;
+  } catch (error) {
+    console.error("Sign up error:", error.code, error.message);
+    throw error;
+  }
+}
+```
+
+### Sign In
+
+```javascript
+
+async function signIn(email, password) {
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const user = userCredential.user;
+    console.log("User signed in:", user.uid);
+    return user;
+  } catch (error) {
+    console.error("Sign in error:", error.code, error.message);
+    throw error;
+  }
+}
+```
+
+### Sign Out
+
+```javascript
+
+async function signOutUser() {
+  try {
+    await signOut(auth);
+    console.log("User signed out");
+  } catch (error) {
+    console.error("Sign out error:", error);
+  }
+}
+```
+
+### Password Reset
+
+```javascript
+
+async function resetPassword(email) {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    console.log("Password reset email sent");
+  } catch (error) {
+    console.error("Reset error:", error.code, error.message);
+    throw error;
+  }
+}
+```
+
+## Google Sign-In
+
+### Popup Method
+
+```javascript
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+
+async function signInWithGoogle() {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    console.log("Google sign-in successful:", user.uid);
+    return user;
+  } catch (error) {
+    console.error("Google sign-in error:", error.code, error.message);
+    throw error;
+  }
+}
+```
+
+### Redirect Method (Better for Mobile)
+
+```javascript
+import {
+  GoogleAuthProvider,
+  signInWithRedirect,
+  getRedirectResult,
+} from "firebase/auth";
+
+async function signInWithGoogleRedirect() {
+  const provider = new GoogleAuthProvider();
+  await signInWithRedirect(auth, provider);
+}
+
+// Check result after redirect (call this on page load)
+async function handleRedirectResult() {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result) {
+      const user = result.user;
+      console.log("Google redirect sign-in:", user.uid);
+      return user;
+    }
+  } catch (error) {
+    console.error("Redirect error:", error);
+  }
+}
+```
+
+## Auth State Observer
+
+Monitor authentication state changes to update your UI.
+
+```javascript
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log("User is signed in:", user.uid);
+    console.log("Email:", user.email);
+    console.log("Display name:", user.displayName);
+    console.log("Photo URL:", user.photoURL);
+    // Update UI to show logged-in state
+  } else {
+    console.log("User is signed out");
+    // Update UI to show logged-out state
+  }
+});
+```
+
+## Complete Auth Component (Vanilla JavaScript)
+
+```javascript
+// src/auth.js
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+
+class AuthManager {
+  constructor() {
+    this.currentUser = null;
+    this.listeners = [];
+    this.init();
+  }
+
+  init() {
+    onAuthStateChanged(auth, (user) => {
+      this.currentUser = user;
+      this.notifyListeners(user);
+    });
+  }
+
+  subscribe(listener) {
+    this.listeners.push(listener);
+    if (this.currentUser) {
+      listener(this.currentUser);
+    }
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
+  notifyListeners(user) {
+    this.listeners.forEach((listener) => listener(user));
+  }
+
+  async signUp(email, password) {
+    const result = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    return result.user;
+  }
+
+  async signIn(email, password) {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  }
+
+  async signInWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    return result.user;
+  }
+
+  async signOut() {
+    await signOut(auth);
+  }
+
+  getCurrentUser() {
+    return this.currentUser;
+  }
+
+  getIdToken() {
+    return this.currentUser?.getIdToken();
+  }
+}
+
+export const authManager = new AuthManager();
+```
+
+## Using Auth with Frameworks
+
+### React
+
+```jsx
+
+function useAuth() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  return { user, loading };
+}
+
+function App() {
+  const { user, loading } = useAuth();
+
+  if (loading) return <p>Loading...</p>;
+
+  if (user) {
+    return (
+      <div>
+        <p>Welcome, {user.email}</p>
+        <button onClick={() => signOut(auth)}>Sign Out</button>
+      </div>
+    );
+  }
+
+  return <LoginPage />;
+}
+```
+
+### Astro (Islands)
+
+```astro
+---
+---
+
+<GoogleSignIn client:load />
+```
+
+## Security Rules for Firestore
+
+With Firebase Auth, you can protect your Firestore data with security rules.
+
+```javascript
+// Firestore security rules
+rules_version = "2";
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Public data anyone can read, only authenticated users can write
+    match /posts/{postId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Admin-only collection
+    match /admin/{document=**} {
+      allow read, write: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+  }
+}
+```
+
+## Phone Authentication
+
+Firebase also supports phone number authentication with OTP verification.
+
+```javascript
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+} from "firebase/auth";
+
+function setupRecaptcha() {
+  window.recaptchaVerifier = new RecaptchaVerifier(
+    "recaptcha-container",
+    { size: "invisible" },
+    auth
+  );
+}
+
+async function sendOTP(phoneNumber) {
+  setupRecaptcha();
+  const confirmationResult = await signInWithPhoneNumber(
+    auth,
+    phoneNumber,
+    window.recaptchaVerifier
+  );
+  window.confirmationResult = confirmationResult;
+}
+
+async function verifyOTP(code) {
+  const result = await window.confirmationResult.confirm(code);
+  const user = result.user;
+  return user;
+}
+```
+
+Phone authentication requires the Firebase reCAPTCHA verifier and is subject to SMS quotas. The free tier includes 10,000 SMS verifications per month.
+
+## Custom Claims and Role-Based Access
+
+For applications that need different user roles (admin, editor, viewer), Firebase custom claims provide a solution.
+
+### Setting Custom Claims (Server-Side via Cloud Functions)
+
+```javascript
+// Firebase Cloud Function
+const admin = require("firebase-admin");
+admin.initializeApp();
+
+exports.addAdminRole = functions.https.onCall(async (data, context) => {
+  if (!context.auth || !context.auth.token.admin) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Only admins can add admin roles"
+    );
+  }
+
+  await admin.auth().setCustomUserClaims(data.uid, { admin: true });
+  return { message: `Admin role assigned to ${data.uid}` };
+});
+```
+
+### Checking Custom Claims (Client-Side)
+
+```javascript
+
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    const idTokenResult = await user.getIdTokenResult();
+    if (idTokenResult.admin) {
+      console.log("User is an admin");
+      // Show admin UI
+    }
+  }
+});
+```
+
+### Using Custom Claims in Security Rules
+
+```javascript
+rules_version = "2";
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /admin-settings/{doc} {
+      allow read, write: if request.auth != null
+        && request.auth.token.admin == true;
+    }
+
+    match /content/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && (request.auth.token.admin == true
+        || request.auth.token.editor == true);
+    }
+  }
+}
+```
+
+## Session Management
+
+### Token Refresh
+
+Firebase ID tokens expire after 1 hour. The SDK automatically refreshes tokens, but if you pass tokens to a backend, you need to handle refresh.
+
+```javascript
+
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    const token = await user.getIdToken(true); // Force refresh
+    // Send token to backend
+  }
+});
+```
+
+### Persistent Sessions
+
+Firebase auth state persists across page reloads by default. The persistence type can be configured:
+
+```javascript
+import {
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  inMemoryPersistence,
+} from "firebase/auth";
+
+// Persist across browser restarts (default)
+await setPersistence(auth, browserLocalPersistence);
+
+// Persist only for current tab session
+await setPersistence(auth, browserSessionPersistence);
+
+// No persistence (cleared on page reload)
+await setPersistence(auth, inMemoryPersistence);
+```
+
+## Building a Complete Auth Flow
+
+### Protected Route Component
+
+```jsx
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="spinner">Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+// Usage in router
+<Route
+  path="/dashboard"
+  element={
+    <ProtectedRoute>
+      <Dashboard />
+    </ProtectedRoute>
+  }
+/>
+```
+
+### Profile Page
+
+```jsx
+function ProfilePage() {
+  const { user } = useAuth();
+
+  const updateProfile = async (displayName, photoURL) => {
+    await updateProfile(user, { displayName, photoURL });
+  };
+
+  const updateEmail = async (newEmail) => {
+    await verifyBeforeUpdateEmail(user, newEmail);
+  };
+
+  const updatePassword = async (newPassword) => {
+    await updatePassword(user, newPassword);
+  };
+
+  const deleteAccount = async () => {
+    await deleteUser(user);
+  };
+
+  return (
+    <div>
+      <h2>Profile</h2>
+      <p>Email: {user.email}</p>
+      <p>Name: {user.displayName || "Not set"}</p>
+      <p>UID: {user.uid}</p>
+      <p>Created: {user.metadata.creationTime}</p>
+      <p>Last sign-in: {user.metadata.lastSignInTime}</p>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+### Security
+
+- **Never store secrets in client-side code**: API keys for third-party services should be in Cloud Functions
+- **Validate on the server**: Client-side validation is not sufficient. Use Firestore security rules
+- **Use custom claims**: For role-based access, set custom claims via Admin SDK
+- **Enable MFA**: Firebase supports multi-factor authentication for enhanced security
+
+### User Experience
+
+- **Show loading states**: Auth operations are async; show spinners
+- **Handle errors gracefully**: Display user-friendly error messages
+- **Remember user preference**: Firebase persists auth state automatically
+- **Provide multiple sign-in options**: Users prefer different methods
+
+### Performance
+
+- **Lazy load Firebase**: Only load auth SDK on pages that need it
+- **Use redirect over popup on mobile**: Popup can be blocked on mobile browsers
+- **Cache user data**: Store user profile in local storage or state management
+
+## Deployment Considerations
+
+### Environment Variables
+
+```env
+# .env
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
+```
+
+### Cloudflare Pages
+
+Add environment variables in Cloudflare Pages dashboard under Settings > Environment Variables.
+
+### Custom Domain
+
+Ensure your custom domain is added to Firebase Console > Authentication > Settings > Authorized domains.
+
+## Common Errors and Solutions
+
+| Error Code | Cause | Solution |
+|------------|-------|----------|
+| `auth/email-already-in-use` | Email already registered | Prompt user to sign in instead |
+| `auth/invalid-email` | Invalid email format | Validate email before calling API |
+| `auth/weak-password` | Password less than 6 characters | Enforce minimum password length |
+| `auth/user-not-found` | No user with this email | Show appropriate error message |
+| `auth/wrong-password` | Incorrect password | Show "incorrect password" message |
+| `auth/popup-closed-by-user` | User closed popup | Handle gracefully, no action needed |
+| `auth/unauthorized-domain` | Domain not authorized | Add domain in Firebase Console |
+
+## Final Thoughts
+
+Firebase Authentication makes it possible to add production-grade authentication to a static website without writing a single line of backend code. Combined with Firestore security rules, you can build secure, authenticated applications that are fast, scalable, and free to host.
+
+The key is to understand the security model: client-side auth handles user identity, while Firestore security rules enforce data access policies. Together, they provide a complete authentication and authorization system for JAMstack applications.
+
+Start with email/password and Google Sign-In, add more providers as needed, and always test your security rules thoroughly before deploying to production.
+
+---
+
+*Disclaimer: This article is for educational purposes only. Security implementations should be reviewed by security professionals. Firebase services and APIs may change. Always refer to the official Firebase documentation for the most current information. Never expose sensitive credentials in client-side code.*

@@ -1,12 +1,13 @@
 ---
 title: "Anatomy of blog.oriz.in — How I Built a Zero-Cost, High-Performance Blog Platform"
 description: "A deep-dive analysis of the blog.oriz.in repository: architecture, component design, deployment automation, coding conventions, and lessons learned from building a production Astro blog."
-pubDate: 2026-03-28
+pubDate: "2026-03-28"
 tags: ["Astro", "Open Source", "Architecture", "Web Development", "Cloudflare Pages"]
 category: "Engineering"
 author: "Chirag Singhal"
 draft: false
 ---
+
 
 # Anatomy of blog.oriz.in — How I Built a Zero-Cost, High-Performance Blog Platform
 
@@ -17,7 +18,7 @@ Most blog platforms are either fast, cheap, or flexible. You get to pick two. I 
 ## 1. The Problem
 
 I needed a platform that:
-- Serves static content to users worldwide with \<100ms load times
+- Serves static content to users worldwide with \&lt;100ms load times
 - Supports Markdown/MDX for writing posts with embedded components
 - Costs nothing to host and scale
 - Looks professional without a design team
@@ -334,14 +335,14 @@ The result speaks for itself:
 
 | Metric | Value |
 |--------|-------|
-| First Contentful Paint | \<0.5s |
-| Largest Contentful Paint | \<1.0s |
-| Time to Interactive | \<1.0s |
+| First Contentful Paint | \&lt;0.5s |
+| Largest Contentful Paint | \&lt;1.0s |
+| Time to Interactive | \&lt;1.0s |
 | Total Blocking Time | 0ms |
-| Cumulative Layout Shift | \<0.01 |
+| Cumulative Layout Shift | \&lt;0.01 |
 | JavaScript shipped | ~5KB |
 | CSS shipped | ~8KB |
-| Total page weight | \<50KB |
+| Total page weight | \&lt;50KB |
 
 Every page is static HTML with inline styles and minimal JS. The CDN does the heavy lifting.
 

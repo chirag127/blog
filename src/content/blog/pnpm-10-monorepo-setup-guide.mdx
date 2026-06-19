@@ -1,0 +1,134 @@
+---
+title: "pnpm 10 monorepo setup guide (and why I'm not on v11)"
+description: "Why pnpm 10.34 is the right pin in 2026, the tarball integrity hard-fail, and workspace patterns for a one-app project that might grow."
+pubDate: 2026-06-03
+tags: [pnpm, monorepo, javascript, build-tooling]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "8 min"
+---
+
+I am pinned to `pnpm@10.34.3` on oriz.in and on every other JavaScript project I run. pnpm 11 has been out since March and I am not upgrading. This is partly cowardice and partly informed cowardice — there is a specific config-key migration in v11 that breaks workspaces in a way that is annoying to roll back. Let me show you what I actually do.
+
+## packageManager is the only correct pin
+
+If you have ever debugged a CI job that worked locally but failed on GitHub Actions because the runner had a different pnpm version, this is the fix:
+
+```json
+{
+  "name": "oriz",
+  "packageManager": "pnpm@10.34.3",
+  "engines": { "node": ">=22.12.0" }
+}
+```
+
+The `packageManager` field has been a Node.js standard since 16.9 and is respected by Corepack. When CI runs `corepack enable && corepack prepare pnpm@10.34.3 --activate`, it pins the exact pnpm version. No `npm install -g pnpm`, no `setup-pnpm` action with a hardcoded version, no `.nvmrc`-style version drift. One field, one source of truth.
+
+GitHub Actions setup that respects this:
+
+```yaml
+- uses: actions/setup-node@v4
+  with:
+    node-version: '22'
+- run: corepack enable
+- run: pnpm install --frozen-lockfile
+```
+
+Three lines. Corepack reads `package.json`, activates the pinned pnpm, done.
+
+## Why not pnpm 11
+
+pnpm 11 (March 2026) introduced several breaking config-key migrations. The big one is that `.npmrc`-based settings like `node-linker=hoisted` and `dedupe-peer-dependents=true` moved into a new `pnpm-workspace.yaml` schema with different key names. The migration tool covers most of it, but I have three projects with custom `.npmrc` patterns for private registries and the migration produced incorrect output for one of them.
+
+The other thing I do not love: pnpm 11 made `tarball-integrity-hard-fail` (introduced in 10.34.0) the only mode. If a downloaded tarball has a checksum mismatch, the install fails. This is correct — silent corruption was a real problem — but it interacts badly with corporate proxies that strip integrity headers. I do not have this problem at home, but I have it at one client and it cost me a day to debug last month.
+
+For a personal project I would jump to v11 today. For anything I am paid to maintain I am waiting until v11.4 or v11.5 when the migration tooling has settled.
+
+The Astro 6 + React 19 + Tailwind v4 stack is not a problem on either version. It is purely about pnpm's own surface.
+
+## Workspace patterns for one app
+
+I have one app today. oriz.in is an Astro site, full stop. There is no `apps/web` and `apps/api`. There is just `src/`.
+
+But I treat the repo as a workspace from day one. `pnpm-workspace.yaml`:
+
+```yaml
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+catalog:
+  astro: ^6.4.7
+  react: ^19.2.7
+  react-dom: ^19.2.7
+  tailwindcss: ^4.3.1
+  '@tailwindcss/vite': ^4.3.1
+  zod: ^3.25.0
+```
+
+The `apps/*` and `packages/*` folders do not exist yet. The `catalog:` block is the part that matters — it lets me reference shared dependency versions from any package's `package.json`:
+
+```json
+{
+  "dependencies": {
+    "astro": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  }
+}
+```
+
+When I eventually split out a `packages/ui` for shared components or `apps/admin` for a future dashboard, the React version is centralized. Right now it costs me nothing — the catalog is just five lines and `pnpm install` resolves it identically.
+
+If you have ever maintained a monorepo where `apps/web` was on React 18.3 and `apps/admin` was on 18.2 because nobody coordinated the bump, the catalog is the fix.
+
+## The dependency hoisting strategy
+
+By default, pnpm uses a non-hoisted `node_modules` layout — every package only sees its declared dependencies. This catches the "phantom dependency" problem where `apps/web` accidentally uses lodash because `@some-other-pkg` had it as a transitive.
+
+For an Astro site this works. The exception is tools that introspect `node_modules` directly (some legacy Webpack plugins, some CLI tools written before pnpm existed). My current `.npmrc`:
+
+```
+node-linker=isolated
+public-hoist-pattern[]=*tailwind*
+public-hoist-pattern[]=*postcss*
+public-hoist-pattern[]=*prettier*
+shamefully-hoist=false
+auto-install-peers=true
+strict-peer-dependencies=false
+```
+
+The `public-hoist-pattern` exceptions are for tools that expect their plugins to live at the top level. Tailwind specifically — `@tailwindcss/typography` is loaded via globbing `node_modules/@tailwindcss/*` in some build paths. Hoisting Tailwind packages avoids the issue without going full `shamefully-hoist=true`.
+
+`auto-install-peers=true` is the default in v10 and was a major quality-of-life fix. Pre-v10, every React peer dependency warning required manual `pnpm add react react-dom`. Now they install automatically.
+
+## Lockfile discipline
+
+`pnpm-lock.yaml` is committed. `pnpm install --frozen-lockfile` in CI. If the lockfile and `package.json` disagree, CI fails — which is the correct behavior.
+
+I do `pnpm update -i` (interactive update) once a month to walk through dependency bumps deliberately. The monthly cadence is enough for a small project; for a larger one I would set up Renovate or Dependabot.
+
+The thing I never do: `pnpm install --no-frozen-lockfile` in CI. If you find yourself reaching for that flag, the lockfile is wrong and committing the regenerated one is the right answer. Skipping the check just hides drift.
+
+## Dedupe and the audit story
+
+`pnpm dedupe` rewrites the lockfile to share more transitive dependencies. On oriz.in, running it after a fresh install reduced `node_modules` size by about 8% — not life-changing, but free. I run it before every release.
+
+`pnpm audit` is the security side. pnpm 10 added `--audit-level=moderate` as a default-friendly setting, so I have:
+
+```bash
+pnpm audit --prod --audit-level=moderate
+```
+
+in CI. It exits non-zero on any moderate-or-higher vuln in production dependencies. Dev dependencies (including Vite, Astro itself, biome) are excluded because their vulns rarely affect deployed code, and the noise is high.
+
+## What I'm watching
+
+A few things that might change my pin:
+
+- pnpm 11.x stabilization. By late 2026 I expect v11.3+ to be safe to upgrade.
+- The Bun 2.0 lockfile becoming usable in CI without weird interop. Bun's install is faster than pnpm's, but the lockfile incompatibility (Bun's binary lockfile vs pnpm's YAML) makes it a forced choice. I am sticking with pnpm.
+- The Node.js 24 LTS release in October. pnpm 10.x is fine on Node 24, but I will re-test.
+
+For now, the setup is boring and stable, which is what I want a build tool to be. I wrote about [the broader free-tier stack](/blog/free-tier-stack-for-a-solo-developer-in-india-2026), [how oriz.in is structured](/blog/why-i-rebuilt-oriz-in-from-scratch), and the [Astro 6 content collections](/blog/astro-6-content-collections-a-practical-guide) that depend on this resolution layer — pnpm is the foundation underneath all of it.

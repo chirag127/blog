@@ -1,0 +1,90 @@
+---
+title: "Building a personal dev tools site on the Cloudflare free tier"
+description: "Real free-tier limits, the no-card-on-file rule, and why Cloudflare beats Vercel Hobby for an AdSense-monetized indie site."
+pubDate: 2026-06-12
+tags: [cloudflare, free-tier, indie-hacking, astro, workers]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "8 min"
+---
+
+oriz.in serves about 18,000 page views a month right now. It is a static Astro 6 site with twenty interactive tool pages, 466 book summaries, a blog, a card gallery, and a small finance calculator section. Total Cloudflare bill last month: zero rupees. I have no card on file. I am not on a trial. This is the actual free tier.
+
+This is not a "Cloudflare is generous" post. The free tier is generous *and* gameable, and the gameable part is what I want to talk about.
+
+## The Workers free tier in concrete numbers
+
+The Workers free plan, as of mid-2026, is 100,000 requests per day. Static asset requests do not count against that quota — only requests that actually invoke your Worker code. For a static Astro site with 99% asset requests, the effective ceiling is "however many CDN hits you can serve", which is unbounded on the free tier.
+
+If you are doing math: 100,000 worker invocations per day is roughly 3 million per month. AdSense at $1 RPM territory implies you would need about 3 million monthly page views to fill that. I am two orders of magnitude away from caring.
+
+The other quotas I actually pay attention to:
+
+- **Workers KV**: 100,000 reads/day, 1,000 writes/day, 1 GB storage. I do not use KV on oriz.in v1 because everything is static, but it is in my v2 plan for rate limiting form submissions.
+- **R2**: 10 GB storage, 1 million Class A operations/month, 10 million Class B operations/month. **Egress is zero.** This is the line that destroys the Vercel comparison. If I move the OG image AVIFs into R2 and serve them through a Worker, I pay nothing for bandwidth.
+- **D1**: 5 GB storage, 5 million row reads/day, 100,000 row writes/day. Not in v1.
+- **Cloudflare Web Analytics**: free, unmetered, no cookies, no consent banner needed. Replaces Plausible/Fathom for me.
+- **Email Routing**: free, unlimited forwarding aliases. `hello@oriz.in` forwards to my Gmail.
+- **Turnstile**: free CAPTCHA, no per-solve fee, no Google.
+
+## Why not Vercel Hobby
+
+This is the part most "free tier" comparison posts get wrong. Vercel's Hobby plan explicitly forbids commercial use. Their fair-use language reads, in 2026, as "Hobby plan is for non-commercial personal projects." A site running AdSense is, by every legal interpretation, commercial — even if your monthly revenue is ₹40. Vercel's enforcement is inconsistent, but the rule exists. If they decide to enforce, you get a pause email and 7 days to migrate.
+
+Cloudflare has no equivalent restriction. Their free Workers plan is usable for commercial sites, including ad-monetized ones. This is not an accident — it is part of how they convert free users to paid Workers customers later.
+
+If you are running ads, do not deploy to Vercel Hobby. Either pay for Vercel Pro at $20/month or move to Cloudflare. I picked Cloudflare. I wrote about [the Workers Static Assets vs Pages decision](/blog/cloudflare-workers-static-assets-vs-pages-in-2026) because the migration was not as smooth as it should have been.
+
+## The "no card on file" rule
+
+I have one rule and it is the difference between a free-tier site and an accidentally-paid site.
+
+**Never put a payment card on a billing dashboard.**
+
+This sounds obvious. It is not. Cloudflare, Vercel, AWS, and Google Cloud all have flows that say "add a card to unlock free tier features" or "verify your account with a card to get more usage". Some of these are legitimate (you do need a card to use Workers Paid, which kicks in at 10 million requests). Some of them are dark patterns — you add the card "just in case", then forget about it, and three months later a runaway script bills you ₹4,000.
+
+My discipline:
+
+- Cloudflare account: no card. Workers Free, R2 with the free tier, D1 with the free tier. If I ever exceed the free tier, the request returns a 429, not an invoice.
+- Sentry Developer plan: no card. 5,000 errors/month free.
+- Buttondown: no card. 100 subscribers free.
+- UptimeRobot: no card. 50 monitors free at 5-minute intervals.
+
+If a service requires a card to start, I do not use it. This rule has saved me from at least three near-misses.
+
+## The full free-tier stack for oriz.in
+
+Beyond Cloudflare, the supporting stack:
+
+- **Buttondown** for the newsletter — 100 subscribers free, no card. Simple API, embeddable form.
+- **Web3Forms** for the contact form — 250 submissions/month free, no backend needed.
+- **Giscus** for blog comments — backed by GitHub Discussions, zero cost, no moderation queue (GitHub auth filters spam).
+- **Pagefind** for site search — runs at build time, no runtime service. About 200KB of generated index for 1,800+ pages.
+- **Sentry Developer plan** for errors — 5,000 events/month, 1 user, 30-day retention.
+- **UptimeRobot** for uptime — 5-minute checks on `/`, `/tools`, `/blog`, `/book-summaries`.
+- **GitHub Actions** for CI — 2,000 minutes/month free on public repos. oriz is private but small enough that I am at ~140 minutes/month.
+
+I wrote a [full audit of this stack with India-specific notes](/blog/free-tier-stack-for-a-solo-developer-in-india-2026) because the question gets asked enough that it deserves its own post.
+
+## What this enables for AdSense
+
+Here is the connection. AdSense pays in dollars, deposits in rupees, and TDS comes out under Section 194-I or 194-O depending on classification. At my current traffic, I expect about ₹600-1,800 per month once approved — the math is brutal at this scale.
+
+If my hosting cost is ₹0, that ₹600 is profit. If my hosting cost is ₹1,500/month (Vercel Pro), I am running the site at a loss for the next year. The free-tier discipline is not "I am cheap" — it is "the unit economics only work if costs are zero". Indie ad-monetized sites either run on free tiers or do not run.
+
+I went deeper on the AdSense side in [the approval post](/blog/how-to-get-google-adsense-approved-in-2026), including the Funding Choices CMP setup and the Indian PAN/ITR-4 consideration. Read that one if you are at the application stage.
+
+## Performance on the free tier
+
+The argument against Cloudflare is "free tier means slow". This is not true in 2026. Cloudflare Workers run at the edge — there are 300+ PoPs globally, and asset requests hit the closest one. From Bhubaneswar where I live, p50 TTFB to oriz.in is 38 milliseconds. From Mumbai it is 22 milliseconds. From a Cloudflare worker in Newark serving a US user it is 14 milliseconds.
+
+I run Lighthouse weekly. The mobile score is 97 with AdSense scripts deferred. I wrote up the [actual performance tactics](/blog/lighthouse-95-mobile-the-actual-checklist) in a separate post — the short version is: lazy-load AdSense via IntersectionObserver, geo-gate Funding Choices to EEA/UK only, and content-visibility on long pages. Cloudflare's edge does the rest.
+
+## The trap I almost fell into
+
+In April I considered moving to Cloudflare Pro for "support and analytics retention". The free tier keeps Web Analytics for 30 days; Pro keeps 6 months. This is a real limitation if you care about month-over-month traffic graphs.
+
+I did not move. Instead I added a weekly cron in GitHub Actions that scrapes my Web Analytics dashboard via the API and saves the JSON to a private repo. Free, version-controlled, and keeps history forever. The "missing feature" was a five-line script.
+
+Most free-tier limitations are like this. There is a paid feature that solves them, and there is a 50-line script that also solves them. The paid feature is faster to set up. The script costs zero rupees per month forever. At the indie scale, the second one wins every time.

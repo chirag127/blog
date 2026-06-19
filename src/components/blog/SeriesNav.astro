@@ -1,0 +1,174 @@
+---
+/**
+ * SeriesNav — for posts that belong to a multi-part series.
+ * Renders the part counter, prev/next chevrons, and a collapsible list
+ * of every part in the series.
+ */
+import type { CollectionEntry } from 'astro:content'
+
+export interface Props {
+  post: CollectionEntry<'blog'>
+  allInSeries: CollectionEntry<'blog'>[]
+}
+
+const { post, allInSeries } = Astro.props
+
+if (!post.data.series) {
+  // Component is no-op if the post isn't part of a series.
+}
+
+const seriesName = post.data.series ?? ''
+
+// Sort by `part` (numeric if possible), then pubDate as a tiebreaker.
+const partKey = (p: CollectionEntry<'blog'>): number => {
+  const v = p.data.part
+  if (typeof v === 'number') return v
+  if (typeof v === 'string') {
+    const n = Number.parseInt(v, 10)
+    if (!Number.isNaN(n)) return n
+  }
+  return Number.POSITIVE_INFINITY
+}
+
+const ordered = [...allInSeries].sort((a, b) => {
+  const ka = partKey(a)
+  const kb = partKey(b)
+  if (ka !== kb) return ka - kb
+  return a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
+})
+
+const idx = ordered.findIndex((p) => p.id === post.id)
+const total = ordered.length
+const partLabel = post.data.part ?? (idx >= 0 ? idx + 1 : '?')
+const prev = idx > 0 ? ordered[idx - 1] : null
+const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null
+---
+
+{post.data.series && total > 1 && (
+  <aside class="series" aria-label={`Series navigation: ${seriesName}`}>
+    <header class="series-head">
+      <p class="series-meta">
+        Part <strong>{partLabel}</strong> of {total} in
+        <span class="series-name">"{seriesName}"</span>
+      </p>
+      <nav class="series-controls" aria-label="Previous and next part">
+        {prev ? (
+          <a class="series-ctrl" href={`/blog/${prev.id}`} rel="prev" aria-label={`Previous: ${prev.data.title}`}>
+            <span aria-hidden="true">‹</span> Prev
+          </a>
+        ) : (
+          <span class="series-ctrl is-disabled" aria-hidden="true">
+            <span>‹</span> Prev
+          </span>
+        )}
+        {next ? (
+          <a class="series-ctrl" href={`/blog/${next.id}`} rel="next" aria-label={`Next: ${next.data.title}`}>
+            Next <span aria-hidden="true">›</span>
+          </a>
+        ) : (
+          <span class="series-ctrl is-disabled" aria-hidden="true">
+            Next <span>›</span>
+          </span>
+        )}
+      </nav>
+    </header>
+    <details class="series-list">
+      <summary>All parts</summary>
+      <ol>
+        {ordered.map((p, i) => (
+          <li class:list={[{ 'is-current': p.id === post.id }]}>
+            <span class="series-num">{p.data.part ?? i + 1}.</span>
+            {p.id === post.id ? (
+              <span>{p.data.title}</span>
+            ) : (
+              <a href={`/blog/${p.id}`}>{p.data.title}</a>
+            )}
+          </li>
+        ))}
+      </ol>
+    </details>
+  </aside>
+)}
+
+<style>
+  .series {
+    margin: 2rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+  }
+  .series-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .series-meta {
+    margin: 0;
+    color: var(--color-fg-muted);
+    font-size: 0.875rem;
+  }
+  .series-meta strong {
+    color: var(--color-fg);
+    font-weight: 600;
+  }
+  .series-name {
+    color: var(--color-fg);
+  }
+  .series-controls {
+    display: inline-flex;
+    gap: 0.375rem;
+  }
+  .series-ctrl {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-button);
+    font-size: 0.8125rem;
+    color: var(--color-fg);
+    text-decoration: none;
+    background: var(--color-bg);
+  }
+  .series-ctrl:hover {
+    border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  }
+  .series-ctrl.is-disabled {
+    color: var(--color-fg-soft);
+    opacity: 0.5;
+  }
+  .series-list {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+  }
+  .series-list summary {
+    cursor: pointer;
+    color: var(--color-fg-muted);
+    font-size: 0.8125rem;
+    user-select: none;
+  }
+  .series-list summary:hover {
+    color: var(--color-fg);
+  }
+  .series-list ol {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+  }
+  .series-list li {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+  }
+  .series-list li.is-current {
+    color: var(--color-fg);
+    font-weight: 500;
+  }
+  .series-num {
+    color: var(--color-fg-soft);
+    min-width: 1.5rem;
+  }
+</style>

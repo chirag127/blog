@@ -1,0 +1,375 @@
+---
+title: "Static JSON APIs: Free API Hosting with GitHub in 2026"
+slug: "static-json-apis-github"
+description: "A comprehensive guide to building, hosting, and monetizing free public JSON APIs using GitHub repositories covering data management, versioning, rate limits,..."
+author: "Chirag Singhal"
+authorBio: "Software Engineer & Deep Value Investor"
+pubDate: 2026-05-19
+updatedDate: 2026-05-19
+category: "tech"
+tags: ["github", "json-api", "static-api", "free-hosting", "open-source", "rapidapi"]
+series: "web-development"
+seriesOrder: 2
+coverImage: ""
+coverImageAlt: "GitHub static JSON API architecture and data flow diagram"
+readingTime: 12
+canonical: "https://oriz.in/blog/static-json-apis-github"
+platforms:
+  devto: true
+  hashnode: true
+  medium: false
+  wordpress: false
+  blogger: true
+schema: "BlogPosting"
+keywords: ["github raw api", "free json api", "static api hosting", "github pages api", "open data api"]
+showAds: true
+---
+
+Building and hosting public APIs traditionally requires servers, databases, and ongoing infrastructure costs. But for many use cases, a static JSON file hosted on GitHub can serve as a fully functional, version-controlled, and free public API. This approach powers hundreds of open data projects and is perfect for datasets that update infrequently.
+
+This guide covers everything you need to know about building, hosting, and distributing static JSON APIs using GitHub repositories.
+
+## What Is a Static JSON API?
+
+A static JSON API is simply a JSON file hosted on a public web server that serves structured data. Instead of a dynamic server processing requests and querying databases, the data is pre-computed and served as-is.
+
+The URL pattern looks like:
+```
+https://raw.githubusercontent.com/username/repo/main/data/file.json
+```
+
+Anyone can fetch this URL and receive the JSON data. No authentication, no server costs, no rate limiting (beyond GitHub's standard limits).
+
+## Why Use Static JSON APIs?
+
+### Zero Infrastructure Cost
+
+GitHub repositories are free for public projects. Raw GitHub URLs serve files at no cost. You pay nothing for hosting, bandwidth, or compute.
+
+### Version Control
+
+Every change to your API data is tracked in Git. You can see who changed what, when, and why. You can roll back to any previous version. This is invaluable for data APIs.
+
+### Automatic Caching
+
+GitHub's CDN caches raw files aggressively. This means fast response times globally and reduced load on GitHub's infrastructure.
+
+### Transparency
+
+Public repositories allow anyone to inspect your data, suggest improvements via pull requests, and fork the dataset for their own use.
+
+### Simplicity
+
+No servers to manage, no databases to maintain, no APIs to deploy. Just edit a JSON file and commit.
+
+## When Static JSON APIs Work Well
+
+Static JSON APIs are ideal for:
+
+- **Reference data**: IFSC codes, pincodes, country lists, currency codes
+- **Infrequently updated data**: Broker fees, card benefits, holiday calendars
+- **Aggregated datasets**: Stock market indices, mutual fund NAV snapshots
+- **Configuration data**: Feature flags, app settings, environment configs
+- **Documentation**: API specs, changelogs, version manifests
+
+They are NOT suitable for:
+
+- Real-time data (stock prices, weather, sports scores)
+- User-specific data (profiles, preferences, history)
+- High-frequency updates (sub-second data)
+- Authentication-required data
+- Large datasets (over 100 MB)
+
+## Building Your Static JSON API
+
+### Step 1: Design Your Data Structure
+
+Start with a clear schema. Every entry should have consistent fields:
+
+```json
+{
+  "name": "Zerodha",
+  "slug": "zerodha",
+  "type": "discount",
+  "founded": 2010,
+  "headquarters": "Bengaluru",
+  "sebiRegNo": "INZ000031633",
+  "website": "https://zerodha.com",
+  "fees": {
+    "accountOpening": 0,
+    "amc": 0,
+    "deliveryBrokerage": 0,
+    "intradayBrokerage": 20
+  }
+}
+```
+
+### Step 2: Create the Repository
+
+1. Create a new public GitHub repository
+2. Add a README explaining the API
+3. Create a `data/` directory for your JSON files
+4. Add a LICENSE file (MIT or similar for open data)
+
+### Step 3: Structure Your Files
+
+For small datasets, a single file works:
+```
+data/brokers.json
+```
+
+For larger datasets, consider splitting:
+```
+data/brokers/zerodha.json
+data/brokers/groww.json
+data/brokers/angel-one.json
+```
+
+Or chunk by alphabet:
+```
+data/stocks-a-f.json
+data/stocks-g-m.json
+data/stocks-n-s.json
+```
+
+### Step 4: Add Validation
+
+Use JSON Schema to validate your data:
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["name", "slug", "type"],
+    "properties": {
+      "name": { "type": "string" },
+      "slug": { "type": "string" },
+      "type": { "type": "string", "enum": ["discount", "full-service"] }
+    }
+  }
+}
+```
+
+### Step 5: Automate Updates
+
+Use GitHub Actions to update your data on a schedule:
+
+```yaml
+name: Update API Data
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and update data
+        run: python scripts/update_data.py
+      - name: Commit changes
+        run: |
+          git add data/*.json
+          git commit -m "Update data" || echo "No changes"
+          git push
+```
+
+## Accessing Your Static API
+
+### Raw GitHub URL
+
+The simplest method:
+```
+https://raw.githubusercontent.com/username/repo/main/data/file.json
+```
+
+Rate limit: 60 requests per hour for unauthenticated requests.
+
+### jsDelivr CDN
+
+jsDelivr provides a faster, cached CDN for GitHub files:
+```
+https://cdn.jsdelivr.net/gh/username/repo@main/data/file.json
+```
+
+Benefits:
+- No rate limits
+- Faster global distribution
+- Automatic caching
+- Version-specific URLs
+
+### GitHub Pages
+
+If you enable GitHub Pages on your repository, files are served through the Pages CDN:
+```
+https://username.github.io/repo/data/file.json
+```
+
+## Rate Limits and Considerations
+
+### GitHub Raw URL Limits
+
+- Unauthenticated: 60 requests per hour per IP
+- Authenticated: 5,000 requests per hour per user
+
+For higher traffic, use jsDelivr or GitHub Pages.
+
+### jsDelivr Limits
+
+jsDelivr has no published rate limits and is designed for high-traffic CDN usage. It is the recommended option for production APIs.
+
+### File Size Limits
+
+- GitHub raw: Files up to 100 MB
+- Recommended: Keep individual JSON files under 10 MB for fast loading
+
+## Monetizing Static APIs via RapidAPI
+
+You can list your static API on RapidAPI to monetize it:
+
+1. Create a RapidAPI account
+2. Create a new API
+3. Point the API endpoints to your jsDelivr or GitHub Pages URLs
+4. Set pricing tiers (free tier with limits, paid tiers for higher usage)
+5. Add documentation and usage examples
+
+RapidAPI handles authentication, rate limiting, analytics, and billing while your actual data remains hosted for free on GitHub.
+
+## Best Practices
+
+### 1. Include Metadata
+
+Always include metadata about your dataset:
+
+```json
+{
+  "metadata": {
+    "lastUpdated": "2026-05-19",
+    "source": "Official broker websites",
+    "version": "1.2.0",
+    "recordCount": 15
+  },
+  "data": [...]
+}
+```
+
+### 2. Use Consistent Naming
+
+- Use lowercase slugs with hyphens
+- Include unique identifiers
+- Avoid special characters
+
+### 3. Document Everything
+
+Create a comprehensive README with:
+- API endpoint URLs
+- JSON schema for each endpoint
+- Usage examples in multiple languages
+- Rate limit information
+- Changelog
+
+### 4. Add CORS Headers
+
+If serving through GitHub Pages, you can configure CORS headers to allow cross-origin requests from any domain.
+
+### 5. Version Your Data
+
+Use semantic versioning for your dataset:
+- Major version: Breaking schema changes
+- Minor version: New fields or data additions
+- Patch version: Data corrections or updates
+
+### 6. Provide Multiple Formats
+
+Consider offering your data in multiple formats:
+- JSON (primary)
+- CSV (for spreadsheet users)
+- YAML (for configuration users)
+
+## Example: Building a Broker Comparison API
+
+Here is a complete example of a broker comparison API:
+
+```json
+{
+  "metadata": {
+    "name": "Indian Stock Brokers API",
+    "version": "1.0.0",
+    "lastUpdated": "2026-05-19",
+    "license": "MIT"
+  },
+  "brokers": [
+    {
+      "name": "Zerodha",
+      "slug": "zerodha",
+      "type": "discount",
+      "founded": 2010,
+      "headquarters": "Bengaluru",
+      "sebiRegNo": "INZ000031633",
+      "website": "https://zerodha.com",
+      "fees": {
+        "accountOpening": 0,
+        "amc": 0,
+        "deliveryBrokerage": 0,
+        "intradayBrokerage": 20,
+        "dpCharges": 15.93
+      },
+      "platforms": ["web", "mobile", "desktop"],
+      "features": ["Kite", "Console", "Coin", "Sentinel"],
+      "rating": 4.5
+    }
+  ]
+}
+```
+
+Access it at:
+```
+https://cdn.jsdelivr.net/gh/username/repo@main/data/brokers.json
+```
+
+## Use Cases for Static JSON APIs
+
+### Developer Tools
+
+- IFSC code lookup
+- Pincode finder
+- Holiday calendars
+- Currency exchange rates (daily snapshots)
+
+### Finance
+
+- Mutual fund NAV history
+- Broker fee comparisons
+- Credit card benefit databases
+- P2P lending platform data
+
+### Health
+
+- Medicine price databases
+- Hospital directories
+- Generic medicine alternatives
+
+### Education
+
+- College databases
+- Exam schedules
+- Scholarship information
+
+## The Oriz.in API Platform
+
+Oriz.in hosts multiple static JSON APIs covering Indian financial data, broker comparisons, medicine prices, and more. All APIs are free, open-source, and hosted on GitHub with jsDelivr CDN distribution.
+
+Visit the Oriz.in API documentation page for endpoint URLs, JSON schemas, and usage examples in JavaScript, Python, and cURL.
+
+## Final Thoughts
+
+Static JSON APIs hosted on GitHub are a powerful, zero-cost way to distribute structured data. They are perfect for reference data, infrequently updated datasets, and open data projects. With proper design, validation, and documentation, a static JSON API can serve thousands of developers and applications without any infrastructure costs.
+
+The key is understanding when static APIs are appropriate and designing your data structure for clarity, consistency, and ease of use.
+
+---
+
+*Disclaimer: This article is for informational purposes only. GitHub's terms of service and rate limits may change. Always refer to official GitHub documentation for current information.*

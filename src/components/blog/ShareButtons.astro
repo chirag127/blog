@@ -1,0 +1,139 @@
+---
+/**
+ * ShareButtons — Copy link, X, LinkedIn, Bluesky.
+ * Pure HTML + tiny inline JS for clipboard. No third-party scripts.
+ */
+
+export interface Props {
+  title: string
+  url: string
+}
+
+const { title, url } = Astro.props
+
+const xHref = `https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`
+const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
+const blueskyHref = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${title} ${url}`)}`
+---
+
+<div class="share" data-share-url={url}>
+  <span class="share-label">Share</span>
+  <button type="button" class="share-btn" data-copy-link aria-label="Copy link">
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.25" />
+      <path
+        d="M10 14l4-4M9.2 12.2L8 13.4a2.4 2.4 0 1 0 3.4 3.4l1.2-1.2M14.8 11.8L16 10.6a2.4 2.4 0 1 0-3.4-3.4l-1.2 1.2"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.25"
+        stroke-linecap="round"
+      />
+    </svg>
+    <span data-copy-text>Copy link</span>
+  </button>
+  <a class="share-btn" href={xHref} target="_blank" rel="noopener noreferrer" aria-label="Share on X">
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.25" />
+      <path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" />
+    </svg>
+    <span>X</span>
+  </a>
+  <a
+    class="share-btn"
+    href={linkedInHref}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Share on LinkedIn"
+  >
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.25" />
+      <path
+        d="M8 10v7M8 8.2v.1M11 17v-3.5a2 2 0 0 1 4 0V17M11 10v7"
+        stroke="currentColor"
+        stroke-width="1.25"
+        stroke-linecap="round"
+        fill="none"
+      />
+    </svg>
+    <span>LinkedIn</span>
+  </a>
+  <a
+    class="share-btn"
+    href={blueskyHref}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Share on Bluesky"
+  >
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.25" />
+      <path
+        d="M7 9l5 5 5-5M7 13l5 5 5-5"
+        stroke="currentColor"
+        stroke-width="1.25"
+        stroke-linecap="round"
+        fill="none"
+      />
+    </svg>
+    <span>Bluesky</span>
+  </a>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.share[data-share-url]')
+  if (root) {
+    const btn = root.querySelector<HTMLButtonElement>('[data-copy-link]')
+    const label = root.querySelector<HTMLElement>('[data-copy-text]')
+    const url = root.getAttribute('data-share-url') ?? ''
+    btn?.addEventListener('click', async () => {
+      if (!label) return
+      const original = label.textContent ?? 'Copy link'
+      try {
+        await navigator.clipboard.writeText(url)
+        label.textContent = 'Copied'
+      } catch {
+        label.textContent = 'Press Ctrl+C'
+      }
+      window.setTimeout(() => {
+        label.textContent = original
+      }, 1600)
+    })
+  }
+</script>
+
+<style>
+  .share {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 1rem 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .share-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-fg-soft);
+    margin-right: 0.25rem;
+  }
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-button);
+    font-size: 0.8125rem;
+    color: var(--color-fg-muted);
+    text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 120ms, color 120ms;
+  }
+  .share-btn:hover {
+    color: var(--color-fg);
+    border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  }
+</style>

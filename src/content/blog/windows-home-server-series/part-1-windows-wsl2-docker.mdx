@@ -1,21 +1,15 @@
 ---
 title: "Windows Home Server on HP 15s — Part 1: Windows Prep, WSL2, and Docker"
 description: "A comprehensive deep-dive into transforming your HP 15s-du2077TU (i5-1035G1, 16 GB RAM) into a Windows home server. Part 1 covers hardware analysis, battery safety, BIOS tuning, Windows power settings, WSL2 installation and resource limits, native Docker Engine setup inside Linux, and the dual-drive storage layout strategy."
-pubDate: 2026-06-05
+pubDate: "2026-06-05"
 tags:
-  - Home-Server
-  - Windows
-  - WSL2
-  - Docker
-  - HP-15s
-  - Self-Hosting
-  - Windows-10
 category: "Engineering"
 author: "Chirag Singhal"
 series: "Windows Home Server on HP 15s"
 part: 1
 draft: false
 ---
+
 
 # Windows Home Server on HP 15s — Part 1: Windows Prep, WSL2, and Docker
 
@@ -882,7 +876,7 @@ Home Server" Linux series).
 
 | Dimension                    | WSL2 on Windows 10 Home             | Bare-Metal Ubuntu Server 24.04      |
 | :--------------------------- | :----------------------------------- | :---------------------------------- |
-| **Idle RAM consumption**     | ~2.5–3.0 GB (Windows baseline)      | **< 200 MB**                        |
+| **Idle RAM consumption**     | ~2.5–3.0 GB (Windows baseline)      | **&lt; 200 MB**                        |
 | **CPU efficiency**           | ~95–98% of native (very close)       | 100% native                         |
 | **Disk I/O (internal VHDX)** | Near-native NVMe speeds             | Native NVMe speeds                  |
 | **Disk I/O (cross-OS /mnt/c)**| 10–30% of native (massive penalty) | Not applicable                      |

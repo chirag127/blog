@@ -1,0 +1,103 @@
+---
+title: "How to get Google AdSense approved in 2026"
+description: "Honest 2026 checklist for AdSense approval — site age, content density, the legal stack, Funding Choices, Consent Mode v2, and India-specific tax setup."
+pubDate: 2026-05-25
+tags: [adsense, monetization, seo, content, indie-hacking]
+category: "Career"
+draft: false
+author: "Chirag Singhal"
+readingTime: "9 min"
+---
+
+I have been rejected from AdSense twice and I am applying for the third time with oriz.in this month. The first two rejections were "low value content" and "site does not comply with policies", which are Google's two most common rejection reasons in 2026 and the most frustrating to debug. This post is the checklist I am actually using to prepare. Some of it is from policy documents, some of it is from forum reports of what worked in 2025-2026, and some of it is from talking to friends who got approved.
+
+I am not approved yet at the time of writing. I will update this post when I am. The list below reflects what I believe matters; treat it accordingly.
+
+## The non-negotiables
+
+These are the things I am confident are required.
+
+**Site age ≥60 days** on the domain you submit. AdSense's policy text says "your site must have unique and interesting content" — but in practice, brand-new domains are rejected by automated review regardless of content. The 60-day floor is observed across forum reports throughout 2025 and 2026. oriz.in the domain is older than 60 days; the rebuild [is fresh content, but the same domain](/blog/why-i-rebuilt-oriz-in-from-scratch).
+
+**At least 30 substantive posts.** "Substantive" here means ≥800 words, original (not generated, not paraphrased), and topically coherent. AdSense's reviewers do read the content during manual review for India-based sites — Google has a separate reviewer pool for India because of historical fraud patterns. Thirty posts is a reasonable floor; fifty is safer.
+
+**At least 10 tool or utility pages with ≥600 words of surrounding copy each.** This is the part most developer-focused sites get wrong. A tool page with a 200-word description and a React widget will be classified as a "doorway page" by Google's policy. The fix is real surrounding content — what the tool does, why it exists, when to use it, FAQ, examples. My [tools section](/tools) has 20 tools and every page has the long-form copy.
+
+**The full legal stack.** Privacy policy, terms of service, disclaimer, cookie policy, and (for India) a grievance officer page. Each must be a real page with a real URL. I keep mine at `/legal/privacy`, `/legal/terms`, `/legal/disclaimer`, `/legal/cookies`, and `/legal/grievance`. The grievance page is required by India's IT Rules 2021 — it lists a name, an email, and a 30-day SLA for complaint resolution. AdSense does check for it on Indian sites.
+
+**Working contact form.** Web3Forms or equivalent is fine. Google's automated checker validates that the form actually submits without errors.
+
+**A real about page with a real name and a real photo.** AdSense's "site reputation" signals heavily favor named, photographed authors. An anonymous site is harder to approve. My about page has my name (Chirag Singhal), a photo, my GitHub, and a short professional bio.
+
+## Funding Choices and Consent Mode v2
+
+This is the part that catches developer-built sites because it is technically annoying.
+
+**Funding Choices** is Google's free CMP (Consent Management Platform). You install one tag and it shows the GDPR consent banner to EEA/UK visitors. Without a CMP that integrates with Consent Mode v2, AdSense does not serve ads to EEA/UK traffic — which means your earnings are gated on having it set up correctly.
+
+**Consent Mode v2** has been the requirement since March 2024. It needs four signals: `ad_storage`, `ad_user_data`, `ad_personalization`, `analytics_storage`, all defaulting to `denied` for EEA/UK visitors until consent is given. The minimum implementation:
+
+```html
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  // Default-denied for EEA/UK
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    region: ['EEA', 'GB'],
+  });
+  // Default-granted for everyone else (India, US, etc.)
+  gtag('consent', 'default', {
+    ad_storage: 'granted',
+    ad_user_data: 'granted',
+    ad_personalization: 'granted',
+    analytics_storage: 'granted',
+  });
+</script>
+```
+
+The geo-gating to EEA/UK is the trick — for non-EEA traffic you do not need to show the consent banner, which means no UX friction for the 95% of your traffic that is not EEA. Funding Choices handles the banner display logic when you tell it the regional config in the dashboard.
+
+I integrated this into oriz.in via a single Astro component that loads only when the visitor is in the EEA/UK (geo-detected via Cloudflare's `cf-ipcountry` header at the Worker layer). I covered the [performance side of this](/blog/lighthouse-95-mobile-the-actual-checklist) separately — it does not cost Lighthouse points if you do it right.
+
+## Site Reputation Abuse policy
+
+This is the November 2024 policy that broke a lot of "AdSense farms". It targets sites that publish content unrelated to their established theme purely for SEO/ad revenue — usually third-party content rented under a domain's existing reputation. The classic example is a news site renting out its domain for casino content.
+
+For a personal site this matters because it means **topical coherence is a signal**. oriz.in is a developer's site — code tutorials, dev tools, book summaries, and my own writing. If I added a "best online casinos" section tomorrow, that would trip the Site Reputation Abuse policy and my AdSense status would be in danger.
+
+The takeaway: pick a topic and stay on it. My topic is "things I, a developer, find interesting" — which is broad but coherent. Programming, books, finance calculators, tools. Not casinos, not pharma, not politics.
+
+## India-specific: PAN, ITR-4, Section 44ADA
+
+For Indian publishers:
+
+- **PAN is required** to receive AdSense payments. Add it to the AdSense payment profile before you reach the payment threshold ($100/£64).
+- **GST is not required** below ₹20 lakh annual turnover. AdSense earnings are zero-rated for GST as export of services regardless, but for accounting purposes you may want to register if you cross the threshold.
+- **Income tax**: AdSense earnings are professional income. If you file ITR-4 under Section 44ADA (presumptive taxation for professionals), 50% of gross receipts is treated as profit. This is genuinely the simplest filing route for indie publishers under ₹50 lakh annual receipts. I am not a CA — talk to one — but Section 44ADA is the path most Indian content creators use.
+- **TDS**: Google deducts TDS at source for AdSense. The certificate (Form 16A) appears in your AdSense dashboard quarterly. Claim it against your tax liability when filing.
+- **Foreign remittance**: AdSense pays in USD via wire transfer or Western Union. Wire transfer to an Indian bank account routes through SWIFT and your bank may charge ₹250-1000 per receipt. Choose a bank that does not charge for inward remittances; HDFC, ICICI, and Axis all have reasonable terms in 2026.
+
+## Common 2026 rejection reasons
+
+From forum reports and my own first two rejections:
+
+1. **Low value content (40% of rejections).** Fewer than 30 posts, posts under 500 words, generated/paraphrased content. The fix is more original content, longer pieces.
+2. **Navigation issues (15%).** Broken links, missing menu items, pages reachable only via search. The fix is a real sitemap and a real navigation bar.
+3. **Insufficient content (15%).** Tool pages without surrounding copy, photo galleries with one-line captions, scraped data with no commentary.
+4. **Policy violations (10%).** Adult content, copyrighted material, deceptive content. Most indie sites do not hit this.
+5. **Site does not comply (20%).** The catch-all that means "we don't want to tell you". Usually a combination of the above.
+
+For my rebuild I have addressed all of 1-3 directly. The rebuild is documented in [a separate post on the consolidation](/blog/why-i-rebuilt-oriz-in-from-scratch), and the [Cloudflare-only stack](/blog/building-a-personal-dev-tools-site-on-cloudflare-free-tier) means I do not have hosting policy issues like the ones Vercel Hobby creates for ad-monetized sites.
+
+## What I'm doing this week
+
+- Finishing post #30 (this is around #25-26 in my batch).
+- Adding the grievance officer page to `/legal/grievance`.
+- Setting up Funding Choices in the AdSense dashboard with EEA/UK geo-targeting.
+- Submitting the AdSense application after seven days of stable Lighthouse 95+ across mobile.
+
+The application takes 2-7 days for the first review and 14-30 days if there is a manual escalation. I will update this post with the result.

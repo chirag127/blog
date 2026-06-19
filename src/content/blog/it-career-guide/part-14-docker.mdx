@@ -1,7 +1,7 @@
 ---
 title: "Part 14: Docker Containers & Development Virtualization"
 description: "Master containerization. Learn container virtualization architectures, multi-stage Dockerfile builds, Docker Compose configurations, persistent volume types, and container security boundaries. Complete with 30 curated resources."
-pubDate: 2026-05-29
+pubDate: "2026-05-29"
 tags: ["Docker", "Containers", "DevOps", "Virtualization", "System Design", "Backend Engineering"]
 category: "Career Guide"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "The 2026 IT Career Blueprint"
 part: 14
 draft: false
 ---
+
 
 # Part 14: Docker Containers & Development Virtualization
 
@@ -20,7 +21,7 @@ draft: false
 
 In traditional enterprise application hosting, services are run directly on physical servers or inside **Virtual Machines (VMs)** managed by a hypervisor (like VMware ESXi or Microsoft Hyper-V).
 *   **The VM Overhead:** Every Virtual Machine requires a full guest operating system (Guest OS), which duplicates system kernels, consumes gigabytes of memory, and requires a slow boot sequence.
-*   **The Container Revolution:** **Docker** introduced a lightweight alternative known as **OS-level Virtualization**. Instead of packaging a full Guest OS, containers share the host operating system's kernel. They run as isolated processes in user space, resulting in instant startup times ($<1\text{s}$) and near-zero memory virtualization overheads.
+*   **The Container Revolution:** **Docker** introduced a lightweight alternative known as **OS-level Virtualization**. Instead of packaging a full Guest OS, containers share the host operating system's kernel. They run as isolated processes in user space, resulting in instant startup times ($&lt;1\text{s}$) and near-zero memory virtualization overheads.
 
 To succeed in DevOps and cloud-native software roles, you must look past basic commands and master Dockerfile optimizations and security boundaries.
 
@@ -368,7 +369,7 @@ To showcase your platform engineering capabilities, you must build and commit a 
 
 ### The Lab Project Guidelines:
 1.  **System Target:** You will construct a **Strictly Typed TypeScript API** wrapped in a Docker container compiled to a minimal footprint.
-2.  **The Optimizing Target:** A naive Node.js image setup (e.g. `FROM node:20 \ COPY . . \ RUN npm install`) results in a $>1.1\text{GB}$ image because it carries development libraries and build engines. You must use **Multi-Stage Builds** and **user boundaries** to build a secure, **$<120\text{MB}$** package.
+2.  **The Optimizing Target:** A naive Node.js image setup (e.g. `FROM node:20 \ COPY . . \ RUN npm install`) results in a $>1.1\text{GB}$ image because it carries development libraries and build engines. You must use **Multi-Stage Builds** and **user boundaries** to build a secure, **$&lt;120\text{MB}$** package.
 3.  **Algorithmic Architecture:**
     *   Create a `Dockerfile` implementing:
         *   **Stage 1: Build Environment**
@@ -386,7 +387,7 @@ To showcase your platform engineering capabilities, you must build and commit a 
 4.  **Simulation Test:**
     *   Build the image locally: `docker build -t typescript-optimized-api .`.
     *   Inspect image list: `docker images | grep typescript-optimized-api`.
-    *   Verify the final package footprint is **$<120\text{MB}$**.
+    *   Verify the final package footprint is **$&lt;120\text{MB}$**.
     *   Run the container: `docker run -d -p 3000:3000 --name api-run typescript-optimized-api`.
     *   Audit container processes: `docker exec api-run whoami`. Verify it returns `node`, proving you successfully bypassed root execution boundaries.
 5.  **GitHub Commitment:** Commit the TypeScript source files, optimized `Dockerfile`, and terminal diagnostic logs to your public `2026-upskilling-roadmap` repository.

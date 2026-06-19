@@ -1,0 +1,138 @@
+---
+title: "Cloudflare Workers Static Assets vs Pages in 2026"
+description: "Pages was frozen in April 2025. Workers Static Assets is the path forward. The migration recipe, wrangler.toml details, and what 'static' actually means now."
+pubDate: 2026-05-31
+tags: [cloudflare, workers, static-sites, deploy]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "8 min"
+---
+
+Cloudflare froze Pages for new features in April 2025. They have not deprecated it — existing Pages projects keep working — but every new capability lands in Workers Static Assets, and Pages is on a slow glide path to "supported but not recommended". I migrated oriz.in from Pages to Workers in May 2026. Here is what the migration actually involved and why it is worth doing now rather than later.
+
+## The product split, briefly
+
+Cloudflare Pages was built in 2021 as a "Vercel for Cloudflare" — git-connected, build-on-push, framework-aware, optional Functions. It worked, and it still works, but the architecture treated static assets and edge code as separate primitives. Pages Functions were a bolt-on. The routing model never quite handled the "mostly static, occasionally dynamic" case cleanly.
+
+Workers Static Assets, launched in late 2024 and stabilized through 2025, inverts the model. It is a Worker that happens to serve static files. Routes are unified. The Worker can decide per-request whether to serve an asset, run code, or both. Everything lives in one `wrangler.toml`.
+
+For a site that is 99% static with the occasional dynamic route, Workers Static Assets is the better fit. For a site that is 100% static, both work — but Pages will not get new features.
+
+## The wrangler.toml that replaces Pages
+
+Here is the full `wrangler.toml` for oriz.in:
+
+```toml
+name = "oriz-web"
+main = "src/worker.ts"
+compatibility_date = "2026-06-17"
+workers_dev = false
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"
+run_worker_first = false
+
+[[routes]]
+pattern = "oriz.in/*"
+zone_name = "oriz.in"
+custom_domain = true
+
+[observability]
+enabled = true
+```
+
+Twenty-two lines. Replaces the entire Cloudflare Pages dashboard config — build command, output directory, custom domain, environment variables, and routing. Everything is version-controlled.
+
+The `[assets]` block does the heavy lifting:
+
+- `directory = "./dist"` — Astro's build output.
+- `binding = "ASSETS"` — exposes the asset namespace as `env.ASSETS` inside the Worker, so I can do `env.ASSETS.fetch(request)` to serve a file from code.
+- `html_handling = "auto-trailing-slash"` — `/about` and `/about/` both resolve to `/about/index.html`. This is what most static-site builders expect.
+- `not_found_handling = "404-page"` — 404s serve `dist/404.html` automatically.
+- `run_worker_first = false` — assets are checked before the Worker code runs. If the file exists in `dist`, it is served directly without invoking my Worker. This is the performance default and what you want for static sites.
+
+If I ever need to intercept every request (e.g., for A/B testing or auth), I flip `run_worker_first = true` and write the routing in `src/worker.ts`. For oriz.in v1 the Worker is essentially empty:
+
+```ts
+// src/worker.ts
+export default {
+  async fetch(request, env): Promise<Response> {
+    return env.ASSETS.fetch(request)
+  },
+} satisfies ExportedHandler<Env>
+```
+
+It is a passthrough. The `[assets]` block does the work. But it is the *option to add code later* that makes Workers Static Assets the right choice. Pages would require me to migrate to Pages Functions, which has a separate build pipeline.
+
+## The migration steps
+
+If you are on Pages today and want to move:
+
+1. **Install wrangler.** `pnpm add -D wrangler@^4.102.0`. The 4.x line has had `[assets]` support since 4.0 in late 2024.
+
+2. **Create wrangler.toml.** Use the template above, swapping `name`, `directory`, and the route pattern for your domain.
+
+3. **Add a deploy script.**
+   ```json
+   {
+     "scripts": {
+       "build": "astro build",
+       "deploy": "wrangler deploy"
+     }
+   }
+   ```
+
+4. **Remove Pages-specific files.** `_headers` and `_redirects` files in `public/` work in Pages but are silently ignored in Workers Static Assets. The replacement is the `[assets]` block for routing and either custom headers via the Worker or Cloudflare Transform Rules for headers. For oriz.in I moved from `_redirects` to a Cloudflare Transform Rule because the redirects are simple (old subdomain URLs to new paths) and dashboard-managed is fine for that.
+
+5. **Delete the Pages project last.** Run `wrangler deploy` to your Workers project, point your custom domain at the Worker (not the Pages project), verify in production for 24 hours, then delete the Pages project. There is no "migrate" button — Pages and Workers Static Assets are separate products.
+
+The whole migration took me about three hours, most of which was rewriting the redirect rules.
+
+## Free tier comparison
+
+Both products share the same Workers free tier:
+
+- 100,000 Worker invocations per day. Asset requests do not count.
+- Unlimited static asset serving.
+- Custom domains free (via Cloudflare DNS).
+- Web Analytics free, unmetered.
+
+Pages-specific extras you lose:
+- Pages preview deployments per pull request. Workers does not have built-in PR previews. The replacement is a GitHub Action that deploys to a `staging-<sha>` Worker route on PR open and tears it down on close. About 30 lines of YAML.
+- Build-on-push with no CI. Workers requires you to build in CI (or locally) and push the `dist/` directory. The dx hit is real if you were used to "git push, see deploy".
+
+For oriz.in I run builds in GitHub Actions free tier — 2,000 minutes/month is more than enough for a static site that builds in 47 seconds. I covered the [broader free-tier setup](/blog/free-tier-stack-for-a-solo-developer-in-india-2026) elsewhere.
+
+## What "static" doesn't mean
+
+This is the conceptual shift. With Pages, "static site" meant "no server code". With Workers Static Assets, the static site is just the default — and any route can become dynamic by writing a few lines in the Worker.
+
+Concrete example: I want `/og/<slug>.avif` to be served from R2 instead of from `dist/`, because R2 has zero egress and I plan to scale OG image generation. With Pages, this is a separate Worker, separate routing, custom DNS gymnastics. With Workers Static Assets:
+
+```ts
+export default {
+  async fetch(request, env): Promise<Response> {
+    const url = new URL(request.url)
+    if (url.pathname.startsWith('/og/')) {
+      const key = url.pathname.replace('/og/', '')
+      const obj = await env.OG_IMAGES.get(key)
+      if (obj) return new Response(obj.body, {
+        headers: { 'Content-Type': 'image/avif', 'Cache-Control': 'public, max-age=31536000' }
+      })
+    }
+    return env.ASSETS.fetch(request)
+  },
+} satisfies ExportedHandler<Env>
+```
+
+Six lines. The static site keeps working. One route is now dynamic. This is the routing model I wanted in 2022 and could not have.
+
+## When I'd still pick Pages
+
+If you want git-connected build-on-push and you are not willing to run CI, Pages is still simpler. The Pages dashboard is genuinely good for the "publish a static site, never touch infra" use case. Hobby projects, marketing sites, docs sites — Pages is fine, and the freeze does not mean "shutdown".
+
+For a project where you expect to add edge code later — even speculatively — start with Workers Static Assets. The `[assets]` block does everything Pages does, and the option to drop into Worker code is there from day one. I wrote about [the broader rebuild of oriz.in](/blog/why-i-rebuilt-oriz-in-from-scratch) and the [Astro 6 content collections that feed it](/blog/astro-6-content-collections-a-practical-guide) — Workers Static Assets is the deploy target that ties them together.

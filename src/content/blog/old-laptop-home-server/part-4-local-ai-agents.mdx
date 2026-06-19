@@ -1,7 +1,7 @@
 ---
 title: "Turn Your Old HP Laptop Into a Home Server — Part 4: Local AI, Agents, and Visual Builders"
 description: "Run local LLMs on your 16GB home server. Part 4 covers CPU inference physics, Ollama setup, model comparison (Phi-4, Qwen, Hermes), agent frameworks (OpenClaw vs Hermes), coding agents (Aider, OpenHands), and visual workflow builders."
-pubDate: 2026-06-04
+pubDate: "2026-06-04"
 tags: ["Home-Server", "Local-AI", "Ollama", "LLM", "Agents", "Flowise", "Dify", "Aider"]
 category: "Engineering"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "Turn Your Old HP Laptop Into a Home Server"
 part: 4
 draft: false
 ---
+
 
 # Turn Your Old HP Laptop Into a Home Server — Part 4: Local AI, Agents, and Visual Builders
 
@@ -428,7 +429,7 @@ OpenHands is an autonomous software development platform with a web-based user i
 | **Interface** | Terminal CLI | Web Browser UI | Terminal CLI | IDE Plugin |
 | **Sandboxing** | None (Runs on host) | Docker Container | Docker Container | None (Host) |
 | **Autonomous Level** | Interactive pair | High (Task-driven) | High (Issue-driven) | Interactive |
-| **Host RAM Cost** | **\<50 MB** | **~3 GB** | **~2 GB** | **\<100 MB** |
+| **Host RAM Cost** | **\&lt;50 MB** | **~3 GB** | **~2 GB** | **\&lt;100 MB** |
 | **CPU Speed Penalty** | Minimal | High (Container init) | High | Minimal |
 | **16GB Server Recommendation**| **Highly Recommended** | Not Recommended | Not Recommended | Recommended |
 
@@ -660,10 +661,10 @@ Let's compare the leading options for local deployment:
 
 | Vector Store | Base RAM Footprint | Search Latency (CPU) | Storage Overhead | 16GB Server Recommendation |
 | :--- | :--- | :--- | :--- | :--- |
-| **Qdrant** | **~35 MB–50 MB** | Extremely Low (\<5ms) | Low | **Highly Recommended**. Written in Rust, highly optimized, native cgroup compatibility. |
-| **pgvector** | **~0 MB extra** | Low (\<15ms) | Medium | **Highly Recommended** if already hosting PostgreSQL. Zero extra engine overhead. |
-| **Chroma** | ~120 MB–250 MB | Low (\<20ms) | Low | Recommended only for basic Python prototyping. |
-| **Milvus / Weaviate** | ~1.5 GB–3.0 GB | Low (\<5ms) | High | **Not Recommended**. Massive enterprise JVM/Go dependencies, will cause system OOM crashes. |
+| **Qdrant** | **~35 MB–50 MB** | Extremely Low (\&lt;5ms) | Low | **Highly Recommended**. Written in Rust, highly optimized, native cgroup compatibility. |
+| **pgvector** | **~0 MB extra** | Low (\&lt;15ms) | Medium | **Highly Recommended** if already hosting PostgreSQL. Zero extra engine overhead. |
+| **Chroma** | ~120 MB–250 MB | Low (\&lt;20ms) | Low | Recommended only for basic Python prototyping. |
+| **Milvus / Weaviate** | ~1.5 GB–3.0 GB | Low (\&lt;5ms) | High | **Not Recommended**. Massive enterprise JVM/Go dependencies, will cause system OOM crashes. |
 
 #### Optimizing Index Structures (HNSW vs. IVF)
 The Hierarchical Navigable Small World (HNSW) algorithm is the gold standard for vector similarity search. It constructs a multi-layer graph of vectors, allowing search queries to traverse the graph logarithmically.
@@ -760,7 +761,6 @@ Aider parses the file structure, crafts the edits, and outputs a diff:
 <<<<<<< SEARCH
 console.log(`Webhook server is running on port 8000`);
 =======
-import pino from 'pino';
 const logger = pino({ level: 'info' });
 logger.info(`Webhook server is running on port 8000`);
 >>>>>>> REPLACE

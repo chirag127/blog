@@ -1,0 +1,125 @@
+---
+/**
+ * TableOfContents — sticky on desktop, inline on mobile.
+ * Filters Markdown headings to depth 2 and 3.
+ * Highlights the heading currently in view via IntersectionObserver.
+ */
+import type { MarkdownHeading } from 'astro'
+
+export interface Props {
+  headings: MarkdownHeading[]
+}
+
+const { headings } = Astro.props
+const items = headings.filter((h) => h.depth === 2 || h.depth === 3)
+---
+
+{items.length > 0 && (
+  <nav class="toc" aria-labelledby="toc-heading">
+    <h2 id="toc-heading" class="toc-heading">On this page</h2>
+    <ol class="toc-list">
+      {items.map((h) => (
+        <li class:list={['toc-item', `toc-d${h.depth}`]}>
+          <a href={`#${h.slug}`} data-toc-link={h.slug}>{h.text}</a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}
+
+<script>
+  // Highlight the heading currently nearest the top of the viewport.
+  const links = Array.from(
+    document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'),
+  )
+  if (links.length > 0) {
+    const linkBySlug = new Map<string, HTMLAnchorElement>()
+    for (const link of links) {
+      const slug = link.getAttribute('data-toc-link')
+      if (slug) linkBySlug.set(slug, link)
+    }
+    const headings = links
+      .map((link) => {
+        const slug = link.getAttribute('data-toc-link')
+        return slug ? document.getElementById(slug) : null
+      })
+      .filter((el): el is HTMLElement => el !== null)
+
+    let active: string | null = null
+    const setActive = (slug: string | null) => {
+      if (slug === active) return
+      if (active) linkBySlug.get(active)?.classList.remove('is-active')
+      active = slug
+      if (active) linkBySlug.get(active)?.classList.add('is-active')
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        if (visible.length > 0) {
+          const first = visible[0]
+          if (first) setActive(first.target.id)
+        }
+      },
+      { rootMargin: '-80px 0px -70% 0px', threshold: 0 },
+    )
+    for (const h of headings) observer.observe(h)
+  }
+</script>
+
+<style>
+  .toc {
+    font-size: 0.875rem;
+  }
+  .toc-heading {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-fg-soft);
+    font-weight: 600;
+    margin: 0 0 0.75rem;
+  }
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 1px solid var(--color-border);
+  }
+  .toc-item {
+    margin: 0;
+  }
+  .toc-item a {
+    display: block;
+    padding: 0.25rem 0.75rem;
+    color: var(--color-fg-muted);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    margin-left: -1px;
+    line-height: 1.4;
+    transition: color 120ms, border-color 120ms;
+  }
+  .toc-item a:hover {
+    color: var(--color-fg);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .toc-item a.is-active {
+    color: var(--color-fg);
+    border-left-color: var(--color-accent);
+  }
+  .toc-d3 a {
+    padding-left: 1.5rem;
+    font-size: 0.8125rem;
+  }
+
+  @media (min-width: 1024px) {
+    .toc {
+      position: sticky;
+      top: 80px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+  }
+</style>

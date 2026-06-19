@@ -1,7 +1,7 @@
 ---
 title: "Turn Your Old HP Laptop Into a Home Server — Part 1: Hardware, BIOS, and OS Setup"
 description: "Transform an old HP 15s laptop (Intel i5-1035G1, 16GB RAM) into a high-performance home server. Part 1 covers hardware assessment, thermal mitigation, battery safety, BIOS tuning, Ubuntu Server 24.04 LTS installation, and security hardening."
-pubDate: 2026-06-04
+pubDate: "2026-06-04"
 tags: ["Home-Server", "Ubuntu-Server", "Hardware", "Security", "Networking", "Self-Hosting"]
 category: "Engineering"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "Turn Your Old HP Laptop Into a Home Server"
 part: 1
 draft: false
 ---
+
 
 # Turn Your Old HP Laptop Into a Home Server — Part 1: Hardware, BIOS, and OS Setup
 
@@ -595,7 +596,7 @@ Alternatively, you can assign a static IP via **DHCP Reservation** in your route
 ### Step 7.2: Ethernet vs. Wi-Fi
 *Never run a production server over Wi-Fi if Ethernet is physically available.*
 1.  **Packet Loss & Jitter**: Wi-Fi is subject to environmental interference (microwave ovens, walls, other router channels). A single packet drop can drop a TCP connection or slow down a database transaction.
-2.  **Latency**: Local ping times over Ethernet are sub-millisecond (`\<1ms`), while Wi-Fi varies between `2ms` and `50ms+` depending on load, adding latency to API calls.
+2.  **Latency**: Local ping times over Ethernet are sub-millisecond (`\&lt;1ms`), while Wi-Fi varies between `2ms` and `50ms+` depending on load, adding latency to API calls.
 3.  **Duplex**: Wi-Fi is half-duplex (devices share the medium; they cannot transmit and receive at the exact same instant). Ethernet is full-duplex.
 
 ### Step 7.3: Disable Wi-Fi and Bluetooth to Save Power

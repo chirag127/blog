@@ -1,12 +1,13 @@
 ---
 title: "Building Client-Side Only Sites with Astro + React on Cloudflare Pages"
 description: "How to build fast, free, client-side SPA using Astro's static output and React, deployable on Cloudflare Pages with zero server costs."
-pubDate: 2026-03-27
+pubDate: "2026-03-27"
 tags: ["Astro", "React", "Cloudflare Pages", "Static Sites", "Web Development"]
 category: "Engineering"
 author: "Chirag Singhal"
 draft: false
 ---
+
 
 # Building Client-Side Only Sites with Astro + React on Cloudflare Pages
 
@@ -33,9 +34,6 @@ For many use cases — portfolios, docs, tools, dashboards — you don't need a 
 
 ```javascript
 // astro.config.mjs
-import { defineConfig } from 'astro/config';
-import react from '@astrojs/react';
-import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   output: 'static', // Key: client-side only
@@ -84,9 +82,6 @@ Astro's islands architecture lets you mix static HTML with interactive React com
 ```astro
 ---
 // src/pages/dashboard.astro
-import Layout from '../layouts/MainLayout.astro';
-import Counter from '../components/Counter.jsx';
-import SearchPanel from '../components/SearchPanel.jsx';
 ---
 
 <Layout title="Dashboard">
@@ -108,7 +103,6 @@ For client-side state, keep it simple:
 
 ```javascript
 // src/lib/store.js
-import { writable } from 'svelte/store'; // or any state library
 
 function createPersistedStore(key, initial) {
   const stored = typeof localStorage !== 'undefined' 
@@ -165,7 +159,7 @@ async function getToolData() {
 
 | Metric | Server-Rendered | Client-Side Static |
 |--------|-----------------|-------------------|
-| Time to First Byte | 150ms | \<10ms |
+| Time to First Byte | 150ms | \&lt;10ms |
 | CDN Caching | Partial | Full |
 | Cost per month | $5+ | $0 |
 | Cold Starts | Yes | None |

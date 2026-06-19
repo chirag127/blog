@@ -1,7 +1,7 @@
 ---
 title: "Turn Your Old HP Laptop Into a Home Server — Part 2: Docker Memory Optimization and Resource Management"
 description: "Maximize 16GB of RAM on your home server. Part 2 debunks the container memory sharing myth, compares Bun vs Node.js, configures PM2, sets Docker cgroup limits, details Python bot optimization, and maps a complete server memory budget."
-pubDate: 2026-06-04
+pubDate: "2026-06-04"
 tags: ["Home-Server", "Docker", "Memory-Optimization", "Nodejs", "Bun", "Python", "PM2", "PostgreSQL"]
 category: "Engineering"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "Turn Your Old HP Laptop Into a Home Server"
 part: 2
 draft: false
 ---
+
 
 # Turn Your Old HP Laptop Into a Home Server — Part 2: Docker Memory Optimization and Resource Management
 
@@ -475,7 +476,7 @@ Here is a pragmatic decision matrix:
 *   **Self-Hosted Cost**: 1 GB–2 GB RAM (PostgreSQL) + 256 MB RAM (Redis).
 *   **Cloud Alternative**: **Neon** (1 Free PostgreSQL instance with branching) or **Supabase** (2 Free PostgreSQL databases), **Upstash** (Free serverless Redis).
 *   **Pragmatic Choice**: **Hybrid**.
-    *   For **local projects, internal dashboards, and heavy caching**, self-host a Dockerized PostgreSQL/Redis instance. This keeps data access localized (`\<1ms` latency) and avoids external dependencies.
+    *   For **local projects, internal dashboards, and heavy caching**, self-host a Dockerized PostgreSQL/Redis instance. This keeps data access localized (`\&lt;1ms` latency) and avoids external dependencies.
     *   For **small test applications or public APIs** where you want to minimize local read/write IOPS on your SSD, offload the databases to Neon or Supabase free tiers.
 
 ### 4. Background Workers & Telegram Bots

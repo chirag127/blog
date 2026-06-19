@@ -1,29 +1,24 @@
-import { type CollectionEntry, getCollection } from "astro:content";
-import rss from "@astrojs/rss";
-import type { APIContext } from "astro";
-import { SITE_CONFIG } from "../config";
+import rss from '@astrojs/rss'
+import type { APIContext } from 'astro'
+import { getCollection } from 'astro:content'
+import { SITE_CONFIG } from '~/lib/config'
 
 export async function GET(context: APIContext) {
-  const posts = await getCollection(
-    "blog",
-    (entry: CollectionEntry<"blog">) => !entry.data.draft,
-  );
-  const sortedPosts = posts.sort(
-    (a: CollectionEntry<"blog">, b: CollectionEntry<"blog">) =>
-      b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-  );
-
+  const posts = await getCollection('blog', ({ data }) => data.draft === false).catch(() => [])
   return rss({
     title: SITE_CONFIG.title,
     description: SITE_CONFIG.description,
-    site: context.site?.toString() || SITE_CONFIG.url,
-    items: sortedPosts.map((post: CollectionEntry<"blog">) => ({
-      title: post.data.title,
-      description: post.data.description,
-      pubDate: post.data.pubDate,
-      link: `/blog/${post.id}/`,
-    })),
-    customData: `<language>en-us</language>`,
-    stylesheet: "/rss/styles.xsl",
-  });
+    site: context.site ?? SITE_CONFIG.url,
+    items: posts
+      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+      .map((p) => ({
+        title: p.data.title,
+        description: p.data.description,
+        pubDate: p.data.pubDate,
+        link: `/blog/${p.id}/`,
+        author: `${SITE_CONFIG.social.email} (${p.data.author})`,
+        categories: [p.data.category, ...p.data.tags],
+      })),
+    customData: '<language>en</language>',
+  })
 }

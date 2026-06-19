@@ -1,0 +1,163 @@
+---
+title: "Astro 6 Content Collections: a practical guide"
+description: "Migrating from the legacy collections API to the Content Layer, modeling 1,864 book summary pages with one Zod schema, and why Astro.glob is gone."
+pubDate: 2026-06-09
+tags: [astro, mdx, content-collections, web-dev]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "9 min"
+---
+
+Astro 6.4 is the first release where the legacy Collections API is fully removed. If you came from Astro 4 or 5 and have not migrated, the upgrade is a forced rewrite — `getCollection()` still works, but the loader-based Content Layer API is the only way to define collections now. I migrated oriz.in over a long Sunday and want to write up what actually changed, because the official migration docs are correct but skip the part where you discover your existing schema does not survive.
+
+## The minimum viable migration
+
+Old code in `src/content/config.ts`:
+
+```ts
+
+export const collections = {
+  blog: defineCollection({
+    type: 'content',
+    schema: z.object({
+      title: z.string(),
+      pubDate: z.coerce.date(),
+    }),
+  }),
+}
+```
+
+New code in `src/content.config.ts` (note the file name change — `config.ts` is deprecated):
+
+```ts
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
+  schema: z.object({
+    title: z.string(),
+    pubDate: z.coerce.date(),
+  }),
+})
+
+export const collections = { blog }
+```
+
+Three changes: the file name, the `loader: glob(...)` instead of `type: 'content'`, and the explicit `base` path. The schema itself is unchanged — Zod is still the validator.
+
+## Astro.glob is gone
+
+This is the migration footgun. If you had any code like:
+
+```astro
+---
+const posts = await Astro.glob('../content/blog/*.mdx')
+---
+```
+
+It does not work in Astro 6. `Astro.glob()` was removed in 5.0; the replacement is `import.meta.glob()`, which is Vite's primitive. But for content, the right answer is almost never `import.meta.glob` — it is `getCollection('blog')`, which now uses the loader you defined.
+
+I had eleven `Astro.glob()` calls scattered across `src/pages/` from the old version. All eleven became `getCollection()` calls. The mechanical rewrite took 20 minutes; the schema validation errors took two hours.
+
+## Schema validation is stricter
+
+The Content Layer validates more aggressively at build time. My old blog schema accepted `tags: z.array(z.string()).optional()`. About 30% of my MDX files had no `tags` field. In Astro 4 this silently produced `undefined` and my templates handled it. In Astro 6 the build fails because — actually it builds fine, the issue was different. The issue was that I had `tags: ['indie-hacking', 'tech', 'blog']` in some posts and `tags: 'indie-hacking, tech, blog'` (a string) in others. Astro 4's parser was permissive. Astro 6's is not. I had to grep for the malformed entries:
+
+```bash
+rg "^tags: [a-z]" src/content/blog
+```
+
+Twenty-three files. I fixed them with a script and a `git diff` review.
+
+## The 1,864-page book collection
+
+The interesting part of the migration was modeling the book summaries. Each book has four MDX files — `01-index.mdx`, `02-content.mdx`, `03-analysis.mdx`, `04-narration.mdx` — and each is its own indexable URL. 466 books × 4 files = 1,864 pages.
+
+The wrong way to model this is four separate collections. I tried it. It works, but you end up with `getCollection('book-index')`, `getCollection('book-content')`, `getCollection('book-analysis')`, and `getCollection('book-narration')`, and any cross-cutting query (e.g., "all pages for book X") becomes four `getCollection()` calls and a manual merge.
+
+The right way is one collection with a `section` discriminator:
+
+```ts
+const bookSummaries = defineCollection({
+  loader: glob({
+    pattern: '**/0?-*.{md,mdx}',
+    base: './src/content/book-summaries',
+  }),
+  schema: z.object({
+    bookSlug: z.string(),
+    bookTitle: z.string(),
+    section: z.enum(['index', 'content', 'analysis', 'narration']),
+    category: z.string(),
+    // ...
+  }),
+})
+```
+
+The glob pattern `**/0?-*.{md,mdx}` matches any file starting with `0` followed by a single character — so `01-index.mdx`, `02-content.mdx`, etc. The `section` field in frontmatter does the actual discrimination. Now `getCollection('bookSummaries', e => e.data.section === 'index')` gets me all the index pages.
+
+The routing side uses Astro's dynamic routes:
+
+```ts
+// src/pages/book-summaries/[category]/[slug]/[...tab].astro
+export async function getStaticPaths() {
+  const all = await getCollection('bookSummaries')
+  return all.map(entry => ({
+    params: {
+      category: entry.data.category,
+      slug: entry.data.bookSlug,
+      tab: entry.data.section === 'index' ? undefined : entry.data.section,
+    },
+    props: { entry },
+  }))
+}
+```
+
+That single `getStaticPaths` produces all 1,864 routes. The build time on my M1 MacBook Air is 47 seconds for a clean build, 8 seconds for an incremental one. I am genuinely impressed — Astro 4 with the same content was ~3 minutes.
+
+## The slug trap
+
+The default Content Layer behavior derives a slug from the file path. This is wrong for me, because my filenames are `01-index.mdx`, `02-content.mdx`, etc. — the slug needs to come from `meta.json`, not the filename.
+
+The fix is a custom `id` per entry. Astro's `glob()` loader accepts a `generateId` option:
+
+```ts
+loader: glob({
+  pattern: '**/0?-*.{md,mdx}',
+  base: './src/content/book-summaries',
+  generateId: ({ entry }) => {
+    // entry is "atomic-habits-james-clear/01-index.mdx"
+    const [bookSlug, file] = entry.split('/')
+    const section = file.replace(/^0\d-/, '').replace(/\.mdx?$/, '')
+    return `${bookSlug}/${section}`
+  },
+}),
+```
+
+Now the entry IDs are clean — `atomic-habits-james-clear/index`, `atomic-habits-james-clear/content`, etc. — and routing reads them directly. I covered the [filesystem layout for the book summaries](/book-summaries) on the index page itself.
+
+## Reference relationships
+
+This is the feature I did not know I wanted. Astro 6's `reference()` schema type lets one collection point at another with build-time validation:
+
+```ts
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.mdx', base: './src/content/blog' }),
+  schema: z.object({
+    title: z.string(),
+    relatedTools: z.array(reference('tools')).default([]),
+  }),
+})
+```
+
+If I write `relatedTools: [{ collection: 'tools', id: 'pdf-to-markdown' }]` in frontmatter and the tool does not exist, the build fails. No more silent broken links. I use this on the [tools index](/tools) page to wire blog posts to the tools they discuss, and the same pattern works for the [finance calculators](/finance) cross-linking back to related posts.
+
+## What I still don't like
+
+Two things.
+
+The first is that there is no built-in way to query collections from `astro.config.mjs`. I want my redirects to be data-driven from frontmatter — if I rename a blog post slug, I want the old URL to 301 automatically. The Content Layer is not available at config-time; it is only available in pages. The workaround is a build-time script that writes `src/data/redirects.json` and is consumed by the config.
+
+The second is that MDX components passed via the `components` prop on `<Content />` cannot be used inside the MDX file's own imports. If `01-index.mdx` does `import Foo from '../../components/Foo.astro'`, that works. But injecting Foo via `<Content components={{ Foo }} />` only works for components referenced as bare JSX inside the MDX, not inside imported sub-components. This burned an hour. The fix is "always import where you use it".
+
+Otherwise the migration was worth it. The same content collection layer powers the [book summaries section](/book-summaries) where the discriminator pattern matters most. Build times dropped 4×. Type inference works in `getCollection()`. The schema is one file, validated at build time, and my CI catches malformed frontmatter before it ships. The legacy API was fine. The Content Layer is better.

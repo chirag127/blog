@@ -1,0 +1,79 @@
+---
+title: "Why I rebuilt oriz.in from scratch"
+description: "Thirteen orphan repos, one rejected AdSense application, and a decision to consolidate everything onto a single Astro 6 deploy on Cloudflare."
+pubDate: 2026-06-15
+tags: [astro, cloudflare, indie-web, adsense, monorepo]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "7 min"
+---
+
+The first version of oriz.in was thirteen repositories. `oriz-blog`, `oriz-tools-text`, `oriz-tools-finance`, `oriz-cards`, `oriz-bookshelf`, `oriz-legacy`, `oriz-design-test`, and a few more I am not proud of. Each was its own Vercel deploy, its own CI pipeline, its own broken `pnpm-lock.yaml`. The home page was a static HTML file pointing at six subdomains. AdSense rejected the application twice. Once for "low value content" and once for "site does not comply with policies" — which is Google's way of saying the same thing.
+
+I spent a weekend in May archiving the lot and rebuilding everything as one Astro 6 site on Cloudflare. This is the post-mortem.
+
+## What actually went wrong
+
+Three things, in order of severity.
+
+The first was content density. AdSense does not count thirteen tiny sites as one site — they crawl per domain. My blog had eleven posts. The bookshelf had six summaries with no commentary, just scraped Goodreads-style metadata. The tool pages were single React components with a 40-word `<meta description>` and nothing else above the fold. By Google's heuristics this is a doorway site. It does not matter that I personally wrote every line of code. There was nothing to read.
+
+The second was domain authority dilution. Every internal link from `tools.oriz.in` to `blog.oriz.in` was a cross-origin link. Search Console treated each subdomain as its own property. I had six properties, each with a Domain Rating of about 2. Consolidating them all under `oriz.in` does not magically add the numbers — but it does mean every new piece of content compounds in one place instead of six.
+
+The third was operational. Thirteen `package.json` files. Thirteen Cloudflare Pages projects, each with its own preview URL and its own slightly different Node version pinned in `.nvmrc`. I shipped a Tailwind v4 migration to four of them and never to the others. By March the cards site was on Tailwind v3.4 and the blog was on v4.0 and they rendered differently.
+
+## Why not a monorepo
+
+The obvious fix is a pnpm workspace with `apps/blog`, `apps/tools`, `packages/ui`. I considered it for about an hour. The argument against is that I have one developer (me) and one user-facing surface (oriz.in). A monorepo solves the problem of *many* deployable units sharing code. I do not have many deployable units. I have one site that happens to have a `/blog` route and a `/tools` route.
+
+Astro 6 handles this natively. Every section of the site is just a folder in `src/pages/` or a content collection in `src/content/`. The book summaries, the tools, the blog, the finance calculators, the legal pages — they are all the same Astro app, with shared layouts and one `tsconfig.json`. I wrote about [the content layer setup](/blog/astro-6-content-collections-a-practical-guide) separately because it is the part that actually pays off long-term.
+
+## Cloudflare Workers Static Assets, not Pages
+
+I had been on Cloudflare Pages since 2023. Pages was frozen for new features in April 2025 — Cloudflare's official position is that Workers Static Assets is the path forward, and new capabilities only land there. The migration is mostly a `wrangler.toml` rewrite and a `pnpm deploy` script change. I covered the specifics in [a separate post on the Workers vs Pages tradeoff](/blog/cloudflare-workers-static-assets-vs-pages-in-2026), but the short version: same free tier, better routing primitives, and one Worker handles both static assets and the occasional SSR route I might add later.
+
+The `wrangler.toml` is twenty lines:
+
+```toml
+name = "oriz-web"
+main = "src/worker.ts"
+compatibility_date = "2026-06-17"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"
+run_worker_first = false
+```
+
+That replaces the entire Pages dashboard config across thirteen projects.
+
+## The AdSense reset
+
+Here is the part I want to be honest about. AdSense is not unreachable, but it is gated on signals that are easy to miss when you are a developer building a developer's site.
+
+The non-negotiables for 2026 approval, based on my second-attempt research and what worked for friends: site age of at least 60 days on the new domain, at least 30 substantive posts (≥800 words each, original, not generated), 10+ tool pages with surrounding copy that reads like a tutorial rather than a one-line description, and the full legal stack — privacy, terms, disclaimer, cookie policy, and an India-specific grievance officer page. Funding Choices configured with Consent Mode v2 default-denied for EEA and UK traffic. I wrote up the full checklist in [the AdSense approval post](/blog/how-to-get-google-adsense-approved-in-2026).
+
+The blog post you are reading is part of that 30-post target. So is every other post in this batch. They are not filler — I wrote them because I have things to say about Astro 6, Tailwind v4, pnpm 10, and the Cloudflare free tier. But I will not pretend the timing is unrelated.
+
+## Free tier discipline
+
+The new oriz.in costs zero rupees a month and I am keeping it that way. Cloudflare Workers, R2, D1, Email Routing, Web Analytics, and Turnstile — all free, with no card on file. Buttondown for the newsletter (100 subscribers free). Web3Forms for the contact form. Giscus for comments backed by GitHub Discussions. Pagefind for static-site search. Sentry on the Developer plan for error tracking. UptimeRobot for the uptime check on my own [tools index](/tools).
+
+The trick is not which providers — the trick is committing to never put a card on a billing dashboard. Once a card is on file, free-tier overages silently turn into invoices. I wrote up [the full free-tier stack for solo Indian developers](/blog/free-tier-stack-for-a-solo-developer-in-india-2026) as a separate audit.
+
+## What I am not doing
+
+I am not building a CMS. The content is MDX in `src/content/`, version-controlled, with frontmatter validated by a Zod schema. If I need to fix a typo I `git commit`, push, and Cloudflare Pages — sorry, Workers — rebuilds in under 30 seconds.
+
+I am not adding auth, comments-as-a-service, or a database in v1. The 466 book summaries from my [lore repo](https://github.com/chirag127) are static MDX files. The contact form posts to Web3Forms, not to my own endpoint. The newsletter signup hits Buttondown's API directly with their public form. Every problem I would solve with a database in v1 is a v2 problem at best.
+
+I am not chasing a Lighthouse 100. I am chasing a Lighthouse 95 mobile across all four categories with AdSense scripts loaded — which is much harder, and which I treated as a separate engineering project. [The actual checklist](/blog/lighthouse-95-mobile-the-actual-checklist) is its own post.
+
+## What is left
+
+About 60% of the content. Twenty tool pages, each needing the 600-word surrounding copy that AdSense expects. The legal pages are written but not reviewed. The OG image generator runs on `pnpm generate:og` and produces AVIFs, but I have not yet filled in the social preview metadata for half the posts. The migration scripts have run; the manual cleanup has not.
+
+The shape of the thing is right, though, which is the whole point of the rebuild. Thirteen sites is not a personal site. One site is.

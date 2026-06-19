@@ -1,0 +1,117 @@
+---
+/**
+ * PostCard — single blog post tile used by every listing
+ * (index, tag, category, related). Visual: bg-soft card, accent-tinted
+ * border on hover.
+ */
+import type { CollectionEntry } from 'astro:content'
+import { formatPostDate, slugifyTag } from '~/lib/blog'
+
+export interface Props {
+  post: CollectionEntry<'blog'>
+}
+
+const { post } = Astro.props
+const { title, description, pubDate, category, readingTime } = post.data
+const href = `/blog/${post.id}`
+const catHref = `/blog/category/${slugifyTag(category)}`
+---
+
+<article class="post-card">
+  <a class="post-card-link" href={href} aria-label={title}>
+    <header class="post-card-meta">
+      <span class="post-card-cat">{category}</span>
+      {readingTime && <span class="post-card-rt">{readingTime}</span>}
+    </header>
+    <h3 class="post-card-title">{title}</h3>
+    <p class="post-card-desc">{description}</p>
+    <footer class="post-card-foot">
+      <time datetime={pubDate.toISOString()}>{formatPostDate(pubDate)}</time>
+    </footer>
+  </a>
+  {/* Category chip is a sibling link so it isn't nested inside the card link */}
+  <a class="post-card-cat-link" href={catHref} aria-label={`More posts in ${category}`}>
+    <span aria-hidden="true">{category}</span>
+  </a>
+</article>
+
+<style>
+  .post-card {
+    position: relative;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    transition: border-color 120ms;
+  }
+  .post-card:hover {
+    border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  }
+  .post-card-link {
+    display: grid;
+    gap: 0.625rem;
+    padding: 1.25rem;
+    text-decoration: none;
+    color: var(--color-fg);
+  }
+  .post-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .post-card-cat {
+    visibility: hidden;
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .post-card-rt {
+    color: var(--color-fg-soft);
+    font-size: 0.75rem;
+    margin-left: auto;
+  }
+  .post-card-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+    line-height: 1.35;
+  }
+  .post-card-desc {
+    color: var(--color-fg-muted);
+    font-size: 0.9375rem;
+    margin: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    line-clamp: 1;
+  }
+  .post-card-foot time {
+    color: var(--color-fg-soft);
+    font-size: 0.8125rem;
+  }
+  .post-card-cat-link {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.25rem;
+    text-decoration: none;
+  }
+  .post-card-cat-link span {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    background: var(--color-bg-muted);
+    color: var(--color-fg-muted);
+    border-radius: 0.25rem;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .post-card-cat-link:hover span {
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+</style>

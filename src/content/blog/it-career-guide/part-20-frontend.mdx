@@ -1,7 +1,7 @@
 ---
 title: "Part 20: Modern Frontend - React, Astro & Tailwind CSS"
 description: "Master Astro Islands, partial hydration, Tailwind theme variables, Nanostores cross-island state sharing, TanStack Query v5 caching, and Pagefind client indexing. Complete 30-resource blueprint."
-pubDate: 2026-05-29
+pubDate: "2026-05-29"
 tags: ["Astro", "React", "Tailwind-CSS", "Frontend", "Career-Guide"]
 category: "Career Guide"
 author: "Chirag Singhal"
@@ -9,6 +9,7 @@ series: "The 2026 IT Career Blueprint"
 part: 20
 draft: false
 ---
+
 
 # Part 20: Modern Frontend - React, Astro & Tailwind CSS
 
@@ -259,7 +260,6 @@ Create a dynamic client-side Search Dashboard inside Astro using React and Tailw
 Save this file as `src/store/searchStore.ts`. It acts as a framework-agnostic reactive global state:
 
 ```typescript
-import { atom } from 'nanostores';
 
 // Holds the current search query string
 export const $searchQuery = atom<string>('');
@@ -272,9 +272,6 @@ export const $searchCount = atom<number>(0);
 Save this code block as `src/components/SearchCounter.tsx`. It hydrates as an independent island to display real-time result counts from the search query:
 
 ```tsx
-import React from 'react';
-import { useStore } from '@nanostores/react';
-import { $searchQuery, $searchCount } from '../store/searchStore';
 
 export const SearchCounter: React.FC = () => {
   const query = useStore($searchQuery);
@@ -300,8 +297,6 @@ export const SearchCounter: React.FC = () => {
 Save this code block as `src/components/SearchBar.tsx`. This island parses user input, queries the local static Pagefind index, and updates the global Nanostore:
 
 ```tsx
-import React, { useEffect, useState } from 'react';
-import { $searchQuery, $searchCount } from '../store/searchStore';
 
 declare global {
   interface Window {
@@ -379,9 +374,6 @@ Save this file as `src/pages/search.astro`. It loads our independent React compo
 
 ```html
 ---
-import Layout from '../layouts/Layout.astro';
-import { SearchBar } from '../components/SearchBar';
-import { SearchCounter } from '../components/SearchCounter';
 ---
 
 <Layout title="Telemetry Search Dashboard">
