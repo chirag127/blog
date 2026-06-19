@@ -1,0 +1,91 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? "";
+---
+
+<BaseLayout
+  title="Contact"
+  description="Get in touch about anything on blog.oriz.in."
+>
+  <header class="container mx-auto max-w-3xl px-4 pt-12 pb-6 border-b border-neutral-800">
+    <p class="text-sm text-neutral-400 mb-2">
+      <a href="/" class="hover:text-neutral-200">Blog</a> / Contact
+    </p>
+    <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">Contact</h1>
+  </header>
+
+  <section class="container mx-auto max-w-3xl px-4 py-10 prose prose-invert">
+    <p class="text-lg">
+      The fastest way to reach me about a blog post — typo, broken link,
+      follow-up question, or pitch — is email:
+      <a href="mailto:whyiswhen@gmail.com"><strong>whyiswhen@gmail.com</strong></a>.
+    </p>
+    <p>
+      If you'd rather use a form, this one posts to Web3Forms which forwards
+      to my inbox. No data is stored on this site.
+    </p>
+
+    <form action="https://api.web3forms.com/submit" method="POST" class="not-prose mt-6 flex flex-col gap-4">
+      <input type="hidden" name="access_key" value={web3formsKey} />
+      <input type="hidden" name="from_name" value="blog.oriz.in contact form" />
+      <input
+        type="text"
+        name="botcheck"
+        class="hidden"
+        tabindex="-1"
+        autocomplete="off"
+      />
+
+      <label class="flex flex-col gap-1.5">
+        <span class="text-sm text-neutral-400 font-medium">Your name</span>
+        <input
+          type="text"
+          name="name"
+          required
+          autocomplete="name"
+          class="rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:border-amber-500"
+        />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-sm text-neutral-400 font-medium">Email</span>
+        <input
+          type="email"
+          name="email"
+          required
+          autocomplete="email"
+          class="rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:border-amber-500"
+        />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-sm text-neutral-400 font-medium">Subject</span>
+        <input
+          type="text"
+          name="subject"
+          required
+          class="rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:border-amber-500"
+        />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-sm text-neutral-400 font-medium">Message</span>
+        <textarea
+          name="message"
+          rows="6"
+          required
+          class="rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 focus:outline-none focus:border-amber-500 resize-y min-h-[120px]"
+        ></textarea>
+      </label>
+
+      <button
+        type="submit"
+        class="self-start rounded-lg bg-amber-500 px-5 py-2.5 text-neutral-950 font-medium hover:bg-amber-400 transition"
+      >
+        Send
+      </button>
+    </form>
+
+    <p class="text-sm text-neutral-400 mt-8">
+      For privacy questions or DMCA notices, see the
+      <a href="/legal/grievance/">grievance officer</a> page (mandatory under IT Rules 2021).
+    </p>
+  </section>
+</BaseLayout>

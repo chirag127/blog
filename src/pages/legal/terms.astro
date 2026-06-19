@@ -1,0 +1,66 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const updated = "2026-06-19";
+---
+
+<BaseLayout title="Terms of use" description="The rules for using blog.oriz.in.">
+  <header class="container mx-auto max-w-3xl px-4 pt-12 pb-6 border-b border-neutral-800">
+    <p class="text-sm text-neutral-400 mb-2">
+      <a href="/" class="hover:text-neutral-200">Blog</a> /
+      <a href="/legal/" class="hover:text-neutral-200">Legal</a> / Terms
+    </p>
+    <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">Terms of use</h1>
+    <p class="text-sm text-neutral-500 mt-2">Last updated: {updated}</p>
+  </header>
+
+  <article class="container mx-auto max-w-3xl px-4 py-10 prose prose-invert">
+    <p>
+      By using blog.oriz.in or any <code>*.oriz.in</code> site, you agree to these terms.
+      They are short on purpose.
+    </p>
+
+    <h2>Use the sites lawfully</h2>
+    <p>
+      Don't try to break the sites, scrape them at abusive rates, or use them
+      to harass others. Account takeover, copyright infringement, and any
+      activity prohibited under Indian law are forbidden.
+    </p>
+
+    <h2>Content is provided as-is</h2>
+    <p>
+      Blog posts, calculators, and tools on oriz are provided for information
+      and convenience only. They are not professional advice. Verify anything
+      before relying on it. See the full
+      <a href="/legal/disclaimer/">disclaimer</a>.
+    </p>
+
+    <h2>Your content</h2>
+    <p>
+      Anything you save on a oriz site (bookmarks, reading history, etc.) stays
+      yours. You grant oriz a limited licence to store and serve that content
+      back to you. Public comments on blog posts (via Giscus) are governed by
+      GitHub's terms in addition to these.
+    </p>
+
+    <h2>Termination</h2>
+    <p>
+      You can delete your account at any time from the
+      <a href="/account/">account page</a>. We can suspend accounts engaged in
+      abuse without notice.
+    </p>
+
+    <h2>Limitation of liability</h2>
+    <p>
+      To the maximum extent permitted by law, oriz and its operator are not
+      liable for any indirect or consequential damages arising from use of
+      the sites.
+    </p>
+
+    <h2>Governing law</h2>
+    <p>
+      These terms are governed by the laws of India. Disputes will be settled
+      in the courts of Bhubaneswar, Odisha.
+    </p>
+  </article>
+</BaseLayout>

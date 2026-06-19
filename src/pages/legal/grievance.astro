@@ -1,0 +1,48 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const updated = "2026-06-19";
+---
+
+<BaseLayout
+  title="Grievance officer"
+  description="Mandatory contact under India's IT Rules 2021."
+>
+  <header class="container mx-auto max-w-3xl px-4 pt-12 pb-6 border-b border-neutral-800">
+    <p class="text-sm text-neutral-400 mb-2">
+      <a href="/" class="hover:text-neutral-200">Blog</a> /
+      <a href="/legal/" class="hover:text-neutral-200">Legal</a> / Grievance officer
+    </p>
+    <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">Grievance officer</h1>
+    <p class="text-sm text-neutral-500 mt-2">Last updated: {updated}</p>
+  </header>
+
+  <article class="container mx-auto max-w-3xl px-4 py-10 prose prose-invert">
+    <p>
+      Per the <strong>Information Technology (Intermediary Guidelines and Digital
+      Media Ethics Code) Rules, 2021</strong>, the following contact handles
+      complaints related to blog.oriz.in and its sub-sites.
+    </p>
+
+    <div class="not-prose my-6 rounded-xl border border-neutral-800 bg-neutral-900/40 p-5">
+      <p class="my-1.5"><strong>Name:</strong> Chirag Singhal</p>
+      <p class="my-1.5"><strong>Designation:</strong> Grievance Officer</p>
+      <p class="my-1.5"><strong>Email:</strong> <a href="mailto:whyiswhen@gmail.com" class="text-amber-400 underline">whyiswhen@gmail.com</a></p>
+      <p class="my-1.5"><strong>Address:</strong> Bhubaneswar, Odisha, India 751001</p>
+      <p class="my-1.5"><strong>Response time:</strong> Acknowledgement within 24 hours; resolution within 15 days.</p>
+    </div>
+
+    <h2>What you can report</h2>
+    <ul>
+      <li>Content on blog.oriz.in that infringes your copyright (DMCA / Indian copyright complaints).</li>
+      <li>Content that violates the IT Rules (defamation, obscenity, threats, impersonation).</li>
+      <li>Privacy concerns under the DPDP Act 2023 — access, correction, deletion of your data.</li>
+      <li>Account takeover or security incidents.</li>
+    </ul>
+
+    <p>
+      Please include: a clear description of the issue, the URL(s) involved,
+      proof you are the rights-holder (for copyright), and your contact details.
+    </p>
+  </article>
+</BaseLayout>

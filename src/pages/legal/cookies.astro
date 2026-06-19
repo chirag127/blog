@@ -1,0 +1,61 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const updated = "2026-06-19";
+---
+
+<BaseLayout title="Cookie policy" description="What cookies blog.oriz.in uses.">
+  <header class="container mx-auto max-w-3xl px-4 pt-12 pb-6 border-b border-neutral-800">
+    <p class="text-sm text-neutral-400 mb-2">
+      <a href="/" class="hover:text-neutral-200">Blog</a> /
+      <a href="/legal/" class="hover:text-neutral-200">Legal</a> / Cookies
+    </p>
+    <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">Cookie policy</h1>
+    <p class="text-sm text-neutral-500 mt-2">Last updated: {updated}</p>
+  </header>
+
+  <article class="container mx-auto max-w-3xl px-4 py-10 prose prose-invert">
+    <p>
+      blog.oriz.in uses the smallest set of cookies and storage we can get away with.
+    </p>
+
+    <h2>What we set</h2>
+    <ul>
+      <li>
+        <strong>Theme + accent</strong> — <code>localStorage</code> keys
+        <code>oriz:theme</code> and <code>oriz:accent</code> remember your
+        preference between visits. No tracking.
+      </li>
+      <li>
+        <strong>Auth session</strong> — when you sign in, Firebase Authentication
+        sets cookies on <code>auth.oriz.in</code> so you stay logged in across
+        every <code>*.oriz.in</code> site. These are first-party and essential.
+      </li>
+      <li>
+        <strong>Site-specific preferences</strong> — bookmarks and recently-viewed
+        post lists are kept in <code>localStorage</code> on this site.
+      </li>
+    </ul>
+
+    <h2>Third parties</h2>
+    <ul>
+      <li>
+        <strong>Cloudflare</strong> may set anti-abuse cookies (Turnstile, bot
+        management). These are essential for site availability.
+      </li>
+      <li>
+        <strong>Giscus / GitHub</strong> sets cookies if you sign in to comment.
+      </li>
+      <li>
+        <strong>Google AdSense</strong> (once approved) may set advertising
+        cookies. The consent banner lets you opt out per-purpose.
+      </li>
+    </ul>
+
+    <h2>Opting out</h2>
+    <p>
+      You can clear localStorage and cookies for any oriz domain from your
+      browser's site-data settings. Theme and auth will reset to defaults.
+    </p>
+  </article>
+</BaseLayout>

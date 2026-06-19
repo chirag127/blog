@@ -1,0 +1,57 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const updated = "2026-06-19";
+---
+
+<BaseLayout title="Disclaimer" description="What blog.oriz.in is and isn't.">
+  <header class="container mx-auto max-w-3xl px-4 pt-12 pb-6 border-b border-neutral-800">
+    <p class="text-sm text-neutral-400 mb-2">
+      <a href="/" class="hover:text-neutral-200">Blog</a> /
+      <a href="/legal/" class="hover:text-neutral-200">Legal</a> / Disclaimer
+    </p>
+    <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">Disclaimer</h1>
+    <p class="text-sm text-neutral-500 mt-2">Last updated: {updated}</p>
+  </header>
+
+  <article class="container mx-auto max-w-3xl px-4 py-10 prose prose-invert">
+    <p>
+      Everything on blog.oriz.in is published in good faith for general
+      information only. Use it at your own risk.
+    </p>
+
+    <h2>Not financial advice</h2>
+    <p>
+      Posts that touch on personal finance, investing, taxes, or insurance are
+      reflections of the author's own thinking. They are not investment, tax,
+      or insurance advice. Consult a SEBI-registered investment advisor before
+      making financial decisions.
+    </p>
+
+    <h2>Not medical advice</h2>
+    <p>
+      Anything related to health is for general awareness. It is not a substitute
+      for consultation with a registered medical practitioner.
+    </p>
+
+    <h2>Not legal advice</h2>
+    <p>
+      Articles touching on tax, regulation, or compliance reflect the author's
+      reading of the rules at the time of writing. Rules change. Verify with
+      your own counsel before acting.
+    </p>
+
+    <h2>External links</h2>
+    <p>
+      We link to third-party sites we find useful. We don't control their
+      content, and inclusion is not an endorsement.
+    </p>
+
+    <h2>Affiliate disclosure</h2>
+    <p>
+      Where applicable, oriz may earn a referral fee when you sign up to a
+      service via certain links. This never affects what we recommend, and any
+      such links will be marked.
+    </p>
+  </article>
+</BaseLayout>

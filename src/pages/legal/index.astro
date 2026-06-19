@@ -1,0 +1,39 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const sections = [
+  { slug: "privacy", label: "Privacy policy", desc: "What we collect, what we don't, your rights." },
+  { slug: "terms", label: "Terms of use", desc: "The rules for using blog.oriz.in." },
+  { slug: "disclaimer", label: "Disclaimer", desc: "Posts here are not financial / medical / legal advice." },
+  { slug: "cookies", label: "Cookie policy", desc: "What cookies and localStorage we set." },
+  { slug: "grievance", label: "Grievance officer", desc: "Mandatory contact under IT Rules 2021." },
+];
+---
+
+<BaseLayout title="Legal" description="Privacy, terms, and grievance contact for blog.oriz.in.">
+  <header class="container mx-auto max-w-3xl px-4 pt-12 pb-6 border-b border-neutral-800">
+    <p class="text-sm text-neutral-400 mb-2">
+      <a href="/" class="hover:text-neutral-200">Blog</a> / Legal
+    </p>
+    <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">Legal</h1>
+  </header>
+
+  <section class="container mx-auto max-w-3xl px-4 py-10">
+    <ul class="flex flex-col gap-3">
+      {sections.map((s) => (
+        <li>
+          <a
+            href={`/legal/${s.slug}/`}
+            class="grid grid-cols-[1fr_auto] gap-4 items-center rounded-xl border border-neutral-800 bg-neutral-900/40 px-5 py-4 hover:border-amber-500/50 transition"
+          >
+            <div>
+              <h2 class="text-base font-semibold mb-1">{s.label}</h2>
+              <p class="text-sm text-neutral-400">{s.desc}</p>
+            </div>
+            <span class="text-neutral-500" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>
