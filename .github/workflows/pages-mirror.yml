@@ -1,0 +1,87 @@
+# GitHub Pages mirror — failover only.
+#
+# Cloudflare Pages is the primary host for every site in the family
+# (see knowledge/decisions/infrastructure/cloudflare-pages-for-all-sites.md).
+# This workflow publishes the same build artefact to GitHub Pages so
+# we have a passive failover URL (`blog-site.chirag127.github.io`)
+# in case CF Pages goes down. Not a dual-active deploy — apex DNS
+# stays on Cloudflare; the GH Pages URL is referenced manually
+# during incidents.
+#
+# Replace blog-site placeholder per repo.
+
+name: pages-mirror
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "latest"
+
+jobs:
+  build-and-mirror:
+    name: build + publish to gh-pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Resolve pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          # Many static frameworks need a base path when hosted under
+          # a subpath like /oriz-blog-site/. Override per-repo if the
+          # GH Pages URL is a custom domain or a user-page root.
+          PUBLIC_BASE_PATH: /oriz-blog-site/
+          BASE_URL: /oriz-blog-site/
+        run: pnpm build
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Default to dist; override per-site if the framework emits
+          # to a different folder (out, .output/public, build).
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

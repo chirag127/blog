@@ -1,0 +1,77 @@
+# Dependabot config for chirag127/oriz-blog-site.
+#
+# Weekly batched updates. Major versions for `astro` and `react` are
+# ignored — those bumps need a coordinated family-wide migration and
+# are tracked in knowledge/decisions/. Bumps land as small grouped
+# PRs that biome + tsc + the build job in ci.yml can validate
+# automatically.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Asia/Kolkata
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    labels:
+      - dependencies
+      - automated
+    groups:
+      low-risk-batch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "astro"
+          - "@astrojs/*"
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+          - "next"
+          - "vite"
+          - "typescript"
+        update-types:
+          - minor
+          - patch
+      types-batch:
+        applies-to: version-updates
+        patterns:
+          - "@types/*"
+    ignore:
+      - dependency-name: astro
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@astrojs/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-dom
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Asia/Kolkata
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: ci
+      include: scope
+    labels:
+      - github-actions
+      - automated
+    groups:
+      actions-batch:
+        applies-to: version-updates
+        patterns:
+          - "*"
