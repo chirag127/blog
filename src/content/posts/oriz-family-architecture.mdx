@@ -98,12 +98,13 @@ oriz-omnipost has a single place to read about it.
 
 ## Shared kit, not shared monorepo
 
-`oriz-kit` is a published npm package, not a workspace package.
-Every site `pnpm add @chirag127/oriz-kit`s the version it wants
-and bumps on its own cadence. This was a deliberate trade-off
-against turborepo-style live-linking: the price is one extra
-publish step per kit change; the benefit is that no site is ever
-broken by a kit change it didn't opt into. Per the
+`astro-shell` and `astro-chrome` are published npm packages, not
+workspace packages. Every site `pnpm add @chirag127/astro-shell
+@chirag127/astro-chrome`s the versions it wants and bumps on its
+own cadence. This was a deliberate trade-off against
+turborepo-style live-linking: the price is one extra publish step
+per kit change; the benefit is that no site is ever broken by a
+kit change it didn't opt into. Per the
 [no-turborepo decision](https://github.com/chirag127/oriz/blob/main/knowledge/decisions/architecture/no-monorepo-tooling.md),
 each site is its own repo with its own deploy.
 

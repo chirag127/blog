@@ -1,13 +1,4 @@
-/*
- * Local vendored copy of @chirag127/oriz-family FAMILY_SITES.
- *
- * Synced verbatim from oriz-home/src/lib/family.ts (which itself mirrors
- * packages/oriz-family/src/index.ts). Until the package ships to npm, every
- * site keeps a copy. Replace with `export * from '@chirag127/oriz-family'`
- * when it lands.
- *
- * Last synced: 2026-06-19 from chirag127/oriz-family@e90446e.
- */
+// Family sites listing — inline per-app.
 
 export const FAMILY = {
   brand: 'oriz',

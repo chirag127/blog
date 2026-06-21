@@ -10,9 +10,6 @@
  *    site's own /search/ page via a URL query string. Each family site
  *    handles its own search backend (Pagefind for small corpora,
  *    Algolia for oriz-blog per Batch-4 lock).
- *
- * Same spec as the oriz-home <MultiSearch />. Lives here as a
- * forward-compat copy until @chirag127/oriz-kit ships the canonical one.
  */
 import { useEffect, useRef, useState } from 'react'
 

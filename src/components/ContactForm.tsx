@@ -1,12 +1,3 @@
-/*
- * ContactForm — local copy of @chirag127/contact-form, with markup that
- * emits the canonical `data-oriz-contact-*` selector hooks. CSS in
- * src/styles/oriz-ui-overrides.css applies the site palette.
- *
- * Posts to Web3Forms (free, no-account-required HTTP form forwarder).
- * The honeypot field, error states, and submit lifecycle match the
- * upstream package signature exactly.
- */
 import { useState } from 'react'
 
 interface Props {
