@@ -1,16 +1,4 @@
-/**
- * Cross-family site descriptor used by older code paths. Kept tiny — the
- * shape used to depend on `@chirag127/oriz-ui`'s `OrizSiteConfig`, but that
- * is gone in v2 (oriz-ui no longer exports types either). Local shape
- * suffices.
- */
-export interface OrizSiteConfig {
-  slug: string
-  name: string
-  origin: string
-  tagline: string
-  description: string
-}
+import type { OrizSiteConfig } from '@chirag127/astro-shell/types'
 
 export const SITE_CONFIG: OrizSiteConfig = {
   slug: 'blog',
