@@ -1,0 +1,59 @@
+---
+/*
+ * AppSidebarContent — per-app sidebar slot for oriz-blog.
+ *
+ * Categories link to /blog/category/<slug>/ if present (otherwise fall back to /blog/).
+ * Recent posts: latest 5 entries from src/content/blog by pubDate desc.
+ */
+import { getCollection } from 'astro:content'
+
+const categories = [
+  { label: 'Engineering', href: '/blog/category/engineering/' },
+  { label: 'Finance', href: '/blog/category/finance/' },
+  { label: 'Books', href: '/blog/category/books/' },
+  { label: 'Notes', href: '/blog/category/notes/' },
+]
+
+let recent: { slug: string; title: string }[] = []
+try {
+  const all = await getCollection('blog')
+  recent = all
+    .filter((p: any) => !p.data?.draft)
+    .sort((a: any, b: any) => {
+      const ad = a.data?.pubDate ? new Date(a.data.pubDate).getTime() : 0
+      const bd = b.data?.pubDate ? new Date(b.data.pubDate).getTime() : 0
+      return bd - ad
+    })
+    .slice(0, 5)
+    .map((p: any) => ({ slug: p.slug ?? p.id, title: p.data?.title ?? p.slug ?? p.id }))
+} catch {
+  recent = []
+}
+---
+<div class="sb-section">
+  <h3 class="sb-h">Categories</h3>
+  <ul class="sb-list">
+    {categories.map((c) => (
+      <li><a href={c.href}>{c.label}</a></li>
+    ))}
+  </ul>
+</div>
+
+{recent.length > 0 && (
+  <div class="sb-section">
+    <h3 class="sb-h">Recent</h3>
+    <ul class="sb-list">
+      {recent.map((p) => (
+        <li><a href={`/blog/${p.slug}/`}>{p.title}</a></li>
+      ))}
+    </ul>
+  </div>
+)}
+
+<style>
+  .sb-section { margin-bottom: 1.25rem; }
+  .sb-h { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted, #666); margin: 0 0 0.5rem; }
+  .sb-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+  .sb-list a { color: var(--ink, inherit); text-decoration: none; font-size: 0.875rem; }
+  .sb-list a:hover { text-decoration: underline; }
+</style>

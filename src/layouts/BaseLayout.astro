@@ -2,19 +2,22 @@
 /*
  * BaseLayout — single page shell for every oriz-blog route (v2).
  *
- * Cream paper, cobalt accent, Fraunces display. No sidebar (the v1
- * SiteSidebar is gone — chrome is just header + footer).
- *
- * Family-anchor pattern. Sister sites copy this skeleton; oriz-blog adds
- * Fraunces (variable, opsz + SOFT axes) on top of the family-default
- * Inter Tight + JetBrains Mono.
+ * Per-app divergent Header (sweep #5 revert). Footer + Sidebar wrapper +
+ * BottomBar structure come from @chirag127/astro-chrome; sidebar slot and
+ * bottombar actions are app-specific.
  */
 import '~/styles/global.css'
 import '~/styles/oriz-ui-overrides.css'
 import 'katex/dist/katex.min.css'
-import Layout from '@chirag127/astro-chrome/Layout.astro'
-import HeaderControls from '~/components/HeaderControls'
+import '@chirag127/astro-shell/tokens.css'
+import Header from '~/components/Header.astro'
+import Sidebar from '@chirag127/astro-chrome/Sidebar.astro'
+import Footer from '@chirag127/astro-chrome/Footer.astro'
+import BottomBar from '@chirag127/astro-chrome/BottomBar.astro'
+import ConsentBanner from '@chirag127/astro-chrome/ConsentBanner.astro'
+import AppSidebarContent from '~/components/AppSidebarContent.astro'
 import FeedDiscovery from '~/components/FeedDiscovery.astro'
+import { bottomBarActions } from '~/data/bottombar-actions'
 import { ClientRouter } from 'astro:transitions'
 
 interface Props {
@@ -27,7 +30,6 @@ interface Props {
   type?: 'website' | 'article'
   pubDate?: Date
   updatedDate?: Date
-  /** Kept for compatibility with v1 routes — v2 has no sidebar so this is a no-op. */
   hideSidebar?: boolean
 }
 
@@ -46,15 +48,7 @@ const {
 const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT
 const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN
 const ga4Id = import.meta.env.PUBLIC_GA4_ID
-
 const ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : undefined
-const bottomBarActions = [
-  { icon: '⌂', label: 'Home', href: 'https://oriz.in/' },
-  { icon: '✎', label: 'Blog', href: '/' },
-  { icon: '⚒', label: 'Tools', href: 'https://oriz.in/tools/' },
-  { icon: 'ℹ', label: 'About', href: '/about/' },
-]
-import '@chirag127/astro-shell/tokens.css'
 ---
 
 <!doctype html>
@@ -87,11 +81,6 @@ import '@chirag127/astro-shell/tokens.css'
     <meta name="theme-color" content="#fbfaf7" />
     <FeedDiscovery />
 
-    {/*
-      Type stack — Fraunces (variable, opsz + SOFT) for display + drop-cap;
-      Source Serif 4 for body; Inter Tight for chrome; JetBrains Mono for
-      numerals and the series spine.
-    */}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -138,10 +127,14 @@ import '@chirag127/astro-shell/tokens.css'
   </head>
   <body>
     <a href="#main" class="skip-link">Skip to content</a>
-    <Layout bottomBarActions={bottomBarActions}>
-      <HeaderControls client:idle slot="header-actions" />
-      <slot />
-    </Layout>
+    <Header />
+    <div class="layout-body">
+      <Sidebar><AppSidebarContent /></Sidebar>
+      <main id="main"><slot /></main>
+    </div>
+    <Footer />
+    <BottomBar actions={bottomBarActions} />
+    <ConsentBanner />
 
     <script>
       if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
@@ -152,3 +145,11 @@ import '@chirag127/astro-shell/tokens.css'
     </script>
   </body>
 </html>
+
+<style>
+  .layout-body { display: flex; gap: 0; align-items: flex-start; }
+  .layout-body > main { flex: 1 1 auto; min-width: 0; }
+  @media (max-width: 767px) {
+    .layout-body { display: block; }
+  }
+</style>
