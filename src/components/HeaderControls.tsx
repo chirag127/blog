@@ -126,7 +126,7 @@ export default function HeaderControls() {
             <a href="/now/" role="menuitem">now</a>
             <a href="/series/" role="menuitem">series</a>
             <a href="/archive/" role="menuitem">archive</a>
-            <a href="/account/" role="menuitem">account</a>
+            <a href="https://account.oriz.in/sign-in" role="menuitem">account</a>
             <hr />
             <p className="hc-menu-h mono">theme</p>
             <button

@@ -90,7 +90,7 @@ export default function BookmarksList() {
         ) : (
           <>
             Anonymous bookmarks ({items.length}) — they'll merge with your account next sign-in.{' '}
-            <a href="/account/">Sign in to sync</a>.
+            <a href="https://account.oriz.in/sign-in">Sign in to sync</a>.
           </>
         )}
       </p>
