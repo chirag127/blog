@@ -1,0 +1,85 @@
+---
+title: "Microsoft PowerToys, Part 3: PowerToys Run and the Command Palette — Your Keyboard-First Launcher"
+description: "How to replace your mouse with PowerToys Run and the Command Palette. Advanced search operators, plugin usage, and how to wire it into a mouseless developer workflow."
+pubDate: 2026-06-26
+tags: [powertoys, productivity, developer-tools, keyboard, launcher]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "6 min"
+---
+
+The default Windows Start Menu is broken. It is bloated with web search suggestions, advertisements for games you don't own, and delayed indexing that fails to find files you created five minutes ago. If you want to work efficiently, you need to stop using the Start Menu and replace it with a keyboard-first launcher.
+
+PowerToys offers two distinct tools for this: **PowerToys Run** and the newer **Command Palette** (which was significantly expanded in v0.100.0 with a community Extension Gallery). Both serve to keep your hands on the keyboard, allowing you to launch apps, search files, perform calculations, and trigger system commands instantly.
+
+---
+
+## PowerToys Run vs. Command Palette
+
+While they look similar, they are optimized for different tasks:
+- **PowerToys Run (`Alt + Space`):** A lightweight launcher modeled after macOS Alfred or Wox. It excels at fast indexing, basic math, launching installed apps, and finding files.
+- **Command Palette:** A highly customizable hub designed to execute commands, trigger actions inside other PowerToys, and run scripts. Think of it like the Command Palette in VS Code (`Ctrl + Shift + P`) but for your entire operating system.
+
+---
+
+## Mastering PowerToys Run Search Operators
+
+Most users only use PowerToys Run to launch applications. The real power lies in using **search operators** to bypass the default search priority and target specific plugins directly.
+
+When you hit `Alt + Space`, prepend your query with these characters:
+
+| Operator | Target | Example |
+| :--- | :--- | :--- |
+| `>` | Shell Commands | `> ipconfig /flushdns` (runs command instantly) |
+| `=` | Calculator | `= (1250 * 0.18) + 1250` (shows math result, copies on enter) |
+| `?` | File Search | `? index.css` (searches local drives only, bypasses web) |
+| `//` | Registry Keys | `// HKEY_LOCAL_MACHINE` (navigates registry paths) |
+| `$` | Unit Converter | `$ 100 usd to inr` or `$ 50 miles to km` |
+| `!` | Active Windows | `! chrome` (displays list of open Chrome windows, lets you switch) |
+| `::` | Windows Settings | `:: bluetooth` (opens system bluetooth settings page directly) |
+
+*Pro Tip: You can customize these activation phrases in the settings under the **Plugins** tab if you prefer different characters.*
+
+---
+
+## The Command Palette & Extension Gallery
+
+In the latest v0.100.x releases, the Command Palette has become a central command station for developer workflows. It now features an **Extension Gallery** allowing you to download community-maintained plugins directly from the settings interface.
+
+### What can you do from the Command Palette?
+- **Control other PowerToys:** Instead of opening the main dashboard, launch the Command Palette and type "Toggle Light Switch" to switch themes, or type "Switch layout" to select a new FancyZones window grid.
+- **Custom Scripts:** Integrate dev tools. You can install community extensions to search StackOverflow, look up package docs on npm, or control Spotify directly from the launcher.
+- **Personalization:** You can style the Command Palette with customized backgrounds, glassmorphism opacity, and color tinting to match your developer desktop aesthetics.
+
+---
+
+## Real Developer Workflow Examples
+
+Here is how you can use the launcher to eliminate mouse dependency during local development:
+
+### Scenario 1: Launching a Project Terminal
+Instead of opening Terminal, navigating to your folder, and starting VS Code:
+1. Press `Alt + Space`.
+2. Type `> cd c:\projects\oriz\own\blog && code .`
+3. Press Enter. Your project opens in VS Code instantly.
+
+### Scenario 2: Quick API calculations
+When adjusting viewport widths or estimating file size conversions:
+1. Press `Alt + Space`.
+2. Type `= 1920 * 0.75` (calculates 75% of full HD resolution).
+3. Press Enter to copy the result `1440` directly to your clipboard for your CSS file.
+
+### Scenario 3: Finding Locked Files
+If a local directory refuses to delete:
+1. Press `Alt + Space`.
+2. Type `? node_modules` to locate the folder path.
+3. Open its location in Explorer instantly by pressing `Ctrl + Enter`.
+
+---
+
+## Verdict
+
+PowerToys Run is the single most important tool in the entire suite for maintaining momentum. If you disable every other utility to maximize performance, keep this one active. It completely changes how you interact with your operating system, turning Windows from a mouse-heavy interface into an efficient command-line-driven environment.
+
+In **Part 4**, we will explore the **Keyboard Manager**, showing you how to remap Caps Lock, build application-specific shortcuts, and bypass standard keyboard limitations.

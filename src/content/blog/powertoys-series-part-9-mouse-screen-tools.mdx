@@ -1,0 +1,64 @@
+---
+title: "Microsoft PowerToys, Part 9: Mouse and Screen Utilities — Find My Mouse, ZoomIt, Screen Ruler, Crop and Lock"
+description: "The PowerToys utilities that take control of your screen: finding your cursor on a 4K display, zooming and annotating for presentations, measuring UI pixel dimensions, and cropping live window thumbnails."
+pubDate: 2026-06-26
+tags: [powertoys, mouse, screen, zoomit, productivity, windows, presentations]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "5 min"
+---
+
+High-resolution displays, multi-monitor arrays, and remote presentations make tracking your cursor and managing screen space complex. It is easy to lose your cursor on a 4K monitor, and explaining code during a screen-share session often requires zooming in on specific UI elements.
+
+PowerToys handles these challenges with a collection of screen and mouse utilities: **Find My Mouse**, **Mouse Jump**, **ZoomIt**, **Screen Ruler**, and **Crop and Lock**.
+
+---
+
+## 1. Find My Mouse & Mouse Jump: Multitasking Navigation
+
+If you work across multiple monitors, your mouse cursor is easily lost:
+- **Find My Mouse:** Double-press the `Ctrl` key. The rest of the screen dims, leaving a spotlight focused on your cursor. It is highly customizable; you can adjust the spotlight radius, color, and trigger rules in the settings.
+- **Mouse Jump:** Teleport your cursor instantly. On massive ultrawides or triple-monitor setups, moving the mouse physically from one screen to the other takes significant movement. Press `Win + Shift + D` (default shortcut) to show a miniature layout of your entire desktop. Click anywhere on the miniature map, and your cursor teleports to that exact location on your physical screens.
+
+---
+
+## 2. ZoomIt: The Ultimate Screen Annotation Tool
+
+Originally part of the Sysinternals suite, **ZoomIt** has been integrated into PowerToys, making it the best tool for technical presentations, code reviews, and remote teaching.
+
+- **Zoom Mode (`Ctrl + 1`):** Zooms in on the area around your cursor. Use the mouse wheel to adjust zoom levels.
+- **Draw Mode (`Ctrl + 2`):** Turns your cursor into a drawing pen. You can draw arrows, rectangles, and freehand highlights over your active screen. Press `t` to type text overlays, or press `k` to turn the screen into a blackboard for diagramming.
+- **Live Zoom (`Ctrl + 4`):** Keeps the screen active and scrollable while zoomed in (great for demonstrating live web interactions).
+
+---
+
+## 3. Screen Ruler: Measure UI Pixels Instantly
+
+As a frontend developer, verifying that your CSS padding, layout margins, or image dimensions are accurate is a constant task. Standard browser inspection tools only work inside web viewports.
+
+**Screen Ruler** (`Win + Shift + M`) allows you to measure any pixel distance on your screen:
+- **Crosshair Mode:** Drag to measure width and height values of any element.
+- **Edge Detection:** Hover over borders, buttons, or columns, and the ruler automatically snaps to the boundaries, displaying the exact width or height in pixels.
+
+---
+
+## 4. Crop and Lock: Floating Picture-in-Picture
+
+Managing window layouts during multitasking is difficult. If you want to monitor a terminal process, keep an eye on a stock chart, or watch a tutorial video while coding in full-screen, standard window management forces you to tile your screens.
+
+**Crop and Lock** (`Win + Shift + R` or `Win + Shift + T` for interactive mode) lets you crop a specific area of another window and lock it as an always-on-top thumbnail:
+- **Visual Thumbnail (`Win + Shift + R`):** Creates a static crop preview.
+- **Interactive Crop (`Win + Shift + T`):** Creates an active, scrollable, and clickable mini-window of the cropped area. You can interact with a subset of a website or program without keeping the full app open.
+
+---
+
+## Presentation & Development Integration
+
+Here is a practical use case combining these utilities:
+
+1. **During a screen-share session:** Hit `Ctrl + 1` (**ZoomIt**) to focus the audience's attention on a specific block of code in your terminal. Use the pen overlay to circle the syntax error.
+2. **When verifying layouts:** Use **Screen Ruler** (`Win + Shift + M`) to measure if the margin on your navigation bar matches the design specifications.
+3. **While executing a long database migration:** Use **Crop and Lock** to keep a small crop of your terminal log window locked at the corner of your screen while you work in your main code editor.
+
+In **Part 10**, we will wrap up the series with the ultimate recommended configurations, shortcut mappings, and automated backup strategies.

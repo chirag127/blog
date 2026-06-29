@@ -1,0 +1,74 @@
+---
+title: "Microsoft PowerToys, Part 7: File Tools — Image Resizer, PowerRename, and File Locksmith"
+description: "Three PowerToys that fix Windows Explorer's worst gaps: bulk image resizing, regex-powered batch renaming, and identifying which process is locking your files."
+pubDate: 2026-06-26
+tags: [powertoys, file-management, image-resizer, powerrename, file-locksmith, windows]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "6 min"
+---
+
+Windows File Explorer has barely changed in fifteen years. While it handles basic file navigation, it lacks tools for common, repetitive file administration tasks. If you need to resize a batch of screenshots for a blog post, rename fifty log files using pattern matching, or delete a file that is locked by a mystery process, default Windows forces you to download bloated third-party tools or write custom scripts.
+
+PowerToys solves these gaps with three integrated File Explorer utilities: **Image Resizer**, **PowerRename**, and **File Locksmith**.
+
+---
+
+## 1. Image Resizer: Instant Bulk Scaling
+
+If you do web development or content writing, you constantly need to scale down images to keep page load times fast. Opening Photoshop or an online converter for ten images is a waste of time.
+
+With **Image Resizer**, you select your files, right-click, and click **Resize pictures**:
+- **Define Presets:** In the settings panel, define your custom presets. I use:
+  - `Web-Large` (1200px width, fit mode)
+  - `Thumbnail` (300px width, fit mode)
+  - `Full-HD` (1920px width, fit mode)
+- **Resize Modes:**
+  - *Fit (Default):* Scales the image down so the entire image fits inside the boundaries without cropping.
+  - *Fill:* Crops and fills the boundaries (great for standardized thumbnails).
+  - *Stretch:* Stretches to the exact dimensions (rarely recommended as it distorts aspect ratios).
+- **Pro Tip (Right-Drag):** If you select images, hold the *right* mouse button, drag them to a new folder, and release them, you can trigger Image Resizer on the fly, saving the resized copies directly to the new directory without altering the originals.
+
+---
+
+## 2. PowerRename: Regex-Powered Batch Renaming
+
+Batch renaming files in standard Windows (pressing F2 and typing a name) appends sequential numbers like `file (1).txt`, which breaks command-line scripts and looks incredibly untidy.
+
+**PowerRename** integrates directly into the right-click context menu and supports regular expressions (regex) for advanced search-and-replace naming operations.
+
+### Practical Regex Renaming Scenarios:
+
+**Scenario A: Reordering Dates**
+You have files named `project-docs_2026-06-25.pdf` and want to move the date to the front for alphabetical sorting:
+1. Right-click the files and select **PowerRename**.
+2. Enable **Use regular expressions**.
+3. **Search for:** `^(.+)_(\d{4}-\d{2}-\d{2})$`
+4. **Replace with:** `$2_$1`
+5. Verify the changes in the live preview panel and click **Apply**.
+
+**Scenario B: Cleaning Up Screenshot Exports**
+Windows exports screenshots as `Screenshot 2026-06-25 103045.png`. Let's clean this up:
+1. **Search for:** `^Screenshot (\d{4}-\d{2}-\d{2}) (\d{2})(\d{2})(\d{2})$`
+2. **Replace with:** `shot_$1_$2-$3`
+3. Click **Apply**. You now have clean filenames like `shot_2026-06-25_10-30.png`.
+
+*Pro Tip: Always review the preview pane before applying a regex batch rename. If you aren't confident in your pattern, test it on a site like regex101.com first.*
+
+---
+
+## 3. File Locksmith: Break "File in Use" Blocks
+
+We have all encountered this frustrating Windows error: *“The action can’t be completed because the file is open in another program.”* Often, Windows refuses to tell you *which* program is locking the file, leaving you unable to delete `node_modules` folders, build artifacts, or temporary files.
+
+**File Locksmith** scans your system handles to locate the locking process:
+1. Right-click the blocked file or folder.
+2. Select **What's using this file?** (or look under *Show more options* on Windows 11).
+3. The Locksmith window will launch, listing all active processes currently accessing that file, along with their Process IDs (PIDs) and usernames.
+4. Click **End Task** directly from the Locksmith window to terminate the culprit process and unlock the file instantly.
+
+### Developer Use Case:
+When running web projects, a local server or a background Node.js process (`nodemon` or a zombie process) might keep locking your build output folders (`dist` or `build`). File Locksmith identifies the exact zombie process and lets you terminate it without needing to launch Task Manager and guess which `node.exe` is the culprit.
+
+In **Part 8**, we will review the developer utilities: **Hosts File Editor**, **Environment Variables**, **Registry Preview**, and **Color Picker**.

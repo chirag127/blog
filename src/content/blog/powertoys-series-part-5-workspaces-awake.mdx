@@ -1,0 +1,67 @@
+---
+title: "Microsoft PowerToys, Part 5: Workspaces and Awake — Eliminate Desktop Setup Fatigue"
+description: "How to use PowerToys Workspaces to save and launch your entire dev environment in one click, and Awake to keep your laptop alive during long builds and deployments."
+pubDate: 2026-06-26
+tags: [powertoys, workspaces, awake, productivity, developer-tools]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "5 min"
+---
+
+Getting into a development flow state requires concentration, but getting *started* is often bogged down by setup fatigue. Every time you restart your laptop or switch tasks, you have to open your IDE, navigate to the project directory, open your terminal, launch the database client, and open a browser window to your local server url. 
+
+PowerToys offers two utilities that completely eliminate this start-of-day friction: **Workspaces** and **Awake**.
+
+---
+
+## 1. PowerToys Workspaces: One-Click Environments
+
+**Workspaces** allows you to capture your desktop's current window arrangement and save it as a profile. When you launch that profile, PowerToys automatically opens all the configured applications, applies CLI arguments, and snaps them into their exact positions (ideally aligned with your **FancyZones** layouts).
+
+### How to Configure a Developer Workspace:
+1. Open the applications you need for a specific project. Let's build a "React Frontend" workspace:
+   - Open **VS Code** with your project folder.
+   - Open **Windows Terminal** tailing your logs.
+   - Open **Microsoft Edge** pointing to `http://localhost:5173`.
+2. Snap these windows into your preferred **FancyZones** layout (e.g., Code center, Browser right, Terminal left).
+3. Open PowerToys Settings, navigate to **Workspaces**, and click **Create Workspace**.
+4. Give it a name (e.g., `Oriz Blog Dev`) and click **Capture**.
+5. Once captured, edit the workspace in PowerToys settings to verify the arguments. For VS Code, you can specify the target directory in the CLI path. For Edge, verify the launch URL is correct.
+
+### Creating Taskbar or Desktop Shortcuts
+The fastest way to use Workspaces is by generating a direct shortcut.
+- In the Workspaces settings, click the three dots next to your captured profile.
+- Click **Create desktop shortcut**.
+- Drag that shortcut down to your taskbar or bind it to an unused hotkey.
+- Now, when you start your day, click that icon once. Within 3-4 seconds, your entire development environment is loaded and positioned.
+
+*Note: Workspaces launches apps and moves them. If an app is already open, Workspaces will move it instead of launching a duplicate, keeping your desktop clean.*
+
+---
+
+## 2. PowerToys Awake: Prevent Sleep During Long Processes
+
+As developers, we regularly run tasks that require our laptop to remain active for extended periods: compiling a large binary, pulling heavy Docker images, running a full database restoration, or tailing deployment logs in CI/CD. 
+
+Standard Windows power settings will shut down your screen and put the laptop to sleep after 10-15 minutes of user inactivity, killing your background tasks. Manually digging into Windows Settings to change power plans is tedious.
+
+**Awake** is a lightweight utility designed to temporarily keep your computer awake on demand without altering your system’s power plans.
+
+### How to Use Awake Efficiently:
+- **Tray Control (The Quickest Method):** Once enabled, Awake lives as a small blue coffee cup icon in your system tray. Right-click it to instantly change modes:
+  - **Keep awake indefinitely:** Your PC will never go to sleep until you change this setting.
+  - **Keep awake temporarily:** Set a duration (e.g., 30 minutes, 1 hour, or 2 hours) to keep the system active just long enough to complete a heavy download or build, after which standard sleep rules re-apply.
+  - **Keep awake until expiration:** Select a specific time (e.g., keep active until 6:00 PM when the work day ends).
+- **Keep Screen On:** You can toggle whether the display remains illuminated or is allowed to turn off while the CPU remains active.
+
+---
+
+## Solo-Dev Workflow Integration
+
+By combining these two tools, you can establish an efficient routine:
+1. Start your workday and double-click your **Workspace** shortcut.
+2. If you are starting a heavy build process or a massive repository update (`pnpm install -r`), right-click the **Awake** tray icon and set it to `Keep awake for 1 hour`.
+3. Go grab a coffee. You can be confident that when you return, your laptop won’t have gone to sleep mid-deployment, saving you from broken lockfiles and aborted script errors.
+
+In **Part 6**, we will look at the information capture trilogy: **Text Extractor**, **Peek**, and **Advanced Paste** with optional AI transformations.

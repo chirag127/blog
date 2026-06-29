@@ -1,0 +1,69 @@
+---
+title: "Microsoft PowerToys, Part 6: Text Extractor, Peek, and Advanced Paste — The Information Workflow Trilogy"
+description: "Three PowerToys that transform how you capture, preview, and paste information: Text Extractor OCR, Peek file preview, and Advanced Paste with AI transformations."
+pubDate: 2026-06-26
+tags: [powertoys, text-extractor, peek, advanced-paste, ocr, productivity]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "6 min"
+---
+
+Developers and researchers deal with massive volumes of structured and unstructured information daily. We copy errors, look up documentation files, format clipboard content, and parse visual data. Doing this with standard Windows capabilities leads to constant friction.
+
+PowerToys includes three utilities that revolutionize how you capture, inspect, and paste information: **Text Extractor**, **Peek**, and **Advanced Paste**.
+
+---
+
+## 1. Text Extractor: System-Wide OCR
+
+How many times have you tried to copy text from an image, a video tutorial, a locked PDF, or a legacy Windows error dialog box only to realize the text is unselectable? 
+
+**Text Extractor** is a system-wide optical character recognition (OCR) utility. 
+- **The Shortcut:** Press `Win + Shift + T` (or your custom shortcut).
+- **The Action:** Your screen dims, and your cursor changes to a crosshair. Click and drag a box over any text on your screen.
+- **The Result:** The text inside the boundary is instantly read, cleaned, and copied directly to your clipboard as editable text.
+
+### Advanced Tip: Adding Language Packs
+By default, Text Extractor uses the language configuration of your Windows operating system. If you regularly work with multilingual resources, you can install additional language packs via Windows settings (**Language & Region > Add a language**) to ensure the OCR engine parses non-English scripts accurately.
+
+---
+
+## 2. Peek: macOS Quick Look on Windows
+
+Opening full applications just to check the contents of a file is a waste of time. If you want to preview a screenshot, read a README markdown file, or inspect a JSON config file, you shouldn't have to launch Photoshop, VS Code, or notepad.
+
+**Peek** brings the macOS "Quick Look" experience to Windows File Explorer:
+- **How to use:** Select any file in File Explorer and press `Ctrl + Space` (default shortcut).
+- **Supported Previews:** Images, PDFs, SVG files, Markdown files, HTML files, and code files (with syntax highlighting built-in).
+- **Navigation:** Keep the Peek window open and use the **Arrow keys** to scroll through files in your folder. The preview updates instantly as you switch files.
+- **Pro Tip:** You can pin the Peek window to stay "always on top" using the pin icon, allowing you to reference a document or look at a design asset while writing code in your IDE.
+
+---
+
+## 3. Advanced Paste: Clipboard Transformations
+
+When you copy text from a website, a PDF, or Slack, it carries rich formatting, CSS styles, and nesting. Simply pasting it with `Ctrl + V` into an email, documentation editor, or code file often breaks formatting.
+
+**Advanced Paste** (`Win + Shift + V`) opens a helper menu with instant conversion options:
+- **Paste as Plain Text:** Strips all rich HTML formatting, colors, and links. (You can set a direct keybinding for this in the settings, like `Ctrl + Shift + V`, to bypass the menu entirely).
+- **Paste as Markdown:** Converts copied rich text or HTML lists directly into clean Markdown syntax.
+- **Paste as JSON:** Converts tabular data or lists into structured JSON formatting.
+
+### AI-Powered Transformations (Optional)
+If you configure an OpenAI API key in the Advanced Paste settings, you can perform complex clipboard edits on the fly:
+- Copy a block of messy log outputs, open Advanced Paste, and type *"summarize these errors into a bulleted list"*.
+- Copy a Spanish API document, open Advanced Paste, and select *"Translate to English"*.
+- Copy a raw stack trace and select *"Format this code block and highlight the main error source"*.
+
+---
+
+## Recommended Daily Workflow Integration
+
+Here is a practical workflow scenario showing how these tools complement each other:
+
+1. You encounter a broken script error in a video tutorial. Instead of typing the 80-character error line manually, press `Win + Shift + T`, drag a box over the video player, and copy the text.
+2. Open File Explorer and navigate to your downloaded assets. Press `Ctrl + Space` to **Peek** at your config files and verify their values.
+3. Switch to your markdown documentation or terminal, press `Win + Shift + V` (**Advanced Paste**), and select **Paste as Plain Text** to drop the copied error clean of any rich text formatting.
+
+In **Part 7**, we will cover the File Explorer utilities: **Image Resizer**, **PowerRename (regex)**, and **File Locksmith**.

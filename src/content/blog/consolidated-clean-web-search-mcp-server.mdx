@@ -1,0 +1,103 @@
+---
+title: "One Search MCP Server to Rule Them All: Free, Clean, and Optimized for Claude Code & Cursor"
+description: "Ditch the multiple search servers that bloat your context and hit rate limits. Here is how to configure a single, clean, and free search setup for Claude Code and Cursor."
+pubDate: 2026-06-29
+tags: [mcp, search, developer-tools, claude-code, cursor, configuration]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "6 min"
+---
+
+If you use local AI coding tools like **Claude Code CLI** or **Cursor**, you have probably set up a web search MCP (Model Context Protocol) server at some point. And if you're like most developers, you probably ended up with three or four: one for DuckDuckGo, one for Brave Search, another for Google, and maybe a webpage reader.
+
+Before long, you run into the classic pitfalls:
+1. **Context Bloat:** A search tool grabs a page and dumps raw HTML, header menus, tracker codes, and styles directly into your prompt, consuming 30,000 tokens in a single request.
+2. **Rate Limits:** You hit rate-limit errors or get blocked because you are hitting scrapers repeatedly.
+3. **Redundancy:** You have multiple servers running when you only need one reliable, clean source of information.
+
+Instead of writing a custom search server from scratch, you can consolidate everything into a single, clean, and free setup using the **Jina AI MCP Server**. Here is the configuration guide for Claude Code and Cursor.
+
+---
+
+## Why Jina AI is the Single Best Option
+
+Jina AI provides a dedicated Model Context Protocol server (`jina-ai-mcp-server`) that utilizes their search and reader endpoints (`s.jina.ai` and `r.jina.ai`).
+
+- **Zero HTML Bloat:** It automatically converts search results and target webpages into clean Markdown. It strips out headers, sidebars, cookie banners, and script tags, reducing payload size by up to 90%.
+- **High Rate Limits (Free):** While you can run it keyless (limited to 20 requests per minute), generating a free API key at [jina.ai](https://jina.ai) gives you **10 million free tokens** and bumps your rate limit to **500 requests per minute (RPM)**.
+- **Client Guardrails:** It handles automatic truncation, ensuring oversized page outputs are formatted proportionally to fit within your model's context budget.
+
+---
+
+## Configuration Guide
+
+Here is how to set up Jina AI as your single web search and reading tool for both Claude Code and Cursor.
+
+### 1. For Claude Code CLI
+Claude Code stores its global MCP configuration in your user settings file. 
+
+1. Obtain a free API key from the [Jina AI Console](https://jina.ai).
+2. Open your global MCP configuration file:
+   - On Windows: `%APPDATA%\Claude\mcp.json` (or `.mcp.json` in your home folder)
+   - On macOS/Linux: `~/.claude/mcp.json`
+3. Edit the file to include the Jina MCP server setup:
+
+```json
+{
+  "mcpServers": {
+    "jina-ai-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "jina-ai-mcp-server"],
+      "env": {
+        "JINA_API_KEY": "your_free_10M_token_api_key"
+      }
+    }
+  }
+}
+```
+
+### 2. For Cursor IDE
+To configure Jina search directly within Cursor:
+
+1. Open Cursor and navigate to **Settings > Project Settings > Features > MCP**.
+2. Click **+ Add New MCP Server**.
+3. Configure the fields:
+   - **Name:** `jina-search`
+   - **Type:** `command`
+   - **Command:** `npx -y jina-ai-mcp-server`
+4. Under **Environment Variables**, add:
+   - **Key:** `JINA_API_KEY`
+   - **Value:** `your_free_10M_token_api_key`
+5. Click **Save**.
+
+Cursor will automatically start the server, exposing the search and page-reading capabilities to your Composer and Chat interfaces.
+
+---
+
+## Alternative: Build Your Own (The DIY Blueprint)
+
+If you still prefer a 100% custom, self-hosted Node.js MCP server that uses DuckDuckGo with no API keys, here is the blueprint of how to write it to keep the context clean:
+
+### 1. Keyless Search Engine
+Use a package like `duck-duck-scrape` to execute searches programmatically. It scrapes DuckDuckGo results cleanly without hitting key requirements or severe rate limits.
+
+### 2. HTML Cleaning (Mozilla Readability)
+To prevent context bloat when reading webpages, use `@mozilla/readability` inside your server. This parses the raw HTML and extracts only the core article text, discarding tracking banners, sidebars, and navigation elements.
+
+### 3. Strict Token Truncation
+Enforce character caps on the return payload:
+```typescript
+// Truncate the page content before returning it to the LLM
+const cleanText = article.textContent;
+const maxChars = 8000; // Roughly 2000 tokens
+const safePayload = cleanText.length > maxChars 
+  ? cleanText.slice(0, maxChars) + "\n[Content truncated for context limits]"
+  : cleanText;
+```
+
+### The Verdict
+
+Building your own server gives you total control over the cleaning logic, but it requires maintenance. For most workflows, installing the official **Jina AI MCP Server** and configuring it with a free API key is the fastest, cleanest, and most reliable way to achieve a single-source search environment.
+
+Consolidate your stack, clean up your configuration files, and enjoy a bloat-free coding flow.

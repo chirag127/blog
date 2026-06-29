@@ -1,0 +1,87 @@
+---
+title: "Microsoft PowerToys, Part 2: FancyZones — Stop Using Windows Snap Like an Amateur"
+description: "A deep dive into FancyZones: how to build custom window layouts, use the CLI, set layout hotkeys, and build a dedicated dev coding workspace on any monitor size."
+pubDate: 2026-06-26
+tags: [powertoys, fancyzones, windows, productivity, developer-tools]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "7 min"
+---
+
+The default Windows snapping system (holding `Win + Arrow keys`) is fine if you are working on a 13-inch laptop and only need to compare two files side-by-side. But the moment you plug into a 27-inch 1440p monitor or a 34-inch ultrawide, default snapping is completely useless. Split-screen vertical halves leave windows too wide to read and leave empty screen real estate unused.
+
+This is where **FancyZones** comes in. It replaces standard snapping with a highly customizable grid system. If you hold **Shift** while dragging a window, zones appear on your screen, and releasing the window inside a zone snaps it to those exact pixel boundaries.
+
+---
+
+## Designing a Solo Developer Layout
+
+Don't just use the template layouts (like columns or rows) that FancyZones provides. You should build a custom layout tailored to your specific work. 
+
+To open the layout editor, launch the PowerToys dashboard, go to **FancyZones**, and click **Launch layout editor** (or press the default shortcut `Win + Shift + \``).
+
+For a developer working on a single monitor, I recommend creating a custom **Priority Grid** layout with three zones:
+1. **The Code Space (60% width, centered):** This is where VS Code lives. It needs to be wide enough to support an explorer sidebar, two editor tabs side-by-side, and code line lengths up to 120 columns without wrapping.
+2. **The Output Space (20% width, docked left):** This is for your local development browser window (e.g., viewing `localhost:5173` while coding) or a terminal output tailing Docker/Server logs.
+3. **The Spec Space (20% width, docked right):** This is for documentation (API references, Figma mockups, or your todo list).
+
+On an ultrawide monitor, you can duplicate this layout with nested canvas zones or split it into 4-5 zones, creating dedicated quadrants for communications (Slack/Teams) and background logs.
+
+---
+
+## Snapping and Navigation (Mouseless Snapping)
+
+As developers, we want to keep our hands on the keyboard as much as possible. Dragging windows with a mouse to snap them is slow. FancyZones allows you to override default Windows snap keys.
+
+In FancyZones settings, enable:
+- **Override Windows Snap:** Set this to **On**.
+- **Move windows based on:** Set to **Zone index**.
+
+Now, pressing `Win + Arrow keys` will move your active window between your custom zones in numerical order instead of Windows' default half-screen snaps.
+
+### Multi-Zone Snapping
+If you have a large monitor, you might occasionally want a window to occupy more than one zone (e.g., your IDE spanning both the center and left zones). 
+- Grab the window with your mouse.
+- Hold **Shift** to show the zones.
+- Hold **Ctrl** and drag your cursor across the boundary of multiple zones.
+- The zones will highlight together; release the mouse to snap the window across them.
+
+---
+
+## Power User Tip: Layout Hotkeys & CLI Control
+
+If you regularly switch between different types of work (e.g., active coding vs. screen sharing/meetings vs. research), you shouldn't manually open the editor to change layouts. 
+
+### Setting Hotkeys
+You can bind direct shortcuts to specific layouts in the editor:
+1. Open the FancyZones layout editor (`Win + Shift + \``).
+2. Hover over your custom layout card and click the edit pencil icon.
+3. In the layout settings, assign a hotkey number (e.g., `1`, `2`, or `3`).
+4. Now, pressing `Win + Ctrl + Alt + [Number]` will instantly apply that layout to the active monitor.
+
+### Advanced: FancyZones CLI Control
+If you are running automation scripts or setting up a Windows home server, you can control FancyZones programmatically using `FancyZonesCLI.exe` located in the PowerToys install directory.
+
+To see all available layouts and their UUIDs, open PowerShell and run:
+```powershell
+& "C:\Program Files\PowerToys\modules\FancyZones\FancyZonesCLI.exe" ls
+```
+
+To apply a specific layout UUID to your second monitor, run:
+```powershell
+& "C:\Program Files\PowerToys\modules\FancyZones\FancyZonesCLI.exe" s {your-layout-uuid} --monitor 2
+```
+
+---
+
+## Recommended Configuration Checklist
+
+To make FancyZones behave predictably, ensure these settings are toggled under **FancyZones Settings**:
+
+- [x] **Keep windows in their zones when screen resolution changes:** Essential if you regularly dock/undock your laptop from external monitors.
+- [x] **Move newly created windows to their last known zone:** Prevents newly launched apps from opening in random places across your screen.
+- [x] **Show zones on all monitors when dragging a window:** Crucial for multi-monitor setups.
+- [x] **Disable FancyZones when sharing screen:** Automatically turns off snapping overlays when using MS Teams, Zoom, or Discord to prevent distracting your audience.
+
+In **Part 3**, we will look at **PowerToys Run** and the new **Command Palette**, showing you how to replace your mouse entirely with a keyboard-first app launcher and system calculator.

@@ -1,0 +1,86 @@
+---
+title: "Microsoft PowerToys, Part 1: What It Is, Why Every Windows Power User Needs It, and How to Install It Correctly"
+description: "The definitive introduction to Microsoft PowerToys in 2026. What it is, how to install it via winget, what changed in v0.100.0, and how to configure it on first launch."
+pubDate: 2026-06-26
+tags: [powertoys, windows, productivity, developer-tools, setup]
+category: "Tech"
+draft: false
+author: "Chirag Singhal"
+readingTime: "6 min"
+---
+
+Most Windows users are leaving enormous productivity gains on the table by running their operating system stock. If you use a Windows laptop for development, data analysis, or deep research, there is one piece of software that is not optional: **Microsoft PowerToys**.
+
+PowerToys is a free, open-source suite of utility tools developed by Microsoft (originally inspired by the Windows 95-era PowerToys project) designed to customize and streamline how you interact with Windows. 
+
+As of June 2026, the tool is actively maintained at **v0.100.1** (released on June 24, 2026). The recent milestone release **v0.100.0** completely overhauled the suite's performance, migrating the codebase to **.NET 10**, resulting in a smaller installer, significantly faster startup times, and lower background memory footprint.
+
+This is Part 1 of a 10-part deep-dive series. Over the course of this series, we will critique every major PowerToy, show you how to configure the best ones, and wire them directly into real-world developer and power-user workflows.
+
+---
+
+## The v0.100.0 Performance Milestone
+
+Before we install, let's look at why v0.100.0 matters. Previous versions of PowerToys were criticized for being bloated—sometimes consuming hundreds of megabytes of RAM just to sit idle in the system tray. 
+
+The v0.100.0 release addressed this head-on:
+1. **.NET 10 Migration:** The entire runtime was upgraded, which reduces memory consumption and improves execution speeds of CPU-bound utilities (like OCR extraction and image resizing).
+2. **Modular Service Architecture:** Utilities now stay dormant until their hotkeys are triggered, meaning they won't waste battery or cycles in the background.
+3. **Redesigned Shortcut Guide & Command Palette:** The context-aware Shortcut Guide now adapts directly to the specific active app, and the Command Palette got a new community Extension Gallery.
+
+---
+
+## How to Install Correctly (The Power User Way)
+
+While you can download PowerToys from the Microsoft Store or directly from the GitHub releases page, there is only one correct way for a power user to install and maintain it: **Windows Package Manager (`winget`)**.
+
+Open your terminal (PowerShell or command prompt) and run:
+
+```powershell
+winget install Microsoft.PowerToys
+```
+
+### Why use `winget` instead of the Store or GitHub?
+- **Silent Upgrades:** You can update it easily along with your other CLI utilities using a simple `winget upgrade --all` script.
+- **No Background Store Services:** It avoids the extra background process overhead that the Microsoft Store wrapper occasionally adds.
+- **Reliable Automation:** If you build a new laptop home server or spin up a new dev machine, you can drop this command straight into a bootstrap script.
+
+---
+
+## First-Launch Configuration: The Mandatory Steps
+
+When PowerToys launches for the first time, don't just leave it at default settings. Open the PowerToys Settings dashboard and do these three things:
+
+### 1. Enable "Run as Administrator"
+Some utilities (specifically **Keyboard Manager** and **PowerToys Run**) need administrative privileges to intercept shortcuts when you are focused on elevated windows (like an administrator PowerShell instance or VS Code running as admin). 
+- Go to **General** settings.
+- Scroll down to **Administrator mode**.
+- Toggle **Always run as administrator** to **On**.
+
+### 2. Disable What You Don't Use (The Lean Stack Philosophy)
+PowerToys comes with over 20 utilities enabled by default. Keeping them all active is a recipe for system instability and performance degradation.
+- Go through the list in the sidebar.
+- Turn **Off** anything you don't immediately need (e.g., if you don't type accents, turn off *Quick Accent*. If you don't use multiple computers side-by-side, turn off *Mouse Without Borders*).
+- You can always toggle them back on when you need them.
+
+### 3. Check for Shortcut Conflicts
+Many PowerToys use shortcuts that overlap with Windows system shortcuts or IDE keybindings. For instance, **Text Extractor** defaults to `Win + Shift + T`, which might conflict with browser tab shortcuts or terminal bindings. Review each utility’s hotkeys and customize them to avoid collisions.
+
+---
+
+## The 10-Part Series Roadmap
+
+Here is what we will cover in this series:
+
+- **Part 1:** Introduction, installation, and first-launch setup *(You are here)*
+- **Part 2:** **FancyZones** — Stop using standard Windows Snap like an amateur.
+- **Part 3:** **PowerToys Run & Command Palette** — Your keyboard-first desktop launcher.
+- **Part 4:** **Keyboard Manager** — Remapping keys system-wide and application-specific.
+- **Part 5:** **Workspaces & Awake** — One-click environment setups and preventing system sleep.
+- **Part 6:** **Text Extractor, Peek, & Advanced Paste** — The information capture trilogy.
+- **Part 7:** **File Tools** — Image Resizer, PowerRename (regex), and File Locksmith.
+- **Part 8:** **Developer Utilities** — Hosts File Editor, Env Variables manager, Registry Preview, and Color Picker.
+- **Part 9:** **Mouse & Screen Utilities** — Find My Mouse, Mouse Jump, ZoomIt, and Screen Ruler.
+- **Part 10:** **The Complete Setup** — Recommended configuration profiles and automated backup strategies.
+
+In **Part 2**, we will tackle **FancyZones** to rebuild your window layouts and configure keyboard-based zone snapping. Let's get started.
