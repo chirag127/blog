@@ -1,0 +1,165 @@
+---
+title: "Claude Code vs OpenCode in 2026: A Feature-by-Feature Comparison From the Inside"
+description: "Both are the top of the terminal-AI-agent market. When does each win? A 60-row parity matrix and five hands-on tasks, run side-by-side on the same Windows workspace."
+pubDate: 2026-07-02
+heroImage: '/og-default.png'
+category: 'Tools'
+tags: ['claude-code', 'opencode', 'ai-tools', 'agents', 'developer-tools', 'terminal']
+author: 'Chirag Singhal'
+---
+
+
+## TL;DR
+
+- **Claude Code wins on**: bundled test-driven skills (`/run`, `/verify`), inter-agent `SendMessage` primitive, JetBrains + iOS + Web surfaces, mature Windows native install, and a `AskUserQuestion` MCQ pattern that few other agents ship.
+- **OpenCode wins on**: MIT-licensed open source (181k GitHub stars, direct fork model), 75+ model providers via BYOK, built-in LSP for ~32 languages with no per-language MCP wiring, JS/TS plugin ecosystem with npm access, and exhaustively configurable keybinds (~100 documented actions).
+- **They tie on**: MCP servers, project memory (both auto-load `AGENTS.md`/`CLAUDE.md`), subagents with parallel spawn, TUI-first UX, MDM/enterprise-managed config, and slash-command extensibility.
+- **Neither is a wrong answer.** The right pick is a function of your provider stack, your license constraints, and whether you want a batteries-included managed product or a hackable open toolchain.
+
+## Framing
+
+By mid-2026, terminal-native AI coding agents have consolidated into two dominant patterns: **Claude Code** (Anthropic, proprietary CLI + Claude Agent SDK) and **OpenCode** (Anomaly/sst, MIT-licensed, model-agnostic). Cursor and Windsurf still ship, but they're IDE-first; Aider is losing mindshare; Codex has an OpenAI-specific slot. If you type `claude` or `opencode` in your terminal, you're at the top of the market.
+
+This post compares them **feature-by-feature** with a 60-row parity matrix drawn from official docs (fetched 2026-07-02) plus five hands-on tasks run side-by-side on a corporate Windows 11 workspace with both CLIs installed (`claude 2.1.196` and `opencode 1.17.12`).
+
+No sponsorship, no affiliation. Both tools are legitimate; the goal is to make it easy to pick the right one for a given team.
+
+## Full parity matrix
+
+| # | Feature | Claude Code (v2.1.x, Anthropic) | OpenCode (v1.17.x, Anomaly/sst) |
+|---|---|---|---|
+| 1 | Hook events (count) | **30+** including SessionStart, SessionEnd, UserPromptSubmit, UserPromptExpansion, PreToolUse, PostToolUse, PostToolUseFailure, PostToolBatch, PermissionRequest, PermissionDenied, Notification, MessageDisplay, SubagentStart, SubagentStop, TaskCreated, TaskCompleted, Stop, StopFailure, TeammateIdle, InstructionsLoaded, ConfigChange, CwdChanged, FileChanged, WorktreeCreate, WorktreeRemove, PreCompact, PostCompact, Elicitation, ElicitationResult, SessionEnd | **25+** including `session.created/idle/ended/compacted`, `message.part.updated`, `tool.execute.before/after`, `permission.asked/replied`, `file.edited`, `command.executed`, `lsp.client.diagnostics`, `server.connected`, `todo.updated`, `tui.prompt.append` |
+| 2 | Hook handler types | Shell command, HTTP endpoint, MCP tool, prompt, agent | JavaScript/TypeScript async functions inside a plugin module |
+| 3 | Hook filtering | `matcher` + optional `if` conditional (e.g. `Bash(rm *)`) avoids process spawn on non-match | JS conditionals inside plugin body |
+| 4 | Hook config location | `settings.json` (managed / user / project / local) | JS/TS files in `.opencode/plugins/` or `~/.config/opencode/plugins/`, or npm packages in `opencode.json` `plugin: [...]` |
+| 5 | Hook decisions | Exit code 2 = block; stdout JSON `{permissionDecision, additionalContext}`; Stop/SubagentStop can inject context | Plugin function mutates `output.args` in place |
+| 6 | MCP servers | Native. `.mcp.json` (project) + `~/.claude.json` (user) + managed policy | Native. `opencode.json` `mcp` key |
+| 7 | MCP transports | stdio, HTTP (streamable-http), SSE | Local (stdio) + Remote (HTTP with headers/OAuth via RFC 7591 DCR); auto-401 handling |
+| 8 | MCP per-tool permissions | Yes — `permissions.allow/deny` pattern `mcp__server__tool` | Yes — per-tool `permission` block |
+| 9 | MCP tool search (deferred loading) | Yes — `ENABLE_TOOL_SEARCH=auto` keeps schemas out of prefix cache | Not documented |
+| 10 | Skills — format | `.claude/skills/<name>/SKILL.md` + supporting files; frontmatter controls invocation | Markdown in `.opencode/commands/` with YAML frontmatter (`description`, `agent`, `model`); supports `$ARGUMENTS`, `!bash`, `@file` |
+| 11 | Skills — cross-tool | Agent Skills open standard | Reads `~/.claude/skills/` for CC compatibility |
+| 12 | Bundled skills | `/code-review`, `/batch`, `/debug`, `/loop`, `/claude-api`, `/run`, `/verify`, `/run-skill-generator` | None official |
+| 13 | Skill auto-invoke | Yes — Claude decides based on description | Explicit invocation only |
+| 14 | Subagents | `Explore`, `Plan`, `general-purpose`, `claude`, user-defined | `build`, `plan` (primary); `general`, `explore`, `scout` (subagent); user-defined |
+| 15 | Parallel subagent spawn | Yes — multiple Agent calls in one turn | Yes — `general` designed for it |
+| 16 | Background subagents | Yes — `run_in_background: true` on Agent + Bash | Headless `opencode serve` + SSE; no per-call flag |
+| 17 | Subagent isolation | `isolation: "worktree"` (git worktree) or `"remote"` (cloud) | Child sessions; no worktree flag |
+| 18 | Model override per subagent | Yes | Yes |
+| 19 | Inter-agent messaging | `SendMessage` — named teammates, structured protocol messages | None equivalent; session fork instead |
+| 20 | Project memory | `CLAUDE.md` (auto-load, `@import`); `.claude/rules/*.md` (path-scoped) | `AGENTS.md` (auto-load, walks up tree); `.claude/CLAUDE.md` fallback |
+| 21 | Auto memory | Yes — Claude writes learnings automatically | Not documented |
+| 22 | User-global memory | `~/.claude/CLAUDE.md` | `~/.config/opencode/AGENTS.md` |
+| 23 | Org memory | Managed policy (plist, registry, `managed-settings.json`) | Managed dirs + macOS MDM `.mobileconfig` (highest priority) |
+| 24 | Plugins / marketplace | `/plugin install`, `/plugin marketplace add`; Anthropic official marketplace | npm-installable + local; community "ecosystem" catalog |
+| 25 | Provider support | Anthropic API + AWS Bedrock (BYOC) + Google Vertex AI (BYOC) | **75+ providers** via AI SDK + Models.dev; OpenCode Zen curated hub; local via `lmstudio/`, ollama |
+| 26 | Model selection | `/model opus\|sonnet\|haiku` | `/models` picker; `/connect` OAuth; per-agent frontmatter; `--variant` |
+| 27 | Effort / reasoning levels | `/effort low\|medium\|high\|xhigh`; `alwaysThinkingEnabled` | Variants (`high`, `max`, `low`, `xhigh`, custom) |
+| 28 | Permissions | `permissions.allow/deny` with wildcards | Per-category (`read`, `edit`, `bash`, `glob`, `grep`, `task`, `skill`, `lsp`, `question`, `webfetch`, `websearch`, `external_directory`, `doom_loop`) with `allow`/`ask`/`deny` |
+| 29 | Permission precedence | Merge across scopes | Last-matching-rule-wins |
+| 30 | Config format | JSON, no comments | JSONC supported; 8-level precedence including remote (`.well-known/opencode`) |
+| 31 | Terminal / TUI | Primary; plan mode, diff viewer, thinking summaries | Primary; Tab-toggle Plan/Build, `--mini` mode, diff-wrap toggle |
+| 32 | VS Code extension | Yes — official | Yes — official (`sdks/vscode/`) |
+| 33 | JetBrains plugin | Yes (IntelliJ, PyCharm, WebStorm) | Not documented |
+| 34 | Zed integration | Not documented | Yes (`.zed/`) |
+| 35 | Desktop app | Yes — macOS + Windows x64/ARM64; scheduled tasks, side-by-side sessions | Beta — macOS/Windows/Linux (dmg/exe/deb/rpm/AppImage) |
+| 36 | Web / mobile | `claude.ai/code` + Claude iOS app + Remote Control | Not documented |
+| 37 | Headless / server | `-p` non-interactive, `--init-only` for CI | `opencode serve` on port 4096, OpenAPI 3.1, SSE, mDNS |
+| 38 | Slash commands (built-in) | `/model`, `/effort`, `/fast`, `/skill`, `/clear`, `/compact`, `/memory`, `/help`, `/config`, `/plugin`, `/rewind`, `/mcp` | `/init`, `/undo`, `/redo`, `/share`, `/help`, `/connect`, `/models`, `/compact`, `/clear` |
+| 39 | Custom slash commands | Yes (as skills) | Yes (markdown with frontmatter) |
+| 40 | `@import` in memory files | Yes | Not for imports; `@file` for TUI fuzzy search |
+| 41 | Background tasks | `run_in_background: true`; notification on completion; `--continue` resumes | Headless serve + SSE; session fork API |
+| 42 | Cost model | Subscription (Pro/Max) OR API pay-as-you-go OR Bedrock/Vertex BYOC | Free, open source, BYOK on any provider; optional OpenCode Zen aggregator |
+| 43 | Open-source status | CLI proprietary; Claude Agent SDK open source (Node + Python) | Fully **MIT** — 181k stars, 22.4k forks, 14,719 commits (fetched 2026-07-02) |
+| 44 | Interactive prompts | `AskUserQuestion` MCQ tool (4-option cap, ranked recommendation) | Permission `ask` prompts only; no multi-choice widget |
+| 45 | Edit tools | `Read`, `Write`, `Edit` (exact-string), `NotebookEdit`, `Glob`, `Grep` (ripgrep) | `read`, `edit`, `write`, `patch`, `glob`, `grep`; each permission-keyed |
+| 46 | Diff viewer / undo | `/rewind` (automatic snapshots); inline in TUI + VS Code | `/undo`, `/redo` (git-based); `session.diff` event; diff-wrap toggle |
+| 47 | Team features | Managed policy; GitHub Actions, Code Review, GitLab CI/CD integrations | Remote config via `.well-known/opencode`; managed dirs; MDM |
+| 48 | Verbosity / transcripts | `showThinkingSummaries`; `/config verbose=true` | `session_export`, `session_timeline`, `session.share`, `POST /session/:id/fork` |
+| 49 | Concurrency | Desktop side-by-side; agent teams via `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` | Multi-session with child navigation; server monitors all sessions |
+| 50 | Streaming | Token + tool-call interleaving | SSE at `/global/event`; `message.part.updated` streams |
+| 51 | Refactor / LSP | Via MCP (e.g. Serena) | **Built-in LSP for ~32 languages**; auto-download; off by default |
+| 52 | Test-driven workflow | `/verify` + `/run` + `/run-skill-generator` bundled (v2.1.145+) | Custom commands with `!bash` injection; no dedicated primitive |
+| 53 | File handling | Read, Write, Edit, NotebookEdit, Glob, Grep | read, edit, write, patch, glob, grep; `@filename` fuzzy search |
+| 54 | External CLI | `Bash` / `PowerShell` tool; wildcard permissions | `bash` tool; plugin `$` = Bun shell API |
+| 55 | Notifications | `Notification` hook + `claude-notifications-go` plugin; iOS push | Hook-based via `session.idle` (community example: `osascript`) |
+| 56 | Session lifecycle | `/clear`, `/compact`, `--continue`, `/rewind` | `session_new/list/fork/rename/delete/interrupt/compact/share` + child navigation |
+| 57 | Language support | All (LSP-agnostic; base model + MCP) | 32 first-class LSP; general fallback for rest |
+| 58 | Keybindings | Standard TUI; not deeply configurable | Fully configurable via `~/.config/opencode/tui.json`; **~100 documented actions** |
+| 59 | Windows support | Native installer, WinGet, Chocolatey | WSL recommended; native via Choco/Scoop/npm/Docker |
+| 60 | GitHub activity | `anthropics/claude-code` closed source | `anomalyco/opencode` (was `sst/opencode`) — 181k stars, 22.4k forks, 14,719 commits, 23 language READMEs |
+
+## Hands-on: five tasks on the same workspace
+
+Tested 2026-07-02 on a Windows 11 workspace with `claude 2.1.196` and `opencode 1.17.12` installed side-by-side. The workspace has ~40 MCP servers, a rich `AGENTS.md`/`CLAUDE.md`, and hooks for token compression and knowledge lookup.
+
+### Task 1 — Read `AGENTS.md`, summarize the top constraints
+
+- **Claude Code**: Zero-work — `AGENTS.md` auto-imports on every session per this workspace's config. Answer available before I finished typing the question.
+- **OpenCode**: `cd C:/D/oriz && opencode run --auto "..."` cold-started, read the file, returned a correct 3-bullet answer in ~25 seconds on `opencode/big-pickle` (a free OpenCode Zen model). **Surprise win: no per-agent config needed — same `AGENTS.md` picked up automatically.**
+
+### Task 2 — Grep for a symbol and rename
+
+Both handle text-level rename identically (`Grep` + `Edit` with `replace_all`, or `grep` + `edit`). For symbol-level: Claude Code reaches for the Serena MCP server; OpenCode ships built-in LSP for 32 languages, no MCP needed. **OpenCode's LSP is off by default**, which its own docs justify as a memory trade-off; enable per-language.
+
+### Task 3 — Spawn a subagent to research
+
+Both offer parallel subagents. Claude Code has a named `researcher` subagent pinned to Haiku for cost, invoked via the `Agent` tool. OpenCode has `general`, `explore`, `scout` — invoke inside a session via `@mention`. **Friction observed**: `opencode run --agent explore ...` failed with *"agent 'explore' is a subagent, not a primary agent"* — subagents can only be spawned from inside a primary session, not from the shell wrapper.
+
+### Task 4 — Fire a hook on user-prompt-submit
+
+- **Claude Code**: Add a JSON block to `settings.json` under `hooks.UserPromptSubmit`. Filter with `matcher` + `if`. Well-worn — this workspace uses it for three separate hooks.
+- **OpenCode**: Write a TypeScript plugin in `.opencode/plugins/`, export an async function returning a `hooks` object with the event name (`session.updated`, `message.part.updated`, etc.). Higher setup cost (need Bun, plugin types), but access to the full npm ecosystem via `bun install`.
+
+### Task 5 — Use an MCP server tool
+
+- **Claude Code**: `.mcp.json` at workspace root; 40+ servers wired for this project. `mcp__toolbox__search_toolbox` for discovery. `ENABLE_TOOL_SEARCH=auto` keeps schemas out of the cache prefix — meaningful cache-hit-rate win.
+- **OpenCode**: `opencode mcp` CLI + `mcp` block in `opencode.json`. Supports local (stdio) + remote (HTTP with headers or OAuth via RFC 7591 Dynamic Client Registration); auto-handles 401s on remote. No deferred-loading feature documented.
+
+## Recommendation matrix
+
+| If you… | Pick |
+|---|---|
+| Have a Claude subscription and want a smooth managed experience | **Claude Code** |
+| Want to route to OpenAI, Google, DeepSeek, or local Ollama | **OpenCode** |
+| Need JetBrains, Web, or iOS surfaces | **Claude Code** |
+| Want first-class LSP for many languages with no per-language MCP wiring | **OpenCode** |
+| Want bundled `/verify` + `/run` test-driven loops | **Claude Code** |
+| Prefer JS/TS plugins with npm ecosystem over JSON hooks | **OpenCode** |
+| Need MDM/enterprise-managed policies | Either — both support it |
+| Are on Windows without WSL | **Claude Code** (native installer + WinGet) |
+| Want an MIT-licensed open-source tool you can fork | **OpenCode** |
+| Want deep parallel-subagent orchestration with named messaging | **Claude Code** |
+| Want to mix free + paid models per task | **OpenCode** (Zen + BYOK) |
+
+## Conclusion
+
+The parity between these two products in mid-2026 is closer than the discourse suggests. Both auto-load `AGENTS.md`/`CLAUDE.md`. Both ship native MCP support with per-tool permissions. Both have 25-30+ hook events, parallel subagents, headless server modes, and mature TUIs. The differentiators cluster into three groups:
+
+1. **Managed vs open** — Claude Code is a proprietary, subscription/API product with polish, marketing, and Anthropic's model in the driver's seat. OpenCode is MIT-licensed, provider-agnostic, and moves in the open. Both are legitimate design choices with different failure modes (SaaS lock-in vs BYOK complexity).
+
+2. **Batteries-included vs assembly-required** — Claude Code bundles skills (`/verify`, `/run`, `/rewind`), the `AskUserQuestion` MCQ pattern, and an inter-agent `SendMessage` primitive. OpenCode ships fewer bundled skills but a more powerful plugin runtime (JS/TS with npm access) and built-in LSP for 32 languages.
+
+3. **Surface breadth** — Claude Code covers CLI, VS Code, JetBrains, desktop, web, and mobile. OpenCode covers CLI, VS Code, Zed, and desktop-beta, plus a first-class headless server that lets you build your own surfaces.
+
+If you already work inside the Anthropic ecosystem, Claude Code is the path of least resistance. If your team uses multiple providers, wants to self-host, or needs to embed an agent in a custom surface, OpenCode is unusually strong. **Most teams will benefit from having both installed** — they don't conflict, they read each other's memory files, and the friction of switching is close to zero.
+
+## References
+
+1. [Claude Code — Hooks reference](https://docs.claude.com/en/docs/claude-code/hooks) (fetched 2026-07-02)
+2. [Claude Code — Overview](https://docs.claude.com/en/docs/claude-code/overview) (fetched 2026-07-02)
+3. [Claude Code — Skills](https://docs.claude.com/en/docs/claude-code/skills) (fetched 2026-07-02)
+4. [Claude Code — MCP](https://docs.claude.com/en/docs/claude-code/mcp) (fetched 2026-07-02)
+5. [Claude Code — Subagents](https://docs.claude.com/en/docs/claude-code/subagents) (fetched 2026-07-02)
+6. [Claude Code — Settings](https://docs.claude.com/en/docs/claude-code/settings) (fetched 2026-07-02)
+7. [Claude Code — Memory](https://docs.claude.com/en/docs/claude-code/memory) (fetched 2026-07-02)
+8. [Claude Code — Plugins](https://docs.claude.com/en/docs/claude-code/plugins) (fetched 2026-07-02)
+9. [OpenCode — Intro](https://opencode.ai/docs/) (fetched 2026-07-02)
+10. [OpenCode — Plugins](https://opencode.ai/docs/plugins/) (fetched 2026-07-02)
+11. [OpenCode — Agents](https://opencode.ai/docs/agents/) (fetched 2026-07-02)
+12. [sst/opencode GitHub repository](https://github.com/sst/opencode) (fetched 2026-07-02)
+13. Firecrawl — [Claude Code vs OpenCode](https://firecrawl.dev/blog/claude-code-vs-opencode) (2026-06-01)
+14. Thomas Wiegold — [I Switched From Claude Code to OpenCode](https://thomas-wiegold.com/blog/i-switched-from-claude-code-to-opencode) (2026-02-17)
+15. Danilchenko — [OpenCode vs Claude Code vs Cursor](https://danilchenko.dev/posts/opencode-vs-claude-code) (2026-06-09)
+16. Turbodocx — [Cursor vs Claude Code vs OpenCode 2026](https://turbodocx.com/blog/cursor-vs-claude-code-vs-opencode-2026) (2026-05-10)
+17. Medium (unicodeveloper) — [Claude Code vs Codex vs OpenCode](https://medium.com/@unicodeveloper/claude-code-vs-codex-vs-opencode-which-ai-coding-agent-is-actually-the-best-in-2026-baa9f6fd5374) (2026-05-22)
