@@ -1,0 +1,65 @@
+---
+title: "Hermes Agent: LLM or coding tool? What it actually is in 2026"
+description: "Every AI agent comparison roundup lists 'Hermes Agent' alongside Claude Code and OpenCode. Here is what it actually is — and why it belongs in a completely different category."
+pubDate: 2026-07-08
+author: "Chirag Singhal"
+tags: ["ai-agents", "hermes", "nous-research", "llm", "coding-agents"]
+canonicalUrl: "https://blog.oriz.in/posts/hermes-agent-what-is-it/"
+---
+
+Every time a new "best AI coding agents 2026" list drops, the same names appear:
+Claude Code, OpenCode, Kilo Code — and then, tucked in the middle, **Hermes Agent**.
+
+The comparison never quite fits. That's because Hermes Agent is not a coding CLI at all.
+
+## What NousResearch Hermes actually is
+
+[NousResearch/Hermes-Function-Calling](https://github.com/NousResearch/Hermes-Function-Calling)
+is a Python repository that demos how to run the **Hermes family of LLMs** and get
+structured function-calling output from them. Think: "ask the model what the current
+stock price of TSLA is, have it call a `get_stock_price()` tool, get back a JSON result."
+
+Install:
+```bash
+pip install -r requirements.txt
+python functioncall.py --query "What is the stock price of Apple?"
+```
+
+That's the whole thing. A Jupyter-notebook-style Python script, 1,416 GitHub stars,
+last commit 2025-12-22, no releases, no npm package, no binary, no terminal UX, no
+MCP support, no IDE integration.
+
+**The "Hermes" in AI agent lists** comes from AionUi — an Electron GUI wrapper that
+lists "Hermes Agent" among the 25+ CLI tools it can wrap. That list entry is
+unverified marketing copy. There is no standalone `hermes` CLI that you can
+`npm install -g` and point at a codebase.
+
+## The Hermes LLM family (what people actually mean)
+
+When someone says "Hermes" in an AI context, they usually mean one of the
+Nous Research fine-tuned models:
+
+- **Nous Hermes 3** — Llama 3.1 8B/70B fine-tune, strong at instruction following
+- **Hermes Pro** — tuned for function calling and structured JSON output
+- **Hermes 2 Theta** — merged model, popular on Ollama
+
+These are **models**, not agents. You can run them via Ollama, LM Studio, or
+OpenRouter. You can then point a real coding agent (OpenCode, Claude Code) at the
+Ollama endpoint running Hermes. That's the closest you get to "Hermes as a coding agent."
+
+## What to use instead
+
+If you want a terminal coding agent:
+
+| Want | Use |
+|---|---|
+| Best all-round, corp Bedrock | Claude Code |
+| Free-tier providers, OpenAI-compat | OpenCode |
+| Local Hermes model + coding agent | OpenCode → Ollama → Hermes 3 |
+
+The model and the agent are two different things. Hermes is a model.
+Claude Code and OpenCode are agents. You can combine them.
+
+---
+
+*Next in this series: [What is OpenClaw — and is it a coding agent?](/posts/openclaw-what-is-it/)*

@@ -1,0 +1,74 @@
+---
+title: "OpenClaw: AI chat gateway, not a coding agent"
+description: "OpenClaw shows up in AI agent comparisons alongside Claude Code. Here is what it actually does — and why the comparison does not make sense."
+pubDate: 2026-07-08
+author: "Chirag Singhal"
+tags: ["ai-agents", "openclaw", "coding-agents", "messaging-gateway"]
+canonicalUrl: "https://blog.oriz.in/posts/openclaw-what-is-it/"
+---
+
+OpenClaw (`openclaw/openclaw`) is regularly lumped into coding agent comparisons.
+It should not be. Here is what it actually is.
+
+## What OpenClaw is
+
+OpenClaw is a **multi-channel AI gateway** — a self-hosted server that connects
+an AI backend to messaging platforms. From the README:
+
+> "Your own personal AI assistant. Any OS. Any Platform."
+
+It supports: WhatsApp, Telegram, Slack, Discord, iMessage, Matrix.
+You run a local server, connect your API keys, and your AI assistant
+shows up in your chat apps.
+
+Install via npm:
+```bash
+npm install openclaw
+openclaw start
+```
+
+Skills live in `~/.openclaw/skills/` and are installed with
+`npx clawhub install <skill>` or `openclaw skills install <name>`.
+
+## What OpenClaw is NOT
+
+- Not a terminal coding agent
+- Does not edit files in your codebase
+- Does not run tests, read git diffs, or make commits
+- Does not support `.mcp.json` or the MCP protocol for tool use
+- Does not integrate with VS Code, JetBrains, or any IDE
+
+It is a **chat interface wrapper**, not a coding tool. It is to
+Claude Code what a Telegram bot frontend is to a backend API —
+a delivery mechanism, not the intelligence.
+
+## The AionUi connection
+
+AionUi (the Electron GUI wrapper with 29K stars) wraps both OpenClaw
+and coding CLIs like Claude Code in a single desktop interface. This is
+why they appear in the same lists — they are both AionUi plugins.
+That does not make them equivalent tools.
+
+## When OpenClaw makes sense
+
+OpenClaw is genuinely useful for:
+
+- Having your AI assistant available in WhatsApp while on mobile
+- Bridging a Telegram bot to Claude/GPT with your own API key
+- Running a shared household/team AI over Discord
+- BYOK (bring your own key) chat without a subscription
+
+It competes with: PrivateGPT, Jan.ai chat UI, LibreChat — **not** with
+Claude Code or OpenCode.
+
+## Skills incompatibility
+
+If you use the `npx skills` workflow (from `chirag127/agent-skills`),
+note that OpenClaw's `~/.openclaw/skills/` path uses a different
+install mechanism (`clawhub`) and is **not** the same as the
+`~/.claude/skills/` or `~/.config/opencode/skills/` paths that
+Claude Code and OpenCode share. Skills do not transfer between them.
+
+---
+
+*Next in this series: [Hermes vs OpenClaw vs Claude Code vs OpenCode — the real comparison](/posts/hermes-openclaw-vs-claude-code-opencode/)*
