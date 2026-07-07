@@ -1,74 +1,75 @@
 ---
-title: "OpenClaw: AI chat gateway, not a coding agent"
-description: "OpenClaw shows up in AI agent comparisons alongside Claude Code. Here is what it actually does — and why the comparison does not make sense."
+title: "OpenClaw: messaging gateway with an agent loop inside"
+description: "OpenClaw routes AI through WhatsApp, Telegram, Slack, and 15+ other channels. It also has a skills system and agent loop — and Hermes Agent can migrate from it. Here is what it is."
 pubDate: 2026-07-08
 author: "Chirag Singhal"
-tags: ["ai-agents", "openclaw", "coding-agents", "messaging-gateway"]
+tags: ["ai-agents", "openclaw", "messaging-gateway", "coding-agents"]
 canonicalUrl: "https://blog.oriz.in/posts/openclaw-what-is-it/"
 ---
 
-OpenClaw (`openclaw/openclaw`) is regularly lumped into coding agent comparisons.
-It should not be. Here is what it actually is.
+OpenClaw (`openclaw/openclaw`, npm `openclaw` v2026.6.11) is primarily a
+**personal AI assistant gateway** that routes AI through messaging channels you
+already use: WhatsApp, Slack, Telegram, Discord, LINE, Matrix, and 15+ more.
 
-## What OpenClaw is
+From the README:
+> "OpenClaw is a personal AI assistant you run on your own devices. It answers you on the channels you already use."
 
-OpenClaw is a **multi-channel AI gateway** — a self-hosted server that connects
-an AI backend to messaging platforms. From the README:
+## What it is
 
-> "Your own personal AI assistant. Any OS. Any Platform."
+- Routes any AI provider (Claude, GPT, local models) through messaging apps
+- Ships a CLI binary (`openclaw.mjs`) and TUI server mode
+- iOS and Android app targets (`ai.openclaw.ios`, `ai.openclaw.android`)
+- Runtime dependencies: `@whiskeysockets/baileys` (WhatsApp), `@slack/bolt` (Slack),
+  `grammy` (Telegram), `discord-api-types` (Discord), `@line/bot-sdk` (LINE)
+- ~170+ plugin-sdk exports covering channel, provider, approval, and memory primitives
 
-It supports: WhatsApp, Telegram, Slack, Discord, iMessage, Matrix.
-You run a local server, connect your API keys, and your AI assistant
-shows up in your chat apps.
+## It also has an agent loop
 
-Install via npm:
-```bash
-npm install openclaw
-openclaw start
-```
+Here is the part that surprises people: OpenClaw has a **skills system and memory
+architecture** similar to other coding agents. cc-switch (the all-in-one coding
+agent manager) treats OpenClaw as a peer to Claude Code and OpenCode, with a
+dedicated `src/components/openclaw/` directory and a Workspace editor feature.
 
-Skills live in `~/.openclaw/skills/` and are installed with
-`npx clawhub install <skill>` or `openclaw skills install <name>`.
+More tellingly: **Hermes Agent has a `hermes claw migrate` command** that
+explicitly migrates from `~/.openclaw`:
 
-## What OpenClaw is NOT
+> "If you're coming from OpenClaw, Hermes can automatically import your settings,
+> memories, skills, and API keys."
 
-- Not a terminal coding agent
-- Does not edit files in your codebase
-- Does not run tests, read git diffs, or make commits
-- Does not support `.mcp.json` or the MCP protocol for tool use
-- Does not integrate with VS Code, JetBrains, or any IDE
+Migrated items: SOUL.md, Memories (MEMORY.md, USER.md), Skills, Command allowlist,
+Messaging settings, API keys, AGENTS.md.
 
-It is a **chat interface wrapper**, not a coding tool. It is to
-Claude Code what a Telegram bot frontend is to a backend API —
-a delivery mechanism, not the intelligence.
+This confirms OpenClaw has a skills system, memory files, and agent configuration —
+not just a chat relay.
 
-## The AionUi connection
+## What makes it different from Claude Code / OpenCode
 
-AionUi (the Electron GUI wrapper with 29K stars) wraps both OpenClaw
-and coding CLIs like Claude Code in a single desktop interface. This is
-why they appear in the same lists — they are both AionUi plugins.
-That does not make them equivalent tools.
+Despite having an agent loop, OpenClaw is **messaging-first, coding-second**:
+
+| | OpenClaw | Claude Code | OpenCode |
+|---|---|---|---|
+| **Primary use case** | AI over WhatsApp/Telegram/Slack | Terminal code editing | Terminal code editing |
+| **Code editing** | ❌ not primary | ✅ | ✅ |
+| **Messaging channels** | ✅ 20+ platforms | ❌ | ❌ |
+| **MCP** | ⚠️ not documented as primary | ✅ native | ✅ native |
+| **Terminal TUI** | ✅ server mode | ✅ coding sessions | ✅ coding sessions |
+| **`npx skills` compat** | ⚠️ own `clawhub` CLI | ✅ | ✅ |
+| **AionUi listing** | ✅ listed | ✅ listed | ✅ listed |
 
 ## When OpenClaw makes sense
 
-OpenClaw is genuinely useful for:
+- You want Claude/GPT accessible in WhatsApp or Telegram on mobile
+- BYOK chat without a subscription to any chat app
+- Building a team Discord/Slack bot backed by your own API key
+- You are already in the OpenClaw ecosystem and want to stay there
 
-- Having your AI assistant available in WhatsApp while on mobile
-- Bridging a Telegram bot to Claude/GPT with your own API key
-- Running a shared household/team AI over Discord
-- BYOK (bring your own key) chat without a subscription
+## When to use something else
 
-It competes with: PrivateGPT, Jan.ai chat UI, LibreChat — **not** with
-Claude Code or OpenCode.
-
-## Skills incompatibility
-
-If you use the `npx skills` workflow (from `chirag127/agent-skills`),
-note that OpenClaw's `~/.openclaw/skills/` path uses a different
-install mechanism (`clawhub`) and is **not** the same as the
-`~/.claude/skills/` or `~/.config/opencode/skills/` paths that
-Claude Code and OpenCode share. Skills do not transfer between them.
+For terminal code editing, Claude Code or OpenCode are dedicated and better
+optimised. OpenClaw is a genuine agent with memory and skills, but its
+architecture serves messaging delivery first and coding second.
 
 ---
 
-*Next in this series: [Hermes vs OpenClaw vs Claude Code vs OpenCode — the real comparison](/posts/hermes-openclaw-vs-claude-code-opencode/)*
+*Previous: [What is Hermes Agent?](/posts/hermes-agent-what-is-it/)*
+*Series finale: [Hermes vs OpenClaw vs Claude Code vs OpenCode — the full comparison](/posts/hermes-openclaw-vs-claude-code-opencode/)*

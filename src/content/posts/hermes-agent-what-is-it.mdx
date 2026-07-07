@@ -1,65 +1,72 @@
 ---
-title: "Hermes Agent: LLM or coding tool? What it actually is in 2026"
-description: "Every AI agent comparison roundup lists 'Hermes Agent' alongside Claude Code and OpenCode. Here is what it actually is — and why it belongs in a completely different category."
+title: "Hermes Agent: what it actually is in 2026 (not the LLM)"
+description: "Hermes Agent (NousResearch/hermes-agent) is a real terminal agent CLI with 210K stars, MCP support, and a skills system. It is completely separate from the NousResearch Hermes LLM series."
 pubDate: 2026-07-08
 author: "Chirag Singhal"
-tags: ["ai-agents", "hermes", "nous-research", "llm", "coding-agents"]
+tags: ["ai-agents", "hermes", "nous-research", "coding-agents", "mcp"]
 canonicalUrl: "https://blog.oriz.in/posts/hermes-agent-what-is-it/"
 ---
 
-Every time a new "best AI coding agents 2026" list drops, the same names appear:
-Claude Code, OpenCode, Kilo Code — and then, tucked in the middle, **Hermes Agent**.
+I got this wrong in an earlier draft. Let me correct the record.
 
-The comparison never quite fits. That's because Hermes Agent is not a coding CLI at all.
+**Hermes Agent** (`NousResearch/hermes-agent`) is a real, actively-maintained
+terminal agent CLI — 210K GitHub stars, last pushed 2026-07-07. It is completely
+separate from `NousResearch/Hermes-Function-Calling` (the Python LLM demo notebook
+with 1,416 stars). Same GitHub org, completely different projects.
 
-## What NousResearch Hermes actually is
+## What Hermes Agent is
 
-[NousResearch/Hermes-Function-Calling](https://github.com/NousResearch/Hermes-Function-Calling)
-is a Python repository that demos how to run the **Hermes family of LLMs** and get
-structured function-calling output from them. Think: "ask the model what the current
-stock price of TSLA is, have it call a `get_stock_price()` tool, get back a JSON result."
+[`NousResearch/hermes-agent`](https://github.com/NousResearch/hermes-agent) is a
+general-purpose terminal agent with:
 
-Install:
-```bash
-pip install -r requirements.txt
-python functioncall.py --query "What is the stock price of Apple?"
-```
+- **MCP integration** — connect any MCP server for extended capabilities
+- **Skills system** — `/skills` command, agentskills.io compatibility
+- **Memory/learning loop** — Honcho dialectic user modeling, FTS5 session search
+- **Messaging channels** — Telegram, Discord, Slack, WhatsApp, Signal, Email
+- **Windows support** — PowerShell installer
+- **`hermes-cli-mcp`** — npm package (v1.0.1, 2026-05-22) that wraps the Hermes CLI
+  binary as an MCP server, confirming it ships a real standalone binary
 
-That's the whole thing. A Jupyter-notebook-style Python script, 1,416 GitHub stars,
-last commit 2025-12-22, no releases, no npm package, no binary, no terminal UX, no
-MCP support, no IDE integration.
+It is general-purpose first (assistant, memory, messaging) with coding agent
+capabilities alongside — not exclusively a coding agent like Claude Code.
 
-**The "Hermes" in AI agent lists** comes from AionUi — an Electron GUI wrapper that
-lists "Hermes Agent" among the 25+ CLI tools it can wrap. That list entry is
-unverified marketing copy. There is no standalone `hermes` CLI that you can
-`npm install -g` and point at a codebase.
+## Hermes Studio is separate
 
-## The Hermes LLM family (what people actually mean)
+[`EKKOLearnAI/hermes-studio`](https://github.com/EKKOLearnAI/hermes-studio) is a
+desktop app / web dashboard / Docker console for *managing* Hermes Agent. It
+supports "dedicated proxy routes for Codex and Claude Code integrations" — meaning
+it can launch Claude Code or Codex as coding agents from inside its UI. Hermes
+Studio is the management plane; Hermes Agent is the actual agent runtime.
 
-When someone says "Hermes" in an AI context, they usually mean one of the
-Nous Research fine-tuned models:
+## What Hermes Agent is NOT
 
-- **Nous Hermes 3** — Llama 3.1 8B/70B fine-tune, strong at instruction following
-- **Hermes Pro** — tuned for function calling and structured JSON output
-- **Hermes 2 Theta** — merged model, popular on Ollama
+It is not `NousResearch/Hermes-Function-Calling` — that repo is a Python
+Jupyter-notebook demo for structured function calling using Nous Hermes LLMs
+(stock prices, financial data). 1,416 stars, last commit 2025-12-22. A completely
+different project with the same organisation name and similar branding.
 
-These are **models**, not agents. You can run them via Ollama, LM Studio, or
-OpenRouter. You can then point a real coding agent (OpenCode, Claude Code) at the
-Ollama endpoint running Hermes. That's the closest you get to "Hermes as a coding agent."
+The confusion is understandable. Both live under NousResearch. Neither Google
+searches nor AI roundups consistently disambiguate them.
 
-## What to use instead
+## Comparison to Claude Code and OpenCode
 
-If you want a terminal coding agent:
+| | Hermes Agent | Claude Code | OpenCode |
+|---|---|---|---|
+| **Type** | General-purpose agent + messaging | Coding agent CLI | Coding agent CLI |
+| **Stars** | 210K | 137K | 183K |
+| **MCP** | ✅ | ✅ native | ✅ native |
+| **Skills** | ✅ agentskills.io | ✅ `npx skills` | ✅ `npx skills` |
+| **Windows** | ✅ PowerShell | ✅ npm | ✅ npm binary |
+| **Coding focus** | General (coding is one capability) | Dedicated | Dedicated |
+| **Messaging** | ✅ Telegram/Discord/Slack/WhatsApp | ❌ | ❌ |
+| **Memory** | ✅ Honcho + FTS5 | ✅ auto-memory | ✅ |
+| **Free tier** | ✅ BYOK | ✅ with API key | ✅ free providers |
 
-| Want | Use |
-|---|---|
-| Best all-round, corp Bedrock | Claude Code |
-| Free-tier providers, OpenAI-compat | OpenCode |
-| Local Hermes model + coding agent | OpenCode → Ollama → Hermes 3 |
-
-The model and the agent are two different things. Hermes is a model.
-Claude Code and OpenCode are agents. You can combine them.
+Hermes Agent is genuinely comparable to Claude Code and OpenCode as a terminal
+agent — it just covers a wider surface (messaging + assistant + coding) rather
+than being coding-first.
 
 ---
 
-*Next in this series: [What is OpenClaw — and is it a coding agent?](/posts/openclaw-what-is-it/)*
+*Next: [What is OpenClaw?](/posts/openclaw-what-is-it/)*
+*Series finale: [Hermes vs OpenClaw vs Claude Code vs OpenCode — the full comparison](/posts/hermes-openclaw-vs-claude-code-opencode/)*
