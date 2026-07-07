@@ -1,0 +1,119 @@
+---
+title: "Hermes Agent vs OpenClaw: which one should you use — and can you run both? (Part 2)"
+description: "Part 2: the decision guide, the combined setup, and the honest trade-offs. Based on a month of real testing."
+pubDate: 2026-07-08
+author: "Chirag Singhal"
+tags: ["ai-agents", "hermes-agent", "openclaw", "comparison", "setup", "deep-research"]
+canonicalUrl: "https://blog.oriz.in/posts/hermes-vs-openclaw-which-to-use/"
+series: "Hermes Agent vs OpenClaw 2026"
+seriesPart: 2
+---
+
+*This is Part 2. [Part 1 covers the architecture and where each tool is stronger.](/posts/hermes-vs-openclaw-architecture/)*
+
+---
+
+The question is not which agent is better overall. It is which one fits how you
+actually work.
+
+## Use OpenClaw if
+
+**You need AI on multiple messaging platforms simultaneously.** If your workflow
+spans WhatsApp, Telegram, Discord, Slack, and email at the same time, and you
+need different agent personalities on different channels, OpenClaw is the only
+option right now. Hermes does not support multi-agent routing across channels.
+
+**You want explicit control over every behaviour.** OpenClaw's `soul.md`,
+`memory.md`, and `tools.md` mean every rule is a file you wrote. Nothing happens
+that you didn't configure. If you run a team, need to audit exactly what the
+agent did and why, or want to share a config with colleagues, OpenClaw's
+transparency is a genuine advantage.
+
+**You need the 40,000-skill ClawHub ecosystem.** If someone has already built
+the workflow you need — e-commerce automation, customer support triage, content
+scheduling — install it and move on instead of building it from scratch.
+
+**You need iMessage, Matrix, WeChat, LINE, or Google Chat.** OpenClaw covers
+50+ platforms. Hermes covers 20+. For anything outside Hermes's list, the
+conversation is over.
+
+## Use Hermes Agent if
+
+**Your work has recurring patterns.** The self-improving learning loop is the
+reason to choose Hermes. If you do the same type of research, writing, or
+analysis repeatedly, Hermes writes its own skills from your actual work. By week
+three, tasks that took 15 minutes of back-and-forth happen in a single message.
+
+**You want less manual configuration.** With OpenClaw, you write every rule by
+hand. With Hermes, you interact naturally and it learns. If you prefer less time
+configuring and more time using, Hermes removes most of the setup overhead.
+
+**You care about cross-session recall.** Full-text search across all past
+conversations is noticeably better than OpenClaw's vector search over memory
+files. "Find what we discussed about that API 3 weeks ago" works reliably.
+
+**You want the fastest-moving platform.** v0.1 to v0.8 in 2 months, 209 pull
+requests. NousResearch is shipping at a pace OpenClaw cannot match right now.
+
+## The honest trade-off
+
+With OpenClaw, you know exactly what every skill does because you wrote it.
+With Hermes, you are trusting the agent to learn the right things on its own.
+The self-generated skills add a layer of autonomy that makes it harder to audit
+exactly what the agent learned and why it behaves the way it does.
+
+If you want to know exactly why the agent did what it did and control every
+behaviour explicitly, OpenClaw is more comfortable. If you are comfortable giving
+the agent more autonomy in exchange for it getting better over time, Hermes is
+the better fit.
+
+## Run both — the combined setup
+
+If you have the technical appetite, run both. They complement each other well:
+
+**OpenClaw** handles where the work comes from — multi-platform routing, channel
+management, multi-agent personalities, explicit tool permissions.
+
+**Hermes** handles how the work gets done — recurring tasks where the learning
+loop pays off, cross-session memory, and self-improving skill execution.
+
+In practice:
+> OpenClaw receives a message on WhatsApp from a client, routes it to the right
+> agent based on who sent it. Hermes picks up the task using a skill it built
+> from the last three times you handled that type of request.
+
+OpenClaw manages the *where*. Hermes manages the *how*.
+
+## Setup and cost
+
+Both tools are free and open-source. Both need a persistent server — your
+always-on laptop, a home server, or a VPS.
+
+**Laptop + Cloudflare Tunnel (free):**
+```powershell
+winget install Cloudflare.cloudflared
+cloudflared tunnel --url http://localhost:3000   # quick tunnel, no account needed
+```
+Your phone reaches the gateway from any network. Laptop must stay awake.
+
+**VPS route (~$9/month):** Hetzner CAX11 (ARM, 4GB RAM) or Hostinger. Run
+`openclaw gateway start` and `hermes gateway start` as systemd services. Phone
+connects 24/7 regardless of whether your laptop is on.
+
+Both connect to AI models via OpenRouter or directly to your provider.
+Total cost: server ($0 to ~$9/month) + AI model API calls.
+
+## The biggest mistake
+
+Treating AI agents like a search engine — type one thing, read one answer, move
+on. Both of these tools are built for something different: persistence, memory,
+recurring workflows, and removing work from your day.
+
+The earlier you start building your system, the more skills accumulate (Hermes)
+or the more refined your explicit configuration becomes (OpenClaw). Both compound
+over time. The agent that runs 24/7 on a server — rather than dying when your
+laptop closes — changes how useful it is overnight.
+
+---
+
+*Part 1: [Architecture and where each tool is stronger](/posts/hermes-vs-openclaw-architecture/)*

@@ -1,0 +1,122 @@
+---
+title: "Hermes Agent vs OpenClaw: they are not the same kind of tool (Part 1)"
+description: "I tested both Hermes Agent and OpenClaw on the same tasks for a month. The answer isn't which one is better — it's that they were built from opposite directions. Here's the architecture that drives everything."
+pubDate: 2026-07-08
+author: "Chirag Singhal"
+tags: ["ai-agents", "hermes-agent", "openclaw", "comparison", "architecture", "deep-research"]
+canonicalUrl: "https://blog.oriz.in/posts/hermes-vs-openclaw-architecture/"
+series: "Hermes Agent vs OpenClaw 2026"
+seriesPart: 1
+---
+
+The biggest question in the AI agent world right now is which agent is actually
+better — Hermes Agent or OpenClaw. After a month of testing both on the same
+tasks, the answer isn't what most people expect: **they are not even the same
+kind of tool.**
+
+The best way to understand why is to look at how each one was actually built.
+
+## Opposite origins, opposite architectures
+
+**OpenClaw** exists because someone wanted their AI to respond directly inside
+WhatsApp. They needed a bridge between an AI model and a messaging platform, so
+they built one — and that bridge became the entire product. That foundation still
+drives how everything works today.
+
+Everything in OpenClaw flows through one central process: the **Gateway**. The
+Gateway handles channel routing, session management, tool dispatch, and events.
+The product is built around connecting your AI to as many platforms as possible.
+
+**Hermes Agent** started from the opposite direction. NousResearch built it as a
+personal AI agent first, and the messaging integrations came after. The core of
+Hermes is not the gateway — it is the **learning loop**, where the agent creates
+its own skills from the work you give it and improves those skills over time.
+
+> OpenClaw: gateway first, agent lives inside it.
+> Hermes: agent first, messaging is one way to reach it.
+
+That distinction sounds subtle. It changes everything about how you use them.
+
+- OpenClaw is built for people who want to **control every behaviour explicitly**
+- Hermes is built for people who want the **agent to learn and adapt on its own**
+
+## The numbers
+
+| | OpenClaw | Hermes Agent |
+|---|---|---|
+| **GitHub stars** | 370,000+ | 100,000+ (hit 100K in first 7 weeks) |
+| **Skill marketplace** | ClawHub — 40,000+ community skills | Growing, smaller, newer |
+| **Messaging platforms** | 50+ (WhatsApp, Telegram, Discord, Slack, iMessage, Matrix, WeChat, LINE, Signal, Google Chat, Email, browser) | 20+ (Telegram, Discord, Slack, WhatsApp, Signal, and others) |
+| **Self-generating skills** | ❌ | ✅ |
+| **Multi-agent routing** | ✅ | ❌ |
+
+## Infrastructure: both need a server
+
+Both tools run on a persistent server. Both connect to Telegram and other
+messaging platforms. Both need an AI model provider (OpenRouter works for both).
+Neither works as a phone-only app — the Gateway/agent must run somewhere 24/7.
+
+The phone apps for OpenClaw (iOS and Android) are **nodes** that connect to the
+server, not replacements for it. If your server sleeps, the phone disconnects.
+
+Options for the server: your always-on Windows laptop + Cloudflare Tunnel, a
+home server, or a VPS (~$9/month on Hetzner or Hostinger).
+
+## Where OpenClaw is clearly stronger
+
+**1. Platform coverage** — 50+ messaging integrations vs Hermes's 20+. If you
+need iMessage, Matrix, WeChat, LINE, Google Chat, or Email alongside the usual
+suspects, OpenClaw is the only option. Hermes covers the popular platforms but
+nothing close to 50.
+
+**2. Multi-agent routing** — OpenClaw lets you run different agent personalities
+on different channels, contacts, or groups simultaneously. A casual agent for
+personal DMs, a professional agent for work Slack, a community manager for
+Discord — all through the same gateway. Hermes does not do this. It is one
+agent with one persistent identity.
+
+**3. Ecosystem** — ClawHub has 40,000+ community-built skills covering
+e-commerce automation, customer support triage, content scheduling, and more.
+If someone has already built the workflow you need, you install and move on.
+Hermes's skill library is growing but significantly smaller on day one.
+
+**4. Explicit control** — OpenClaw's configuration is entirely transparent.
+`soul.md` defines the agent's identity. `memory.md` stores persistent context.
+`tools.md` controls what the agent can access. Every behaviour is a file you
+wrote, can read, and can edit. Nothing happens that you didn't configure.
+
+## Where Hermes Agent is clearly stronger
+
+**1. Self-improving learning loop** — the defining feature, and nothing else in
+open-source AI agents has it right now.
+
+When Hermes finishes a complex task, it pauses, looks back at the steps it took,
+and if it found a good approach, it writes a reusable skill file and saves it.
+The next time it encounters a similar problem, it searches its own skill library
+first before solving from scratch.
+
+NousResearch's internal testing: agents with 20+ self-created skills complete
+similar tasks **40% faster** than a fresh instance. A research task that took
+15 minutes of back-and-forth on day one takes a single message by week three.
+
+The skill library also curates itself: an autonomous curator runs on a 7-day
+cycle, consolidates overlapping skills, and removes anything you stopped using.
+The library stays useful without manual maintenance.
+
+**2. Cross-session recall** — Hermes has full-text search across all past
+conversations. Ask it to find something you discussed 3 weeks ago and it pulls
+the exact conversation. OpenClaw has vector search over memory files, but
+Hermes's cross-session recall is noticeably better in practice.
+
+**3. Development pace** — Hermes went from v0.1 to v0.8 in 2 months with
+209 pull requests. Browser integration, remote backends, and the autonomous
+curator all shipped in that window. OpenClaw cannot match this pace right now.
+
+**4. Less manual configuration** — with OpenClaw you write every rule, every
+personality detail, every tool permission by hand. With Hermes, you interact
+naturally and it learns your preferences through the memory system and
+self-generated skills. Less setup overhead.
+
+---
+
+*Part 2: [Which one should you actually use — and can you run both?](/posts/hermes-vs-openclaw-which-to-use/)*
