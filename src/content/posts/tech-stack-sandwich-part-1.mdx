@@ -1,0 +1,68 @@
+---
+title: "Every tech stack is a sandwich: how to pick yours without over-engineering it (Part 1)"
+description: "From LAMP to Kubernetes — the overengineered path. Every layer of the tech stack explained, from frontend to backend to APIs, and why you might not need half of it."
+pubDate: 2026-07-08
+author: "Chirag Singhal"
+tags: ["tech-stack", "web-development", "architecture", "beginners", "javascript"]
+canonicalUrl: "https://blog.oriz.in/posts/tech-stack-sandwich-part-1/"
+series: "Every tech stack is a sandwich"
+seriesPart: 1
+---
+
+If you're learning to code, you probably have a billion-dollar startup idea in your head. Before you can execute it, you need to pick a tech stack — and you better choose wisely, because switching later is a real pain.
+
+Every app is a technology sandwich. This is Part 1: what that sandwich looks like, what all the layers mean, and how to over-engineer one like a true professional. Part 2 shows you how to simplify it.
+
+## What is a tech stack?
+
+There's no official definition, but every stack breaks into three parts.
+
+**Frontend** — the tools that build the user interface. On the web, that's almost always a JavaScript framework. On mobile, it might be iOS, Android, or a cross-platform tool like Flutter.
+
+**Backend** — the server-side runtime (Node.js, Python, etc.) plus a database to store user-generated data. Add in the cloud provider you buy your infrastructure from, and that's the backend layer.
+
+**APIs** — the connective tissue. REST or GraphQL on your own side, plus the third-party services you absolutely need: Stripe for payments, Twilio for SMS, SendGrid for email. These live in the middle because they touch both frontend and backend.
+
+## Famous acronym stacks
+
+The **LAMP** stack (Linux, Apache, MySQL, PHP) is the original. It came out of the late 90s as a free, open-source alternative to expensive commercial software, and eventually spawned WordPress and Joomla.
+
+**MEAN** (MongoDB, Express, Angular, Node) got popular because the acronym sounds impressive. Variations like **MERN** (React) and **MEVN** (Vue) followed.
+
+The reality: these acronyms don't actually capture everything a real stack needs. They're marketing, not architecture.
+
+## The over-engineered version
+
+Let's build the next Myspace — needs user auth, a database, global scale. Here's what the over-engineered path looks like.
+
+### Frontend
+
+**TypeScript** over vanilla JavaScript — type safety helps catch bugs early. **React** as the UI framework — not because it's the best or fastest, but because it has the largest pool of developers to hire from. React Native as a future mobile path.
+
+**Redux** for state management — the most popular option, and the one everyone loves to complain about. It generates impressive amounts of boilerplate.
+
+**Tailwind CSS** for utility classes. **Sass** as a CSS preprocessor. **PostCSS** to purge unused styles. **Webpack** to bundle it all.
+
+That's a lot of tools just to show a webpage.
+
+### Backend
+
+**MySQL** as the primary database — relational, great at modeling social graphs, the gold standard. **Redis** as a caching layer because MySQL "won't be fast enough at scale" according to an article we found.
+
+**Node.js** as the server runtime. **NestJS** as the framework (TypeScript-native). **TypeORM** so we never write raw SQL. **Nginx** as the web server.
+
+**Docker** to containerize everything. **Kubernetes** to orchestrate the containers. **AWS** as the cloud provider. **Terraform** to create infrastructure as code instead of clicking buttons.
+
+**GitHub** for source control. **GitHub Actions** for CI/CD.
+
+### APIs
+
+**GraphQL + Apollo** for the frontend-backend API. **Stripe** for payments. **Auth0** for authentication. **Amazon Rekognition** for content moderation. **Twilio** for SMS.
+
+---
+
+That's a complete, highly capable, and massively over-engineered tech stack. The problem: your users will never know what's running underneath. They just want a good experience. And if you don't ship a good experience first, you'll never reach the scale that actually needs Kubernetes.
+
+---
+
+*Part 2: [Throw it all away — the practical stack that actually ships](/posts/tech-stack-sandwich-part-2/)*

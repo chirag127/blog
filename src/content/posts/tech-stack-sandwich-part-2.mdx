@@ -1,0 +1,83 @@
+---
+title: "Throw it all away: the practical tech stack that actually ships (Part 2)"
+description: "After building the most over-engineered stack imaginable, we start over with a plain HTML file and end up with something that can ship to production in a day."
+pubDate: 2026-07-08
+author: "Chirag Singhal"
+tags: ["tech-stack", "web-development", "firebase", "beginners", "javascript", "simplicity"]
+canonicalUrl: "https://blog.oriz.in/posts/tech-stack-sandwich-part-2/"
+series: "Every tech stack is a sandwich"
+seriesPart: 2
+---
+
+*This is Part 2. [Part 1 built the most over-engineered stack possible](/posts/tech-stack-sandwich-part-1/) — now we throw it away.*
+
+---
+
+The entire over-engineered stack from Part 1 had one fatal flaw: your end users don't care what's running underneath. They care about the experience. If you don't ship a good experience first, you will never reach the scale that justifies Kubernetes.
+
+Start over. Begin with a plain HTML file.
+
+## The simplified frontend
+
+The app needs to be interactive, so we need JavaScript — but not a 50MB React bundle. **Petite Vue** drops in with a script tag, has Vue-compatible syntax that many developers already know, and requires zero bundler. No Webpack, no build step.
+
+For CSS, **Bootstrap** is more cookie-cutter than Tailwind but it's the fastest path to a UI that doesn't look terrible. Good enough to ship.
+
+For mobile: **Ionic** wraps the web app in a WebView and deploys to iOS and Android. Not the most native experience, but it ships in a fraction of the time.
+
+No TypeScript. No Redux. No Sass. No PostCSS. No Webpack.
+
+## The simplified backend
+
+**Firebase** replaces the entire backend layer:
+
+- **Firestore** — a document database that scales without a backend server, no MySQL, no Redis, no Nginx, no Docker
+- **Firebase Auth** — handles user authentication with a script tag
+- **Firebase Cloud Functions** — serverless Node.js/Python/Go for any backend logic, deployed with a single command, scales automatically
+
+No Kubernetes. No Terraform. No AWS. No server configuration.
+
+## No CI/CD for now
+
+Unless you're testing and redeploying every day, continuous integration is probably not worth setting up yet. Skip it until you feel the pain.
+
+## No GraphQL either
+
+GraphQL is well-suited for complex apps stitching together multiple APIs. For a simple app, REST or Firebase's SDK is enough. Remove Apollo, remove GraphQL.
+
+## The PetiteFire stack
+
+| Layer | Tool | Why |
+|---|---|---|
+| UI framework | Petite Vue (script tag) | Zero build step, Vue-compatible |
+| CSS | Bootstrap | Fastest decent-looking UI |
+| Mobile | Ionic | Web → iOS/Android wrapper |
+| Database | Firebase Firestore | Scales, no server needed |
+| Auth | Firebase Auth | Script tag, done |
+| Server logic | Firebase Cloud Functions | Serverless, single deploy command |
+
+That's the entire stack. No acronym, but it ships.
+
+## The real decision framework
+
+Every layer of your stack is a tradeoff. Here's how to think through each one:
+
+**1. Start with where your users are.** Web, iOS, Android, desktop? That determines your frontend language before anything else.
+
+**2. Choose frameworks by hiring pool, not by what's best.** React isn't the best framework. It has the most developers. That matters when you need to hire or get help.
+
+**3. Pick your database based on your data model.** Social graphs need relational DBs. Flexible content with unknown schema fits document DBs better. Don't pick a database because an article said it scales.
+
+**4. Defer everything you can.** Kubernetes is for companies with traffic problems. You don't have traffic problems yet. Add complexity when you feel the pain of not having it — not before.
+
+**5. Third-party APIs are almost always worth it.** Don't build auth, payments, or SMS from scratch. The cost of Stripe, Auth0, and Twilio is far less than the engineering time to build equivalents.
+
+**6. Your users don't see your stack.** They see the product. Ship the product first.
+
+---
+
+The over-engineered stack from Part 1 is genuinely useful — at scale, with a large team, with strict compliance requirements. But it's not where you start. You start with a plain HTML file, a script tag, and Firebase. Build the experience. Get users. Then add complexity only where the users demand it.
+
+---
+
+*Part 1: [The over-engineered path — LAMP to Kubernetes](/posts/tech-stack-sandwich-part-1/)*
