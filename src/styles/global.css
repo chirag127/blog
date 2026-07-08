@@ -3,29 +3,26 @@
 @import "@fontsource-variable/inter";
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap");
 
 /*
- * oriz-blog — v0 design tokens (locked brief 2026-06-22).
+ * oriz-blog — MD3 dark-first design tokens (2026-07-08).
  *
- * Warm bone paper · ink fg · rust accent · sage secondary · IBM Plex Mono utility.
- * Display: Source Serif 4 · Body: Inter Variable · Utility: IBM Plex Mono.
+ * Material Design 3 dark theme. Primary: purple (D0BCFF). Surface: deep ink.
+ * Display: Google Sans Display / Roboto · Body: Google Sans Text / Roboto ·
+ * Mono: Roboto Mono / IBM Plex Mono.
  *
- * Legacy `--color-*` aliases retained so existing routes compile unchanged.
- * Legacy `--cobalt` is aliased to `--color-accent` (rust) since many components
- * still reference `var(--cobalt)` directly; mapping keeps them on-brand.
+ * Legacy `--color-*` and `--paper`/`--ink`/`--cobalt` aliases retained so
+ * existing components compile unchanged.
  */
 
 @theme {
-  --font-display:
-    'Source Serif 4 Variable', 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
-  --font-serif:
-    'Source Serif 4 Variable', 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
-  --font-sans:
-    'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-body:
-    'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-utility: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Google Sans Display", Roboto, sans-serif;
+  --font-serif: "Google Sans Display", Roboto, sans-serif;
+  --font-sans: "Google Sans Text", Roboto, sans-serif;
+  --font-body: "Google Sans Text", Roboto, sans-serif;
+  --font-mono: "Roboto Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-utility: "Roboto Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --container-spine: 920px;
   --container-prose: 66ch;
@@ -33,37 +30,54 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
 
-    /* ── Locked brief palette ─────────────────────────────────────────── */
-    --color-bg: #faf8f2; /* warm bone */
-    --color-fg: #0f1419; /* ink */
-    --color-accent: #9f2b1c; /* rust */
-    --color-sage: #6b7f5c;
-    --color-muted: #52606d;
-    --color-border: rgba(15, 20, 25, 0.1);
+    /* ── MD3 dark-theme tokens ─────────────────────────────────────────── */
+    --md-surface: #0F0D13;
+    --md-surface-container-low: #1D1B20;
+    --md-surface-container: #211F26;
+    --md-surface-container-high: #2B2930;
+    --md-primary: #D0BCFF;
+    --md-on-surface: #E6E1E5;
+    --md-on-surface-variant: #CAC4D0;
+    --md-outline-variant: #49454F;
+    --md-outline: #938F99;
+    --md-secondary-container: #4A4458;
+    --md-on-secondary-container: #E8DEF8;
+    --md-font-display: "Google Sans Display", Roboto, sans-serif;
+    --md-font-body: "Google Sans Text", Roboto, sans-serif;
+    --md-font-mono: "Roboto Mono", monospace;
+    --md-shape-lg: 16px;
+    --md-shape-xl: 28px;
 
-    /* Internal token aliases (used across components) */
-    --paper: var(--color-bg);
-    --paper-2: #f2efe6;
-    --ink: var(--color-fg);
-    --ink-mute: var(--color-muted);
-    --rule: var(--color-border);
-    --cobalt: var(--color-accent); /* legacy alias → rust now */
-    --sage: var(--color-sage);
+    /* ── Internal token aliases → MD3 ─────────────────────────────────── */
+    --color-bg: var(--md-surface);
+    --color-fg: var(--md-on-surface);
+    --color-accent: var(--md-primary);
+    --color-sage: var(--md-on-secondary-container);
+    --color-muted: var(--md-on-surface-variant);
+    --color-border: var(--md-outline-variant);
 
-    --vermilion: var(--color-accent);
-    --highlighter: var(--color-accent);
+    --paper: var(--md-surface);
+    --paper-2: var(--md-surface-container-low);
+    --ink: var(--md-on-surface);
+    --ink-mute: var(--md-on-surface-variant);
+    --rule: var(--md-outline-variant);
+    --cobalt: var(--md-primary);
+    --sage: var(--md-on-secondary-container);
+
+    --vermilion: var(--md-primary);
+    --highlighter: var(--md-primary);
 
     /* Legacy --color-* used by existing pages */
-    --color-bg-soft: var(--paper-2);
-    --color-bg-muted: #eae6d9;
-    --color-prose: var(--ink);
-    --color-fg-muted: var(--ink-mute);
-    --color-fg-soft: #7d7e88;
-    --color-accent-fg: var(--paper);
-    --radius-card: 0;
-    --radius-button: 0;
+    --color-bg-soft: var(--md-surface-container-low);
+    --color-bg-muted: var(--md-surface-container);
+    --color-prose: var(--md-on-surface);
+    --color-fg-muted: var(--md-on-surface-variant);
+    --color-fg-soft: var(--md-outline);
+    --color-accent-fg: var(--md-surface);
+    --radius-card: var(--md-shape-lg);
+    --radius-button: var(--md-shape-xl);
     --container-page: 1100px;
   }
 
