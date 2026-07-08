@@ -1,15 +1,29 @@
 ---
+/**
+ * /  — oriz-blog homepage (v2 stratified index).
+ *
+ * NOT a card grid. Three strata:
+ *   1. IN PROGRESS — current series with the spine `●─●─○─○`
+ *   2. RECENT     — last 8 posts (full title + 2-line dek + reading time)
+ *   3. BY CATEGORY — Tech / Finance / Culture / Health / Personal as a single typographic row
+ *
+ * No hero, no cover images, no pull quotes. The wordmark is in the header;
+ * the lede line + active series spine sit just below it.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import SeriesSpine from '~/components/SeriesSpine.astro'
 import {
   getCategoriesWithCounts,
   getPostsInSeries,
   getPublishedPosts,
   getSeriesWithCounts,
+  readingTimeFor,
   slugifyTag,
 } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 
 const allPosts = await getPublishedPosts()
-const _recentPosts = allPosts.slice(0, 8)
+const recentPosts = allPosts.slice(0, 8)
 
 const seriesAll = await getSeriesWithCounts()
 // In-progress: series where at least one post exists. We model "published"
@@ -53,10 +67,10 @@ for (const { series, count } of seriesAll.slice(0, 4)) {
 }
 inProgress.sort((a, b) => b.latest.valueOf() - a.latest.valueOf())
 
-const _cats = await getCategoriesWithCounts()
+const cats = await getCategoriesWithCounts()
 
 // "Days since" helper for the in-progress rail.
-function _ago(date: Date): string {
+function ago(date: Date): string {
   const days = Math.floor((Date.now() - date.valueOf()) / 86_400_000)
   if (days < 1) return 'today'
   if (days === 1) return '1d ago'
@@ -68,7 +82,7 @@ function _ago(date: Date): string {
   return years === 1 ? '1y ago' : `${years}y ago`
 }
 
-const _jsonLd = {
+const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Blog',
   name: SITE_CONFIG.title,

@@ -1,10 +1,12 @@
 ---
-import type { CollectionEntry } from 'astro:content'
 /**
  * /blog/category/[cat] — all published posts in a category.
  * Category slug is the kebab-cased category name (slugifyTag()).
  */
 import type { GetStaticPaths } from 'astro'
+import type { CollectionEntry } from 'astro:content'
+import BaseLayout from '~/components/layout/BaseLayout.astro'
+import PostCard from '~/components/blog/PostCard.astro'
 import { getPublishedPosts, slugifyTag } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 
@@ -37,7 +39,7 @@ const { categoryLabel, posts } = Astro.props as PageProps
 const title = `Category: ${categoryLabel}`
 const description = `${posts.length} ${posts.length === 1 ? 'post' : 'posts'} in the ${categoryLabel} category.`
 
-const _jsonLd = {
+const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   name: title,

@@ -1,4 +1,10 @@
 ---
+/**
+ * /search — dedicated full-page Pagefind search.
+ * The same overlay sheet is reachable via ⌘K / "/" in the header, but
+ * this page keeps the search state in the URL (Pagefind reads ?q=…).
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro'
 ---
 
 <BaseLayout title="Search — Blog" description="Search every post on the blog." hideSidebar={true}>

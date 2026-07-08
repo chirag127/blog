@@ -1,5 +1,4 @@
 ---
-import { type CollectionEntry, getCollection, render } from 'astro:content'
 /**
  * /posts/[slug] — single post page for the `posts` collection.
  *
@@ -8,6 +7,9 @@ import { type CollectionEntry, getCollection, render } from 'astro:content'
  * Pagefind for the family-wide MultiSearch.
  */
 import type { GetStaticPaths } from 'astro'
+import { type CollectionEntry, getCollection, render } from 'astro:content'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import GiscusComments from '~/components/blog/GiscusComments.astro'
 import { SITE_CONFIG } from '~/lib/config'
 
 export const getStaticPaths = (async () => {
@@ -24,9 +26,9 @@ const { Content } = await render(post)
 const url = new URL(`/posts/${post.id}/`, SITE_CONFIG.url).toString()
 const datePublished = post.data.pubDate.toISOString()
 const dateModified = (post.data.updatedDate ?? post.data.pubDate).toISOString()
-const _canonical = post.data.canonicalUrl ?? url
+const canonical = post.data.canonicalUrl ?? url
 
-const _articleSchema = {
+const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: post.data.title,
@@ -38,10 +40,12 @@ const _articleSchema = {
   mainEntityOfPage: { '@type': 'WebPage', '@id': url },
   keywords: post.data.tags.join(', '),
   inLanguage: SITE_CONFIG.defaultLocale,
-  image: post.data.heroImage ? new URL(post.data.heroImage, SITE_CONFIG.url).toString() : undefined,
+  image: post.data.heroImage
+    ? new URL(post.data.heroImage, SITE_CONFIG.url).toString()
+    : undefined,
 }
 
-const _breadcrumbSchema = {
+const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
@@ -50,7 +54,7 @@ const _breadcrumbSchema = {
   ],
 }
 
-const _fmt = (d: Date): string =>
+const fmt = (d: Date): string =>
   d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
 ---
 

@@ -3,7 +3,7 @@
 @import "@fontsource-variable/inter";
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&family=Google+Sans+Text:wght@400;500;700&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap");
 
 /*
  * oriz-blog — MD3 dark-first design tokens (2026-07-08).
@@ -44,6 +44,13 @@
     --md-outline: #938F99;
     --md-secondary-container: #4A4458;
     --md-on-secondary-container: #E8DEF8;
+    --md-surface-container-highest: #36343B;
+    --md-on-primary: #381E72;
+    --md-primary-container: #4F378B;
+    --md-on-primary-container: #EADDFF;
+    --md-secondary: #CCC2DC;
+    --md-shape-sm: 8px;
+    --md-shape-md: 12px;
     --md-font-display: "Google Sans Display", Roboto, sans-serif;
     --md-font-body: "Google Sans Text", Roboto, sans-serif;
     --md-font-mono: "Roboto Mono", monospace;

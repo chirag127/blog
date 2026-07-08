@@ -1,5 +1,7 @@
 ---
-const _updated = '2026-06-19'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+
+const updated = '2026-06-19'
 ---
 
 <BaseLayout title="Cookie policy — Blog" description="What cookies blog.oriz.in uses." hideSidebar={true}>
@@ -28,7 +30,7 @@ const _updated = '2026-06-19'
       </li>
       <li>
         <strong>Auth session</strong> — when you sign in, Firebase Authentication
-        sets cookies on <code>account.oriz.in</code> so you stay logged in across
+        sets cookies on <code>auth.oriz.in</code> so you stay logged in across
         every <code>*.oriz.in</code> site. These are first-party and essential.
       </li>
     </ul>

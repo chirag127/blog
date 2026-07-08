@@ -8,6 +8,7 @@
  * flexibility (e.g. when callers already loaded a wider candidate set).
  */
 import type { CollectionEntry } from 'astro:content'
+import PostCard from './PostCard.astro'
 
 export interface Props {
   current: CollectionEntry<'blog'>
@@ -30,7 +31,8 @@ const scored: Scored[] = candidates
   .filter((p) => p.id !== current.id)
   .map((post) => ({
     post,
-    tagOverlap: post.data.tags.filter((t) => currentTags.has(t.toLowerCase())).length,
+    tagOverlap: post.data.tags.filter((t) => currentTags.has(t.toLowerCase()))
+      .length,
     sameCategory: post.data.category.toLowerCase() === currentCategory,
   }))
 

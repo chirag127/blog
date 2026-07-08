@@ -4,8 +4,7 @@
 // components directly inside .mdx files — both work).
 //
 //   import { YouTube, Tweet, CodePlayground, MermaidDiagram } from '~/components/embeds'
-
+export { default as YouTube } from './YouTube.astro'
+export { default as Tweet } from './Tweet.astro'
 export { default as CodePlayground } from './CodePlayground.astro'
 export { default as MermaidDiagram } from './MermaidDiagram.astro'
-export { default as Tweet } from './Tweet.astro'
-export { default as YouTube } from './YouTube.astro'

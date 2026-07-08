@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import BaseLayout from '~/layouts/BaseLayout.astro'
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft)
 const tagMap = new Map<string, number>()
@@ -10,14 +11,10 @@ for (const post of allPosts) {
   }
 }
 
-const _sortedTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1])
+const sortedTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1])
 
-function _slugifyTag(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+function slugifyTag(value: string): string {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 }
 ---
 

@@ -1,13 +1,24 @@
 ---
-const _categories = [
+/*
+ * blog-app Footer — long-form-writing surface.
+ *
+ * Signature element: an editorial pull-quote rendered in display serif —
+ * the only place the footer raises its voice. Everything else stays
+ * library-quiet. Categories / Recent / Tags / Series + LegalFooter.
+ *
+ * Reads palette + type from blog's tokens.
+ */
+import LegalFooter from '@chirag127/astro-chrome/legal/LegalFooter.astro'
+
+const categories = [
   { name: 'Engineering', slug: 'engineering' },
   { name: 'Finance', slug: 'finance' },
   { name: 'Books', slug: 'books' },
   { name: 'Personal', slug: 'personal' },
   { name: 'Notes', slug: 'notes' },
 ]
-const _tags = ['astro', 'typescript', 'firebase', 'india', 'reading', 'agents']
-const _series = [
+const tags = ['astro', 'typescript', 'firebase', 'india', 'reading', 'agents']
+const series = [
   { name: 'Build the oriz family', slug: 'build-oriz' },
   { name: 'Reading log 2026', slug: 'reading-log-2026' },
 ]

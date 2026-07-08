@@ -1,5 +1,4 @@
 ---
-import { type CollectionEntry, render } from 'astro:content'
 /**
  * /blog/[slug] — single blog post (v2 design, 3-column re-grilled 2026-06-22).
  *
@@ -21,7 +20,23 @@ import { type CollectionEntry, render } from 'astro:content'
  * Drop-cap: Source Serif 4 cobalt rust, first paragraph (in blog-prose.css).
  */
 import type { GetStaticPaths } from 'astro'
-import { getPostsInSeries, getPublishedPosts, readingTimeFor, slugifyTag } from '~/lib/blog'
+import { type CollectionEntry, render } from 'astro:content'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import GiscusComments from '~/components/blog/GiscusComments.astro'
+import SeriesNav from '~/components/blog/SeriesNav.astro'
+import SeriesSpine from '~/components/SeriesSpine.astro'
+import TableOfContents from '~/components/blog/TableOfContents.astro'
+import MobileTocDrawer from '~/components/MobileTocDrawer.tsx'
+import BookmarkButton from '~/components/blog/BookmarkButton.tsx'
+import BlogPostLeftSidebar from '~/components/blog/BlogPostLeftSidebar.astro'
+import SeriesJumpList from '~/components/blog/SeriesJumpList.astro'
+import {
+  formatPostDate,
+  getPostsInSeries,
+  getPublishedPosts,
+  readingTimeFor,
+  slugifyTag,
+} from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 import '~/styles/blog-prose.css'
 
@@ -44,28 +59,28 @@ const allPosts = await getPublishedPosts()
 // Series spine data — only when this post is in a series.
 let seriesPosts: typeof allPosts = []
 let seriesPublished = 0
-let _seriesTotal = 0
-let _seriesCurrent = 0
+let seriesTotal = 0
+let seriesCurrent = 0
 if (post.data.series) {
   seriesPosts = await getPostsInSeries(post.data.series)
   seriesPublished = seriesPosts.length
   // Where this post sits in the published sequence (1-based).
   const idx = seriesPosts.findIndex((p) => p.id === post.id)
-  _seriesCurrent = idx >= 0 ? idx + 1 : seriesPublished
+  seriesCurrent = idx >= 0 ? idx + 1 : seriesPublished
   // Heuristic for the "drafting" tail.
   const explicitMax = seriesPosts.reduce((mx, p) => {
     const v = typeof p.data.part === 'number' ? p.data.part : Number(p.data.part)
     return Number.isFinite(v) ? Math.max(mx, v) : mx
   }, 0)
-  _seriesTotal = Math.min(12, Math.max(seriesPublished + 2, explicitMax))
+  seriesTotal = Math.min(12, Math.max(seriesPublished + 2, explicitMax))
 }
 
 const url = new URL(`/blog/${post.id}/`, SITE_CONFIG.url).toString()
 const datePublished = post.data.pubDate.toISOString()
 const dateModified = (post.data.updatedDate ?? post.data.pubDate).toISOString()
-const _rt = post.data.readingTime ?? readingTimeFor(post)
+const rt = post.data.readingTime ?? readingTimeFor(post)
 
-const _articleSchema = {
+const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: post.data.title,
@@ -78,10 +93,12 @@ const _articleSchema = {
   keywords: post.data.tags.join(', '),
   articleSection: post.data.category,
   inLanguage: SITE_CONFIG.defaultLocale,
-  image: post.data.heroImage ? new URL(post.data.heroImage, SITE_CONFIG.url).toString() : undefined,
+  image: post.data.heroImage
+    ? new URL(post.data.heroImage, SITE_CONFIG.url).toString()
+    : undefined,
 }
 
-const _breadcrumbSchema = {
+const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [

@@ -83,6 +83,9 @@ export default defineConfig({
     shikiConfig: { theme: 'github-dark-dimmed' },
   },
   vite: {
+    resolve: {
+      tsconfigPaths: true,
+    },
     plugins: [
       tailwindcss(),
       VitePWA({

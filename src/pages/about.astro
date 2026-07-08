@@ -1,23 +1,15 @@
 ---
-const _jsonLd = {
+import BaseLayout from '~/layouts/BaseLayout.astro'
+
+const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: 'Chirag Singhal',
   url: 'https://oriz.in/about/',
   jobTitle: 'Software Engineer',
-  description:
-    'Software engineer specializing in scalable backend architectures, full-stack development, AI agents, and cloud-native deployments.',
-  address: {
-    '@type': 'PostalAddress',
-    addressLocality: 'Bhubaneswar',
-    addressRegion: 'Odisha',
-    addressCountry: 'IN',
-  },
-  sameAs: [
-    'https://github.com/chirag127',
-    'https://x.com/chirag127',
-    'https://linkedin.com/in/chirag127',
-  ],
+  description: 'Software engineer specializing in scalable backend architectures, full-stack development, AI agents, and cloud-native deployments.',
+  address: { '@type': 'PostalAddress', addressLocality: 'Bhubaneswar', addressRegion: 'Odisha', addressCountry: 'IN' },
+  sameAs: ['https://github.com/chirag127', 'https://x.com/chirag127', 'https://linkedin.com/in/chirag127'],
 }
 ---
 

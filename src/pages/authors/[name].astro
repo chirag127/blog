@@ -3,6 +3,8 @@
  * /authors/[name] — every post by a single author.
  */
 import type { GetStaticPaths } from 'astro'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import PostCard from '~/components/blog/PostCard.astro'
 import { getAuthorsWithCounts, getPostsByAuthor, slugifyTag } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 
@@ -21,10 +23,10 @@ const { author, posts } = Astro.props as {
   posts: Awaited<ReturnType<typeof getPostsByAuthor>>
 }
 
-const _title = `Posts by ${author}`
-const _description = `${posts.length} ${posts.length === 1 ? 'post' : 'posts'} by ${author} on blog.oriz.in.`
+const title = `Posts by ${author}`
+const description = `${posts.length} ${posts.length === 1 ? 'post' : 'posts'} by ${author} on blog.oriz.in.`
 
-const _jsonLd = {
+const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ProfilePage',
   mainEntity: { '@type': 'Person', name: author },

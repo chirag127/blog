@@ -8,11 +8,14 @@
  * Algolia <Search /> island bolted on top.
  */
 import { getCollection } from 'astro:content'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import Search from '~/components/Search.tsx'
+import FeedDiscovery from '~/components/FeedDiscovery.astro'
 
 const all = await getCollection('posts', ({ data }) => data.draft === false).catch(() => [])
 const sorted = all.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 
-const _fallback = sorted.map((p) => ({
+const fallback = sorted.map((p) => ({
   objectID: p.id,
   title: p.data.title,
   description: p.data.description,
@@ -21,7 +24,7 @@ const _fallback = sorted.map((p) => ({
   tags: p.data.tags,
 }))
 
-const _fmt = (d: Date): string =>
+const fmt = (d: Date): string =>
   d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })
 ---
 

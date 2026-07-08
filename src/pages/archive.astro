@@ -1,11 +1,16 @@
 ---
-import { getPostsByYear } from '~/lib/blog'
+/**
+ * /archive — reverse-chrono list of every post grouped by year.
+ * One row per post (compact). Sticky year headers.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import { formatPostDate, getPostsByYear, slugifyTag } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 
 const groups = await getPostsByYear()
 const total = groups.reduce((sum, g) => sum + g.posts.length, 0)
 
-const _jsonLd = {
+const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   name: 'Archive',

@@ -1,7 +1,18 @@
 ---
+/**
+ * /now — current focus areas, per the nownownow.com convention.
+ *
+ * This page is a recruiter-facing snapshot of what I'm working on right
+ * now. Update the "Last updated" line + content whenever priorities
+ * shift (target cadence: monthly).
+ *
+ * Style mirrors `/about` — single-column long-form prose, no sidebar.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro'
+
 const lastUpdated = '2026-06-20'
 
-const _jsonLd = {
+const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
   name: 'Now — Chirag Singhal',

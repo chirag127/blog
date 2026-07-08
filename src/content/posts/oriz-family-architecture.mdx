@@ -1,17 +1,17 @@
 ---
-title: "The oriz family — eleven sites, one knowledge bundle"
-description: "How the chirag127/oriz monorepo coordinates eleven static sites, a shared design kit, and an Open Knowledge Format bundle that captures every architectural decision in plain markdown."
+title: "The fleet — eleven sites, one knowledge bundle"
+description: "How the chirag127/workspace coordinates eleven static sites, a shared design kit, and an Open Knowledge Format bundle that captures every architectural decision in plain markdown."
 pubDate: 2026-06-20
 author: "Chirag Singhal"
-tags: ["architecture", "monorepo", "okf", "static-sites", "oriz"]
-canonicalUrl: "https://blog.oriz.in/posts/oriz-family-architecture/"
+tags: ["architecture", "monorepo", "okf", "static-sites", "workspace"]
+canonicalUrl: "https://blog.chirag127.dev/posts/fleet-architecture/"
 ---
 
 Most of my side-projects used to live as one-off repos that drifted
 from each other within a release. Different deploy commands,
 different env conventions, different design tokens, different "what
 does this do again" tax every time I came back. The
-[oriz](https://github.com/chirag127/oriz) family is the cure: one
+[workspace](https://github.com/chirag127/workspace) family is the cure: one
 master repo, eleven sister sites as git submodules, one design
 kit, one secrets pipeline, one knowledge bundle.
 
@@ -19,13 +19,13 @@ kit, one secrets pipeline, one knowledge bundle.
 
 Roughly in order of how often they get pushed:
 
-1. **[oriz-home](https://oriz.in)** — apex domain, family directory,
+1. **[oriz-home](https://chirag127.dev)** — apex domain, family directory,
    personal-portfolio page, and (per the apex-only-monitoring lock)
    the only site uptime-pinged.
 2. **oriz-blog** — this site. Long-form engineering writing.
 3. **oriz-me** — lifestream of timestamped events
    (the only family member that stores content as JSONL, not MDX,
-   per the [lifestream-jsonl-canonical](https://github.com/chirag127/oriz/blob/main/knowledge/decisions/architecture/lifestream-jsonl-canonical.md)
+   per the [lifestream-jsonl-canonical](https://github.com/chirag127/workspace/blob/main/knowledge/decisions/architecture/lifestream-jsonl-canonical.md)
    decision).
 4. **oriz-books** — book reviews, reading log, ratings.
 5. **oriz-finance** — finance writing, calculators, reviews of cards
@@ -49,7 +49,7 @@ Roughly in order of how often they get pushed:
 
 ## How the master repo holds it together
 
-The master repo (`chirag127/oriz`) is _not_ where the eleven sites'
+The master repo (`chirag127/workspace`) is _not_ where the eleven sites'
 code lives — that's the opposite of how a monorepo usually works.
 Instead the master repo holds:
 
@@ -62,7 +62,7 @@ Instead the master repo holds:
   source of truth that LLM agents read first when working on
   anything in the family.
 - A `knowledge/` directory: an
-  [Open Knowledge Format (OKF) v0.1](https://github.com/chirag127/oriz/blob/main/knowledge/decisions/architecture/okf-bundle-canonical.md)
+  [Open Knowledge Format (OKF) v0.1](https://github.com/chirag127/workspace/blob/main/knowledge/decisions/architecture/okf-bundle-canonical.md)
   bundle. Every architectural decision, every rejected service,
   every glossary term, written as a single `.md` file with strict
   frontmatter and a `related:` graph.
@@ -105,13 +105,13 @@ in per-app. Shared primitives — `BaseLayout`, `Footer`,
 `<JsonLd>`, `<MultiSearch>`, `<StatusBanner>` — are copied (not
 linked) between sites so no app is ever broken by an upstream
 change it didn't opt into. Per the
-[no-turborepo decision](https://github.com/chirag127/oriz/blob/main/knowledge/decisions/architecture/no-monorepo-tooling.md),
+[no-turborepo decision](https://github.com/chirag127/workspace/blob/main/knowledge/decisions/architecture/no-monorepo-tooling.md),
 each site is its own repo with its own deploy.
 
 ## The deploy story
 
 All eleven sites deploy to **Cloudflare Pages** (free tier
-forever per the [cloudflare-pages lock](https://github.com/chirag127/oriz/blob/main/knowledge/decisions/infrastructure/cloudflare-pages-for-all-sites.md)),
+forever per the [cloudflare-pages lock](https://github.com/chirag127/workspace/blob/main/knowledge/decisions/infrastructure/cloudflare-pages-for-all-sites.md)),
 with a GitHub Pages mirror per site as a static fallback. Auth
 goes to the single `oriz-app` Firebase project on Spark tier
 (Spark forever; Admin SDK forbidden; REST-only Firestore access
@@ -126,9 +126,9 @@ This Excalidraw board is the canonical family-architecture
 diagram, embedded so it stays current:
 
 <iframe
-  src="https://link.excalidraw.com/p/readonly/oriz-family-architecture-2026"
+  src="https://link.excalidraw.com/p/readonly/fleet-architecture-2026"
   style={{ width: '100%', height: '480px', border: 0, borderRadius: '0.5rem' }}
-  title="oriz family architecture diagram"
+  title="fleet architecture diagram"
   loading="lazy"
 />
 
@@ -138,7 +138,7 @@ Two things I'm working through right now:
 
 - **A `knowledge/` viewer.** OKF is greppable but a render layer
   would make the decision graph navigable to humans. Likely lives
-  at `oriz.in/knowledge/`.
+  at `chirag127.dev/knowledge/`.
 - **More cross-posting destinations.** Telegra.ph and Reddit are
   the next adapters in oriz-omnipost. The
   [next post](/posts/cross-post-engine/) digs into how the engine
@@ -147,6 +147,6 @@ Two things I'm working through right now:
 
 If you're into this kind of "small infra, written down" work,
 the master repo is at
-[github.com/chirag127/oriz](https://github.com/chirag127/oriz)
+[github.com/chirag127/workspace](https://github.com/chirag127/workspace)
 and the rule of thumb is: every interesting decision is a
 `.md` file you can find with `grep`.

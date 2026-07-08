@@ -10,6 +10,16 @@ import '~/styles/global.css'
 import '~/styles/oriz-ui-overrides.css'
 import 'katex/dist/katex.min.css'
 import '@chirag127/astro-shell/tokens.css'
+import FamilyChrome from '@chirag127/astro-shell/components/FamilyChrome.astro'
+import Header from '~/components/Header.astro'
+import Sidebar from '@chirag127/astro-chrome/Sidebar.astro'
+import Footer from '~/components/Footer.astro'
+import BottomBar from '@chirag127/astro-chrome/BottomBar.astro'
+import ConsentBanner from '@chirag127/astro-chrome/ConsentBanner.astro'
+import AppSidebarContent from '~/components/AppSidebarContent.astro'
+import FeedDiscovery from '~/components/FeedDiscovery.astro'
+import { bottomBarActions } from '~/data/bottombar-actions'
+import { ClientRouter } from 'astro:transitions'
 
 interface Props {
   title?: string
@@ -37,10 +47,10 @@ const {
   hideSidebar = false,
 } = Astro.props
 
-const _adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT
-const _beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN
-const _ga4Id = import.meta.env.PUBLIC_GA4_ID
-const _ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : undefined
+const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT
+const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN
+const ga4Id = import.meta.env.PUBLIC_GA4_ID
+const ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : undefined
 ---
 
 <!doctype html>
@@ -70,7 +80,9 @@ const _ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : und
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#FAF8F2" />
+    <meta name="theme-color" content="#0F0D13" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <FeedDiscovery />
 
     <ClientRouter />

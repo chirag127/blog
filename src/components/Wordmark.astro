@@ -22,7 +22,7 @@ interface Props {
 }
 
 const { subtitle, size = 96, href = null, asHeading = false } = Astro.props
-const _Tag = asHeading ? 'h1' : ('div' as const)
+const Tag = asHeading ? 'h1' : ('div' as const)
 ---
 
 {

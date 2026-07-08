@@ -10,6 +10,7 @@
  * always-expanded block the user re-grilled for.
  */
 import type { CollectionEntry } from 'astro:content'
+import { formatPostDate } from '~/lib/blog'
 
 export interface Props {
   current: CollectionEntry<'blog'>
@@ -34,7 +35,7 @@ const orderKey = (p: CollectionEntry<'blog'>): number => {
   return Number.POSITIVE_INFINITY
 }
 
-const _ordered = [...allInSeries].sort((a, b) => {
+const ordered = [...allInSeries].sort((a, b) => {
   const ka = orderKey(a)
   const kb = orderKey(b)
   if (ka !== kb) return ka - kb

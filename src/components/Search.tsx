@@ -134,14 +134,14 @@ export default function Search({
         className="oriz-search__input"
       />
       {open && query.trim() !== '' && (
-        <ul className="oriz-search__results">
+        <ul className="oriz-search__results" role="listbox">
           {list.length === 0 ? (
             <li className="oriz-search__empty" role="presentation">
               No matches{showFallback ? ' (client-side search)' : ''}.
             </li>
           ) : (
             list.map((hit) => (
-              <li key={hit.objectID} aria-selected="false">
+              <li key={hit.objectID} role="option" aria-selected="false">
                 <a href={hit.url} className="oriz-search__hit">
                   <span className="oriz-search__hit-title">{hit.title}</span>
                   {hit.description && (

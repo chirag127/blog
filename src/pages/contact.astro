@@ -1,5 +1,8 @@
 ---
-const _web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? ''
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import ContactForm from '~/components/ContactForm.tsx'
+
+const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? ''
 ---
 
 <BaseLayout

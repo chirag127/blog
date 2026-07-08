@@ -24,9 +24,6 @@
   float: left;
   font-family: var(--font-display);
   font-weight: 700;
-  font-variation-settings:
-    "opsz" 144,
-    "wght" 700;
   font-size: calc(17px * 1.65 * 5); /* 5 line-heights */
   line-height: 0.85;
   color: var(--color-accent);
@@ -42,9 +39,6 @@
 
 .prose-blog h2 {
   font-family: var(--font-display);
-  font-variation-settings:
-    "opsz" 60,
-    "wght" 600;
   font-weight: 600;
   font-size: 26.6px;
   letter-spacing: -0.005em;
@@ -54,9 +48,6 @@
 }
 .prose-blog h3 {
   font-family: var(--font-display);
-  font-variation-settings:
-    "opsz" 36,
-    "wght" 600;
   font-weight: 600;
   font-size: 21.25px;
   color: var(--ink);
@@ -64,9 +55,6 @@
 }
 .prose-blog h4 {
   font-family: var(--font-display);
-  font-variation-settings:
-    "opsz" 24,
-    "wght" 700;
   font-weight: 700;
   font-size: 18px;
   color: var(--ink);

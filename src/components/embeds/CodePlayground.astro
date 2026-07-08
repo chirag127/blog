@@ -14,7 +14,7 @@ interface Props {
 }
 const { id, title = 'StackBlitz playground', height = 480, view = 'both' } = Astro.props as Props
 const v = view === 'both' ? '' : `&view=${view}`
-const _src = `https://stackblitz.com/edit/${id}?embed=1&hideExplorer=1&hideNavigation=1${v}`
+const src = `https://stackblitz.com/edit/${id}?embed=1&hideExplorer=1&hideNavigation=1${v}`
 ---
 
 <div class="cp-embed" style={`--cp-h: ${height}px`}>

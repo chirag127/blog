@@ -14,7 +14,13 @@
  * ~/lib/blog so no duplication.
  */
 import type { CollectionEntry } from 'astro:content'
-import { getPostsInSeries, getPublishedPosts, getTagsWithCounts } from '~/lib/blog'
+import {
+  formatPostDate,
+  getPostsInSeries,
+  getPublishedPosts,
+  getTagsWithCounts,
+  slugifyTag,
+} from '~/lib/blog'
 
 export interface Props {
   post: CollectionEntry<'blog'>
@@ -30,12 +36,14 @@ if (post.data.series) {
 }
 
 const isSeries = seriesPosts.length > 1
-const _recent = allPosts.filter((p) => p.id !== post.id).slice(0, isSeries ? 5 : 10)
+const recent = allPosts
+  .filter((p) => p.id !== post.id)
+  .slice(0, isSeries ? 5 : 10)
 
-let _topTags: { tag: string; count: number }[] = []
+let topTags: { tag: string; count: number }[] = []
 if (!isSeries) {
   const tagsAll = await getTagsWithCounts()
-  _topTags = tagsAll.slice(0, 10)
+  topTags = tagsAll.slice(0, 10)
 }
 ---
 

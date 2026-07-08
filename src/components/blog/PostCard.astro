@@ -5,7 +5,7 @@
  * border on hover.
  */
 import type { CollectionEntry } from 'astro:content'
-import { slugifyTag } from '~/lib/blog'
+import { formatPostDate, slugifyTag } from '~/lib/blog'
 
 export interface Props {
   post: CollectionEntry<'blog'>
@@ -13,8 +13,8 @@ export interface Props {
 
 const { post } = Astro.props
 const { title, description, pubDate, category, readingTime } = post.data
-const _href = `/blog/${post.id}`
-const _catHref = `/categories/${slugifyTag(category)}/`
+const href = `/blog/${post.id}`
+const catHref = `/categories/${slugifyTag(category)}/`
 ---
 
 <article class="post-card">

@@ -1,15 +1,15 @@
 /*
- * oriz-ui overrides — site-local styling for the AccountPanel / FinishSignIn /
+ * UI overrides — site-local styling for the AccountPanel / FinishSignIn /
  * ContactForm islands. The upstream packages ship UNSTYLED markup with
- * `[data-oriz-*]` hooks; this file paints them in the oriz-blog palette
+ * `[data-*]` hooks; this file paints them in the blog palette
  * (cobalt accent on cream paper).
  *
- * Hook contract documented in oriz-home/knowledge/anchor-patterns.md.
+ * Hook contract documented in home/knowledge/anchor-patterns.md.
  */
 
 /* ── AccountPanel ───────────────────────────────────────────────────── */
 
-[data-oriz-account] {
+[data-account] {
   display: block;
   margin-block: 2rem;
   padding: 1.75rem;
@@ -19,7 +19,7 @@
   color: var(--ink);
 }
 
-[data-oriz-account-state="loading"] {
+[data-account-state="loading"] {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,14 +27,14 @@
   padding-block: 2.5rem;
 }
 
-[data-oriz-account-spinner] {
+[data-account-spinner] {
   display: inline-block;
   font-size: 1.25rem;
   color: var(--ink-mute);
-  animation: oriz-spin 1.2s linear infinite;
+  animation: spin 1.2s linear infinite;
 }
 
-[data-oriz-account-heading] {
+[data-account-heading] {
   font-family: var(--font-display);
   font-weight: 500;
   font-variation-settings:
@@ -45,13 +45,13 @@
   color: var(--ink);
 }
 
-[data-oriz-account-providers] {
+[data-account-providers] {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-[data-oriz-account-provider] {
+[data-account-provider] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -67,32 +67,32 @@
   font-size: 0.9375rem;
   cursor: pointer;
 }
-[data-oriz-account-provider]:hover:not(:disabled) {
+[data-account-provider]:hover:not(:disabled) {
   border-color: var(--cobalt);
   color: var(--cobalt);
 }
-[data-oriz-account-provider]:focus-visible {
+[data-account-provider]:focus-visible {
   outline: 2px solid var(--cobalt);
   outline-offset: 2px;
 }
-[data-oriz-account-provider]:disabled {
+[data-account-provider]:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-[data-oriz-account-provider="email"] {
+[data-account-provider="email"] {
   background: var(--cobalt);
   color: var(--paper);
   border-color: var(--cobalt);
   font-weight: 500;
 }
-[data-oriz-account-provider="email"]:hover:not(:disabled) {
+[data-account-provider="email"]:hover:not(:disabled) {
   background: var(--ink);
   color: var(--paper);
   border-color: var(--ink);
 }
 
-[data-oriz-account-separator] {
+[data-account-separator] {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -103,20 +103,20 @@
   text-transform: uppercase;
   letter-spacing: 0.16em;
 }
-[data-oriz-account-separator]::before,
-[data-oriz-account-separator]::after {
+[data-account-separator]::before,
+[data-account-separator]::after {
   content: "";
   flex: 1;
   height: 1px;
   background: var(--rule);
 }
 
-[data-oriz-account-email-form] {
+[data-account-email-form] {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-[data-oriz-account-email-form] input[type="email"] {
+[data-account-email-form] input[type="email"] {
   flex: 1;
   min-width: 200px;
   height: 44px;
@@ -127,19 +127,19 @@
   font-family: inherit;
   font-size: 0.9375rem;
 }
-[data-oriz-account-email-form] input[type="email"]:focus {
+[data-account-email-form] input[type="email"]:focus {
   outline: none;
   border-color: var(--cobalt);
 }
 
-[data-oriz-account-link-sent] {
+[data-account-link-sent] {
   margin-block: 0.75rem 0;
   color: var(--ink-mute);
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
-[data-oriz-account-provider="anon"] {
+[data-account-provider="anon"] {
   display: block;
   width: 100%;
   margin-top: 1rem;
@@ -154,42 +154,42 @@
   text-underline-offset: 0.25em;
   cursor: pointer;
 }
-[data-oriz-account-provider="anon"]:hover:not(:disabled) {
+[data-account-provider="anon"]:hover:not(:disabled) {
   color: var(--cobalt);
 }
 
-[data-oriz-account-me] {
+[data-account-me] {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.25rem;
 }
-[data-oriz-account-avatar] {
+[data-account-avatar] {
   width: 56px;
   height: 56px;
   border: 1px solid var(--rule);
 }
-[data-oriz-account-name] {
+[data-account-name] {
   margin: 0;
   font-weight: 600;
   font-size: 1.0625rem;
   color: var(--ink);
 }
-[data-oriz-account-email] {
+[data-account-email] {
   margin: 0.125rem 0 0;
   color: var(--ink-mute);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
 }
 
-[data-oriz-account-note] {
+[data-account-note] {
   margin-block: 1rem;
   color: var(--ink-mute);
   line-height: 1.55;
   font-size: 0.9375rem;
 }
 
-[data-oriz-account-action="sign-out"] {
+[data-account-action="sign-out"] {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -202,12 +202,12 @@
   font-size: 0.9375rem;
   cursor: pointer;
 }
-[data-oriz-account-action="sign-out"]:hover:not(:disabled) {
+[data-account-action="sign-out"]:hover:not(:disabled) {
   border-color: var(--vermilion);
   color: var(--vermilion);
 }
 
-[data-oriz-account-error] {
+[data-account-error] {
   margin-top: 1rem;
   padding: 0.75rem 1rem;
   background: color-mix(in oklab, var(--vermilion) 15%, transparent);
@@ -218,7 +218,7 @@
 
 /* ── FinishSignIn ───────────────────────────────────────────────────── */
 
-[data-oriz-finish-sign-in] {
+[data-finish-sign-in] {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -227,10 +227,10 @@
   font-family: var(--font-sans);
   color: var(--ink);
 }
-[data-oriz-finish-sign-in-state="done"] {
+[data-finish-sign-in-state="done"] {
   color: var(--cobalt);
 }
-[data-oriz-finish-sign-in-error] {
+[data-finish-sign-in-error] {
   padding: 0.875rem 1.25rem;
   background: color-mix(in oklab, var(--vermilion) 15%, transparent);
   border: 1px solid color-mix(in oklab, var(--vermilion) 50%, transparent);
@@ -239,24 +239,24 @@
 
 /* ── ContactForm ────────────────────────────────────────────────────── */
 
-form[data-oriz-contact] {
+form[data-contact] {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   margin-block: 2rem;
   font-family: var(--font-sans);
 }
-[data-oriz-contact-honeypot] {
+[data-contact-honeypot] {
   position: absolute;
   left: -9999px;
   opacity: 0;
 }
-[data-oriz-contact-field] {
+[data-contact-field] {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
 }
-[data-oriz-contact-field] > span:first-child {
+[data-contact-field] > span:first-child {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   text-transform: uppercase;
@@ -264,8 +264,8 @@ form[data-oriz-contact] {
   color: var(--ink-mute);
   font-weight: 500;
 }
-[data-oriz-contact-field] input,
-[data-oriz-contact-field] textarea {
+[data-contact-field] input,
+[data-contact-field] textarea {
   padding: 0.625rem 0.875rem;
   background: transparent;
   border: 1px solid var(--rule);
@@ -273,21 +273,21 @@ form[data-oriz-contact] {
   font-family: inherit;
   font-size: 1rem;
 }
-[data-oriz-contact-field] input:focus,
-[data-oriz-contact-field] textarea:focus {
+[data-contact-field] input:focus,
+[data-contact-field] textarea:focus {
   outline: none;
   border-color: var(--cobalt);
 }
-[data-oriz-contact-field] textarea {
+[data-contact-field] textarea {
   resize: vertical;
   min-height: 120px;
 }
-[data-oriz-contact-error] {
+[data-contact-error] {
   color: var(--vermilion);
   font-size: 0.8125rem;
   margin: 0;
 }
-[data-oriz-contact-submit] {
+[data-contact-submit] {
   align-self: flex-start;
   height: 44px;
   padding-inline: 1.5rem;
@@ -299,15 +299,15 @@ form[data-oriz-contact] {
   font-weight: 500;
   cursor: pointer;
 }
-[data-oriz-contact-submit]:hover:not(:disabled) {
+[data-contact-submit]:hover:not(:disabled) {
   background: var(--ink);
   border-color: var(--ink);
 }
-[data-oriz-contact-submit]:disabled {
+[data-contact-submit]:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-[data-oriz-contact-success] {
+[data-contact-success] {
   margin-top: 0.75rem;
   padding: 0.75rem 1rem;
   background: color-mix(in oklab, var(--cobalt) 15%, transparent);
@@ -316,13 +316,13 @@ form[data-oriz-contact] {
   font-size: 0.9375rem;
 }
 
-@keyframes oriz-spin {
+@keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-oriz-account-spinner] {
+  [data-account-spinner] {
     animation: none;
   }
 }

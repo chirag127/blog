@@ -2,18 +2,17 @@
  * BookmarksList — renders the user's bookmarks (Firestore for signed-in,
  * localStorage for anon). Subscribes to live updates.
  */
-
-import type { User } from 'firebase/auth'
-import { Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import {
-  type Bookmark as BookmarkData,
   listBookmarks,
-  mergeOnSignIn,
   removeBookmark,
   watchAuth,
   watchBookmarks,
+  mergeOnSignIn,
+  type Bookmark as BookmarkData,
 } from '~/lib/bookmarks'
+import type { User } from 'firebase/auth'
 
 export default function BookmarksList() {
   const [user, setUser] = useState<User | null>(null)
@@ -48,9 +47,7 @@ export default function BookmarksList() {
         <p className="empty-d">
           Tap the <strong>Save</strong> button on any post and it'll show up here.
         </p>
-        <a href="/blog/" className="btn">
-          Browse posts →
-        </a>
+        <a href="/blog/" className="btn">Browse posts →</a>
         <style>{`
           .empty {
             padding: 3rem 1.5rem; text-align: center;
@@ -93,7 +90,7 @@ export default function BookmarksList() {
         ) : (
           <>
             Anonymous bookmarks ({items.length}) — they'll merge with your account next sign-in.{' '}
-            <a href="https://account.oriz.in/sign-in">Sign in to sync</a>.
+            <a href="/account/">Sign in to sync</a>.
           </>
         )}
       </p>

@@ -1,16 +1,10 @@
 ---
-const _sections = [
-  {
-    slug: 'privacy',
-    label: 'Privacy policy',
-    desc: "What we collect, what we don't, your rights.",
-  },
+import BaseLayout from '~/layouts/BaseLayout.astro'
+
+const sections = [
+  { slug: 'privacy', label: 'Privacy policy', desc: "What we collect, what we don't, your rights." },
   { slug: 'terms', label: 'Terms of use', desc: 'The rules for using blog.oriz.in.' },
-  {
-    slug: 'disclaimer',
-    label: 'Disclaimer',
-    desc: 'Posts here are not financial / medical / legal advice.',
-  },
+  { slug: 'disclaimer', label: 'Disclaimer', desc: 'Posts here are not financial / medical / legal advice.' },
   { slug: 'cookies', label: 'Cookie policy', desc: 'What cookies and localStorage we set.' },
   { slug: 'grievance', label: 'Grievance officer', desc: 'Mandatory contact under IT Rules 2021.' },
 ]

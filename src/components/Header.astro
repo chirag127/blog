@@ -1,4 +1,24 @@
 ---
+/*
+ * Header — 60px chrome bar (the v2 brief calls for 60px; we honor it).
+ *
+ * Layout:
+ *   ┌─────────────────────────────────────────────────────────────────┐
+ *   │  oriz / blog                              ⌘K · rss · ···        │
+ *   └─────────────────────────────────────────────────────────────────┘
+ *
+ * Left:  Wordmark `oriz / blog` in Fraunces small caps.
+ * Center: nothing (intentional).
+ * Right: search trigger (⌘K, opens Pagefind in a centered modal),
+ *        rss link, ··· overflow with /about /now /series + theme toggle.
+ *
+ * The brief specified 60px height; the heading "Header chrome (60px)"
+ * overrides the brief's earlier "Single line at 64px". 60px wins.
+ */
+import Wordmark from '~/components/Wordmark.astro'
+import HeaderControls from '~/components/HeaderControls.tsx'
+import MultiSearch from '~/components/MultiSearch.tsx'
+import StatusBanner from '~/components/StatusBanner.astro'
 ---
 
 <StatusBanner />
@@ -58,16 +78,6 @@
     padding-block: 0.25rem;
     color: var(--color-muted);
     text-decoration: none;
-    min-height: 32px;
-    padding: 6px 0;
-    display: inline-flex;
-    align-items: center;
-  }
-  nav a {
-    min-height: 32px;
-    padding: 6px 0;
-    display: inline-flex;
-    align-items: center;
   }
   .header-nav a:hover {
     color: var(--color-fg);

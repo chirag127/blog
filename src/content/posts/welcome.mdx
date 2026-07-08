@@ -1,14 +1,14 @@
 ---
 title: "Welcome to oriz-blog"
-description: "An introduction to the blog at blog.oriz.in — what you'll find here, how it's built, and why it lives in the chirag127/oriz family."
+description: "An introduction to the blog at blog.chirag127.dev — what you'll find here, how it's built, and why it lives in the chirag127/fleet."
 pubDate: 2026-06-20
 author: "Chirag Singhal"
-tags: ["meta", "intro", "oriz"]
-canonicalUrl: "https://blog.oriz.in/posts/welcome/"
+tags: ["meta", "intro", "workspace"]
+canonicalUrl: "https://blog.chirag127.dev/posts/welcome/"
 ---
 
 Welcome to **oriz-blog** — the long-form writing arm of the
-[chirag127/oriz](https://github.com/chirag127/oriz) family of static
+[chirag127/workspace](https://github.com/chirag127/workspace) family of static
 sites. Most of what I publish here is engineering work I'd otherwise
 forget: notes on shipping small things, debugging stories with the
 fix written down so I don't repeat the search, and the occasional
@@ -21,7 +21,7 @@ Three buckets, roughly:
 - **Engineering notebooks.** Architecture decisions, debugging
   walk-throughs, and the kind of "I just spent four hours on this"
   post that's mostly for me but might save you the same four hours.
-- **Open-source ships.** Whenever I push a new oriz-family site
+- **Open-source ships.** Whenever I push a new fleet site
   (eleven of them and counting), the cross-post engine
   ([oriz-omnipost](/posts/cross-post-engine/)) pings here and the
   newsletter and dev.to and Bluesky in one go.
@@ -31,13 +31,13 @@ Three buckets, roughly:
 Every post lives as an `.mdx` file in this repo's
 `src/content/posts/` directory — no headless CMS, no admin login,
 no second source of truth. See the
-[markdown-in-repo-only decision](https://github.com/chirag127/oriz/blob/main/knowledge/decisions/architecture/cms-markdown-in-repo-only.md)
+[markdown-in-repo-only decision](https://github.com/chirag127/workspace/blob/main/knowledge/decisions/architecture/cms-markdown-in-repo-only.md)
 for the why.
 
 ## Code samples come from elsewhere
 
 Per the family-wide
-[code-embed lock (Batch 6)](https://github.com/chirag127/oriz/tree/main/knowledge/decisions),
+[code-embed lock (Batch 6)](https://github.com/chirag127/workspace/tree/main/knowledge/decisions),
 runnable code goes into a **StackBlitz** or **CodePen** project, or
 a **GitHub Gist** for non-runnable snippets, and gets embedded back
 into the post. This blog post embed pattern keeps the MDX file
@@ -62,14 +62,14 @@ For non-runnable snippets, a Gist:
 
 The chrome here is intentionally minimal. The header has a search
 box that hits the family-wide MultiSearch (looks across every site
-in oriz, not just this blog). The footer has the three feeds —
+in workspace, not just this blog). The footer has the three feeds —
 [`/rss.xml`](/rss.xml), [`/atom.xml`](/atom.xml),
 [`/feed.json`](/feed.json) — pick whichever your reader prefers.
 Comments are at the bottom of each post, gated behind a "Load
 comments" click so the iframe doesn't ship until you ask for it.
 
 If something here helps you, the best thank-you is a star on
-[chirag127/oriz](https://github.com/chirag127/oriz) or a reply on
+[chirag127/workspace](https://github.com/chirag127/workspace) or a reply on
 [Bluesky](https://bsky.app/profile/chirag127.bsky.social).
 
 — Chirag

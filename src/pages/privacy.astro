@@ -1,5 +1,6 @@
 ---
-const _target = '/legal/privacy/'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+const target = '/legal/privacy/'
 ---
 <BaseLayout title="Privacy" noindex={true} hideSidebar={true}>
   <meta http-equiv="refresh" content={`0; url=${target}`} slot="head" />

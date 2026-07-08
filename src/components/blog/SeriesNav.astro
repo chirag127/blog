@@ -17,7 +17,7 @@ if (!post.data.series) {
   // Component is no-op if the post isn't part of a series.
 }
 
-const _seriesName = post.data.series ?? ''
+const seriesName = post.data.series ?? ''
 
 // Sort by `part` (numeric if possible), then pubDate as a tiebreaker.
 const partKey = (p: CollectionEntry<'blog'>): number => {
@@ -38,10 +38,10 @@ const ordered = [...allInSeries].sort((a, b) => {
 })
 
 const idx = ordered.findIndex((p) => p.id === post.id)
-const _total = ordered.length
-const _partLabel = post.data.part ?? (idx >= 0 ? idx + 1 : '?')
-const _prev = idx > 0 ? ordered[idx - 1] : null
-const _next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null
+const total = ordered.length
+const partLabel = post.data.part ?? (idx >= 0 ? idx + 1 : '?')
+const prev = idx > 0 ? ordered[idx - 1] : null
+const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null
 ---
 
 {post.data.series && total > 1 && (

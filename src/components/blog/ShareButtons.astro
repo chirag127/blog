@@ -11,9 +11,9 @@ export interface Props {
 
 const { title, url } = Astro.props
 
-const _xHref = `https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`
-const _linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
-const _blueskyHref = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${title} ${url}`)}`
+const xHref = `https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`
+const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
+const blueskyHref = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${title} ${url}`)}`
 ---
 
 <div class="share" data-share-url={url}>

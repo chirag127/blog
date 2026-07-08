@@ -12,7 +12,7 @@ interface Props {
   start?: number
 }
 const { id, title = 'YouTube video', start } = Astro.props as Props
-const _src = `https://www.youtube-nocookie.com/embed/${id}${start ? `?start=${start}` : ''}`
+const src = `https://www.youtube-nocookie.com/embed/${id}${start ? `?start=${start}` : ''}`
 ---
 
 <div class="yt-embed">

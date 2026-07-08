@@ -45,7 +45,7 @@ export default function HeaderControls() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [applyTheme])
+  }, [])
 
   useEffect(() => {
     if (!searchOpen || !mountRef.current || mountedRef.current) return
@@ -55,7 +55,7 @@ export default function HeaderControls() {
         const [{ PagefindUI }] = await Promise.all([
           // @ts-expect-error — runtime import; types not bundled
           import('@pagefind/default-ui'),
-          // @ts-expect-error — pagefind UI requires its own CSS
+          // @ts-ignore — pagefind UI requires its own CSS
           import('@pagefind/default-ui/css/ui.css'),
         ])
         if (cancelled || !mountRef.current) return
@@ -108,9 +108,7 @@ export default function HeaderControls() {
         >
           <span className="hc-kbd mono">⌘K</span>
         </button>
-        <a className="hc-link" href="/rss.xml" aria-label="RSS feed">
-          rss
-        </a>
+        <a className="hc-link" href="/rss.xml" aria-label="RSS feed">rss</a>
         <button
           type="button"
           className="hc-trigger hc-overflow"
@@ -124,21 +122,11 @@ export default function HeaderControls() {
 
         {menuOpen && (
           <div className="hc-menu" id={`${id}-menu`} role="menu">
-            <a href="/about/" role="menuitem">
-              about
-            </a>
-            <a href="/now/" role="menuitem">
-              now
-            </a>
-            <a href="/series/" role="menuitem">
-              series
-            </a>
-            <a href="/archive/" role="menuitem">
-              archive
-            </a>
-            <a href="https://account.oriz.in/sign-in" role="menuitem">
-              account
-            </a>
+            <a href="/about/" role="menuitem">about</a>
+            <a href="/now/" role="menuitem">now</a>
+            <a href="/series/" role="menuitem">series</a>
+            <a href="/archive/" role="menuitem">archive</a>
+            <a href="/account/" role="menuitem">account</a>
             <hr />
             <p className="hc-menu-h mono">theme</p>
             <button
@@ -185,15 +173,9 @@ export default function HeaderControls() {
           <div className="search-panel">
             <div ref={mountRef} className="pagefind-mount" />
             <div className="search-foot mono">
-              <span>
-                <kbd>↵</kbd> open
-              </span>
-              <span>
-                <kbd>esc</kbd> close
-              </span>
-              <a href="/search/" className="search-foot-link">
-                Open dedicated search →
-              </a>
+              <span><kbd>↵</kbd> open</span>
+              <span><kbd>esc</kbd> close</span>
+              <a href="/search/" className="search-foot-link">Open dedicated search →</a>
             </div>
           </div>
         </div>

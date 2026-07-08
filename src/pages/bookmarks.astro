@@ -1,4 +1,11 @@
 ---
+/**
+ * /bookmarks — all the posts the current user has saved.
+ * Uses the React BookmarksList island so live Firestore updates flow
+ * straight in. Anon users see localStorage entries.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import BookmarksList from '~/components/blog/BookmarksList.tsx'
 ---
 
 <BaseLayout

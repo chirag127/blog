@@ -8,9 +8,8 @@
  * Feedbin, Reeder) prefer because it's plain JSON — no XML parsing,
  * no namespaces, no encoding gotchas.
  */
-
-import { getCollection } from 'astro:content'
 import type { APIContext } from 'astro'
+import { getCollection } from 'astro:content'
 import { SITE_CONFIG } from '~/lib/config'
 
 interface JsonFeedItem {

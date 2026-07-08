@@ -7,17 +7,17 @@
  */
 import { getCollection } from 'astro:content'
 
-const _categories = [
+const categories = [
   { label: 'Engineering', href: '/blog/category/engineering/' },
   { label: 'Finance', href: '/blog/category/finance/' },
   { label: 'Books', href: '/blog/category/books/' },
   { label: 'Notes', href: '/blog/category/notes/' },
 ]
 
-let _recent: { slug: string; title: string }[] = []
+let recent: { slug: string; title: string }[] = []
 try {
   const all = await getCollection('blog')
-  _recent = all
+  recent = all
     .filter((p: any) => !p.data?.draft)
     .sort((a: any, b: any) => {
       const ad = a.data?.pubDate ? new Date(a.data.pubDate).getTime() : 0
@@ -27,7 +27,7 @@ try {
     .slice(0, 5)
     .map((p: any) => ({ slug: p.slug ?? p.id, title: p.data?.title ?? p.slug ?? p.id }))
 } catch {
-  _recent = []
+  recent = []
 }
 ---
 <div class="sb-section">
