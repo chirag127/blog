@@ -1,0 +1,129 @@
+---
+/*
+ * LegalFooter — universal legal sub-component dropped into every app's
+ * per-app Footer.astro. Per the
+ * `decisions/architecture/footer-per-app-with-universal-legal` decision:
+ * each app draws its OWN footer (per-app design + per-app links), but
+ * every footer includes this shared legal sub-component for consistency.
+ *
+ * Renders 4 columns on desktop, accordion on mobile (<details>):
+ *   1. Legal   → Privacy / Terms / Refunds / Disclaimer
+ *   2. Family  → About / Contact / Sitemap / Security.txt
+ *   3. Connect → Newsletter / RSS / GitHub / Sponsors
+ *   4. Brand   → Oriz wordmark + © year + 1-line bio
+ *
+ * Reads CSS custom properties from astro-shell tokens so it picks up the
+ * consuming app's palette automatically. Pure-Astro (no JS).
+ *
+ * Props (optional overrides per app):
+ *   appName       string  — e.g. "Oriz Janaushdhi"
+ *   bio           string  — 1-line app bio (else family-wide line)
+ *   github        string  — GitHub URL for this app/family
+ *   newsletter    string  — newsletter signup URL
+ *   rss           string  — RSS URL (defaults to /rss.xml)
+ *   sponsors      string  — GitHub Sponsors URL
+ */
+interface Props {
+  appName?: string
+  bio?: string
+  github?: string
+  newsletter?: string
+  rss?: string
+  sponsors?: string
+}
+const {
+  appName = 'Oriz',
+  bio = 'A free family of static sites and tools by Chirag Singhal.',
+  github = 'https://github.com/chirag127',
+  newsletter = '/newsletter/',
+  rss = '/rss.xml',
+  sponsors = 'https://github.com/sponsors/chirag127',
+} = Astro.props
+const year = new Date().getFullYear()
+---
+<section class="legal-footer" aria-labelledby="legal-footer-h">
+  <h2 id="legal-footer-h" class="visually-hidden">Legal, family, and brand</h2>
+  <div class="lf-grid">
+    <details class="lf-col" open>
+      <summary class="lf-h">Legal</summary>
+      <ul>
+        <li><a href="/privacy/">Privacy</a></li>
+        <li><a href="/terms/">Terms</a></li>
+        <li><a href="/refunds/">Refunds</a></li>
+        <li><a href="/disclaimer/">Disclaimer</a></li>
+      </ul>
+    </details>
+    <details class="lf-col" open>
+      <summary class="lf-h">Family</summary>
+      <ul>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/contact/">Contact</a></li>
+        <li><a href="/sitemap-index.xml">Sitemap</a></li>
+        <li><a href="/.well-known/security.txt">Security.txt</a></li>
+      </ul>
+    </details>
+    <details class="lf-col" open>
+      <summary class="lf-h">Connect</summary>
+      <ul>
+        <li><a href={newsletter}>Newsletter</a></li>
+        <li><a href={rss}>RSS</a></li>
+        <li><a href={github} rel="noopener">GitHub</a></li>
+        <li><a href={sponsors} rel="noopener">Sponsors</a></li>
+      </ul>
+    </details>
+    <div class="lf-col lf-brand">
+      <span class="lf-mark">oriz<span class="lf-strike" aria-hidden="true"></span></span>
+      <p class="lf-bio">{bio}</p>
+      <p class="lf-copy">© {year} Chirag Singhal · {appName} · MIT</p>
+    </div>
+  </div>
+</section>
+<style>
+  .legal-footer {
+    border-top: 1px solid var(--color-rule, var(--rule, rgba(0,0,0,0.12)));
+    background: var(--color-paper-2, var(--paper-2, transparent));
+    color: var(--color-ink, var(--ink, inherit));
+    padding: 28px 16px 20px;
+    font-family: var(--font-sans, system-ui);
+  }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  .lf-grid { display: grid; grid-template-columns: 1fr; gap: 12px; max-width: 1200px; margin: 0 auto; }
+  .lf-col { padding: 0; }
+  .lf-h {
+    font-family: var(--font-mono, ui-monospace);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--color-ink-mute, var(--ink-mute, #6b6b6b));
+    font-weight: 500; margin: 0 0 10px; cursor: pointer; list-style: none;
+  }
+  .lf-h::-webkit-details-marker { display: none; }
+  .lf-h::after { content: '+'; float: right; opacity: 0.5; }
+  details[open] > .lf-h::after { content: '−'; }
+  .lf-col ul { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 6px; }
+  .lf-col a { color: var(--color-ink, var(--ink, inherit)); font-size: 14px; text-decoration: none; }
+  .lf-col a:hover { color: var(--color-accent, var(--mustard, currentColor)); text-decoration: underline; }
+  .lf-brand { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+  .lf-mark {
+    font-family: var(--font-display, var(--font-sans, serif));
+    font-size: 28px; font-weight: 600; line-height: 1;
+    color: var(--color-ink, var(--ink, inherit));
+    position: relative; display: inline-block;
+  }
+  .lf-strike {
+    position: absolute; right: 0.05em; top: 50%; width: 0.6em; height: 0.04em;
+    background: var(--color-brand-vermilion, var(--vermilion, #c1440e));
+    transform: translateY(-50%);
+  }
+  .lf-bio { margin: 0; font-size: 13px; color: var(--color-ink-mute, var(--ink-mute, #6b6b6b)); line-height: 1.5; }
+  .lf-copy { margin: 0; font-family: var(--font-mono, ui-monospace); font-size: 11px; color: var(--color-ink-mute, var(--ink-mute, #6b6b6b)); }
+  @media (min-width: 768px) {
+    .lf-grid { grid-template-columns: 1fr 1fr; gap: 24px; padding: 4px 8px; }
+    .lf-h::after { content: ''; }
+    .lf-h { cursor: default; }
+  }
+  @media (min-width: 1024px) {
+    .legal-footer { padding: 36px 24px 24px; }
+    .lf-grid { grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    details.lf-col[open] > .lf-h::after,
+    details.lf-col > .lf-h::after { content: ''; }
+  }
+</style>

@@ -1,0 +1,36 @@
+---
+/*
+ * BottomBar — mobile-only fixed nav with 4-5 action items.
+ *
+ * Props:
+ *   actions: { icon: string, label: string, href: string, active?: boolean }[]
+ *
+ * Hidden >=768px; visible <768px.
+ */
+export interface BottomBarAction {
+  icon: string
+  label: string
+  href: string
+  active?: boolean
+}
+interface Props {
+  actions: BottomBarAction[]
+}
+const { actions } = Astro.props
+---
+<nav class="bottom-bar" aria-label="primary mobile">
+  {actions.map((a) => (
+    <a href={a.href} class:list={["bb-item", a.active && 'is-active']} aria-current={a.active ? 'page' : undefined}>
+      <span class="bb-icon" aria-hidden="true">{a.icon}</span>
+      <span class="bb-label">{a.label}</span>
+    </a>
+  ))}
+</nav>
+<style>
+  .bottom-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; height: 56px; background: var(--color-paper, var(--paper)); border-top: 1px solid var(--color-rule, var(--rule)); }
+  .bb-item { flex: 1; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--color-ink-mute, var(--ink-mute)); text-decoration: none; font-size: 11px; }
+  .bb-item.is-active { color: var(--color-accent, var(--mustard)); }
+  .bb-icon { font-size: 18px; line-height: 1; }
+  .bb-label { font-family: var(--font-mono); letter-spacing: 0.02em; }
+  @media (max-width: 767px) { .bottom-bar { display: flex; } }
+</style>
