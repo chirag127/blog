@@ -20,15 +20,6 @@ importers:
       '@astrojs/sitemap':
         specifier: ^3.2.0
         version: 3.7.3
-      '@chirag127/astro-chrome':
-        specifier: ^0.1.7
-        version: 0.1.7(@chirag127/astro-shell@0.3.0(@astrojs/mdx@4.3.14(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0)))(@astrojs/react@5.0.7(@types/node@26.1.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(jiti@2.7.0)(lightningcss@1.32.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(terser@5.48.0)(yaml@2.9.0))(@astrojs/sitemap@3.7.3)(@tailwindcss/vite@4.3.1(vite@7.3.5(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0)))(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0)))(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0))(firebase@12.15.0)(react@19.2.7)
-      '@chirag127/astro-data':
-        specifier: ^0.1.1
-        version: 0.1.1
-      '@chirag127/astro-shell':
-        specifier: ^0.3.0
-        version: 0.3.0(@astrojs/mdx@4.3.14(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0)))(@astrojs/react@5.0.7(@types/node@26.1.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(jiti@2.7.0)(lightningcss@1.32.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(terser@5.48.0)(yaml@2.9.0))(@astrojs/sitemap@3.7.3)(@tailwindcss/vite@4.3.1(vite@7.3.5(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0)))(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0))
       '@fontsource-variable/inter':
         specifier: ^5.2.8
         version: 5.2.8
@@ -111,9 +102,6 @@ importers:
       '@biomejs/biome':
         specifier: ^2.4.8
         version: 2.5.0
-      '@chirag127/astro-test-utils':
-        specifier: ^0.1.1
-        version: 0.1.1
       '@playwright/test':
         specifier: ^1.48.0
         version: 1.61.0
@@ -805,29 +793,6 @@ packages:
   '@capsizecss/unpack@4.0.1':
     resolution: {integrity: sha512-CuNiSqg7+e1cO/GjffyMOm5Tt2jUF9CWHHnvQ/UkqvtkGfHdgwEC0wpmq7fkN3gxwpRnrAN0WzO3vREKmNolMQ==}
     engines: {node: '>=18'}
-
-  '@chirag127/astro-chrome@0.1.7':
-    resolution: {integrity: sha512-KPk311IIasXFNtTuoVarN8hH0OfCsXibgu2uXV/8d+jcy0XcW3IgJkRZ8V/pJNcRyKWofDPUI0CyXKpj6W8M+Q==}
-    peerDependencies:
-      '@chirag127/astro-shell': ^0.1.3
-      astro: ^5.0.0 || ^6.0.0
-      firebase: ^11.0.0 || ^12.0.0
-      react: ^18.0.0 || ^19.0.0
-
-  '@chirag127/astro-data@0.1.1':
-    resolution: {integrity: sha512-DcZz7fl9M9dQhFOGcLflFIVnC9ijQy1j5d9z1YDfWsfBS9Z1hZT/2kukyIgzl3iO8siTGtAEbZH0N0edSiZfQw==}
-
-  '@chirag127/astro-shell@0.3.0':
-    resolution: {integrity: sha512-aAhZ+IayWlwO7Cd2QYSYc9DTnhWdu17QxBOo8AcLp+/bTzh7C87unEYhI7gqFYebgvKWga9qvtUKfwggWEE0dQ==}
-    peerDependencies:
-      '@astrojs/mdx': ^4.0.0
-      '@astrojs/react': ^5.0.0
-      '@astrojs/sitemap': ^3.0.0
-      '@tailwindcss/vite': ^4.0.0
-      astro: ^6.0.0
-
-  '@chirag127/astro-test-utils@0.1.1':
-    resolution: {integrity: sha512-3ZiTbekEzNPQmXzXV3AWo/U359qb6YkUr2jMNHOZggwT4LFiabKocaVC5jmqvV1Kei1eKR+5zjVuEB2phU+ABA==}
 
   '@clack/core@1.4.1':
     resolution: {integrity: sha512-FILJa1gGKEFTGZAJE9RpVhrjKz3c3h4ar60dSv6cGuDqufQ84YEIS3GAGvZiN+H6yaLbbvTFNejjCC4tXpZEuw==}
@@ -6381,25 +6346,6 @@ snapshots:
   '@capsizecss/unpack@4.0.1':
     dependencies:
       fontkitten: 1.0.3
-
-  '@chirag127/astro-chrome@0.1.7(@chirag127/astro-shell@0.3.0(@astrojs/mdx@4.3.14(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0)))(@astrojs/react@5.0.7(@types/node@26.1.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(jiti@2.7.0)(lightningcss@1.32.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(terser@5.48.0)(yaml@2.9.0))(@astrojs/sitemap@3.7.3)(@tailwindcss/vite@4.3.1(vite@7.3.5(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0)))(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0)))(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0))(firebase@12.15.0)(react@19.2.7)':
-    dependencies:
-      '@chirag127/astro-shell': 0.3.0(@astrojs/mdx@4.3.14(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0)))(@astrojs/react@5.0.7(@types/node@26.1.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(jiti@2.7.0)(lightningcss@1.32.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(terser@5.48.0)(yaml@2.9.0))(@astrojs/sitemap@3.7.3)(@tailwindcss/vite@4.3.1(vite@7.3.5(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0)))(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0))
-      astro: 6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0)
-      firebase: 12.15.0
-      react: 19.2.7
-
-  '@chirag127/astro-data@0.1.1': {}
-
-  '@chirag127/astro-shell@0.3.0(@astrojs/mdx@4.3.14(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0)))(@astrojs/react@5.0.7(@types/node@26.1.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(jiti@2.7.0)(lightningcss@1.32.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(terser@5.48.0)(yaml@2.9.0))(@astrojs/sitemap@3.7.3)(@tailwindcss/vite@4.3.1(vite@7.3.5(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0)))(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0))':
-    dependencies:
-      '@astrojs/mdx': 4.3.14(astro@6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0))
-      '@astrojs/react': 5.0.7(@types/node@26.1.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(jiti@2.7.0)(lightningcss@1.32.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(terser@5.48.0)(yaml@2.9.0)
-      '@astrojs/sitemap': 3.7.3
-      '@tailwindcss/vite': 4.3.1(vite@7.3.5(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))
-      astro: 6.4.8(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)(rollup@4.62.2)(terser@5.48.0)(yaml@2.9.0)
-
-  '@chirag127/astro-test-utils@0.1.1': {}
 
   '@clack/core@1.4.1':
     dependencies:
