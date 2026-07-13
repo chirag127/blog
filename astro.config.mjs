@@ -59,7 +59,7 @@ export default defineConfig({
         codeLineHeight: '1.55',
         frames: { shadowColor: 'transparent' },
       },
-      defaultProps: { showLineNumbers: true, wrap: false },
+      defaultProps: { wrap: false },
     }),
     react(),
     mdx({
@@ -83,9 +83,6 @@ export default defineConfig({
     shikiConfig: { theme: 'github-dark-dimmed' },
   },
   vite: {
-    resolve: {
-      tsconfigPaths: true,
-    },
     plugins: [
       tailwindcss(),
       VitePWA({

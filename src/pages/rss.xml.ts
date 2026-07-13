@@ -1,6 +1,6 @@
+import { getCollection } from 'astro:content'
 import rss from '@astrojs/rss'
 import type { APIContext } from 'astro'
-import { getCollection } from 'astro:content'
 import { SITE_CONFIG } from '~/lib/config'
 
 export async function GET(context: APIContext) {

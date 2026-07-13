@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
-import BaseLayout from '~/layouts/BaseLayout.astro'
 import PostCard from '~/components/blog/PostCard.astro'
+import BaseLayout from '~/layouts/BaseLayout.astro'
 import { getPostCategories, slugifyTag } from '~/lib/blog'
 
 export async function getStaticPaths() {
@@ -26,9 +26,7 @@ export async function getStaticPaths() {
 }
 
 const { category, posts } = Astro.props
-const sortedPosts = [...posts].sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-)
+const sortedPosts = [...posts].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 ---
 
 <BaseLayout title={`Category: ${category} — Blog`} description={`Posts in the ${category} category.`}>

@@ -1,4 +1,5 @@
 ---
+import { type CollectionEntry, getCollection, render } from 'astro:content'
 /**
  * /posts/[slug] — single post page for the `posts` collection.
  *
@@ -7,9 +8,8 @@
  * Pagefind for the family-wide MultiSearch.
  */
 import type { GetStaticPaths } from 'astro'
-import { type CollectionEntry, getCollection, render } from 'astro:content'
-import BaseLayout from '~/layouts/BaseLayout.astro'
 import GiscusComments from '~/components/blog/GiscusComments.astro'
+import BaseLayout from '~/layouts/BaseLayout.astro'
 import { SITE_CONFIG } from '~/lib/config'
 
 export const getStaticPaths = (async () => {
@@ -40,9 +40,7 @@ const articleSchema = {
   mainEntityOfPage: { '@type': 'WebPage', '@id': url },
   keywords: post.data.tags.join(', '),
   inLanguage: SITE_CONFIG.defaultLocale,
-  image: post.data.heroImage
-    ? new URL(post.data.heroImage, SITE_CONFIG.url).toString()
-    : undefined,
+  image: post.data.heroImage ? new URL(post.data.heroImage, SITE_CONFIG.url).toString() : undefined,
 }
 
 const breadcrumbSchema = {

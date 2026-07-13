@@ -1,4 +1,8 @@
-import { BlogMetadata, SyndicationAdapter, SyndicationResult } from "../types";
+import type {
+  BlogMetadata,
+  SyndicationAdapter,
+  SyndicationResult,
+} from "../types";
 import { mdToHtml } from "./wordpress";
 
 export class BloggerAdapter implements SyndicationAdapter {

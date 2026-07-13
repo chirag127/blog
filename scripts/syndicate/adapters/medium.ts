@@ -1,4 +1,8 @@
-import { BlogMetadata, SyndicationAdapter, SyndicationResult } from "../types";
+import type {
+  BlogMetadata,
+  SyndicationAdapter,
+  SyndicationResult,
+} from "../types";
 
 export class MediumAdapter implements SyndicationAdapter {
   id = "medium";

@@ -1,5 +1,5 @@
 import * as crypto from "node:crypto";
-import {
+import type {
   BlogMetadata,
   LinkShortener,
   SyndicationAdapter,

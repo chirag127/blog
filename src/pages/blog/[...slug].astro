@@ -1,4 +1,5 @@
 ---
+import { type CollectionEntry, render } from 'astro:content'
 /**
  * /blog/[slug] — single blog post (v2 design, 3-column re-grilled 2026-06-22).
  *
@@ -20,16 +21,15 @@
  * Drop-cap: Source Serif 4 cobalt rust, first paragraph (in blog-prose.css).
  */
 import type { GetStaticPaths } from 'astro'
-import { type CollectionEntry, render } from 'astro:content'
-import BaseLayout from '~/layouts/BaseLayout.astro'
+import BlogPostLeftSidebar from '~/components/blog/BlogPostLeftSidebar.astro'
+import BookmarkButton from '~/components/blog/BookmarkButton.tsx'
 import GiscusComments from '~/components/blog/GiscusComments.astro'
+import SeriesJumpList from '~/components/blog/SeriesJumpList.astro'
 import SeriesNav from '~/components/blog/SeriesNav.astro'
-import SeriesSpine from '~/components/SeriesSpine.astro'
 import TableOfContents from '~/components/blog/TableOfContents.astro'
 import MobileTocDrawer from '~/components/MobileTocDrawer.tsx'
-import BookmarkButton from '~/components/blog/BookmarkButton.tsx'
-import BlogPostLeftSidebar from '~/components/blog/BlogPostLeftSidebar.astro'
-import SeriesJumpList from '~/components/blog/SeriesJumpList.astro'
+import SeriesSpine from '~/components/SeriesSpine.astro'
+import BaseLayout from '~/layouts/BaseLayout.astro'
 import {
   formatPostDate,
   getPostsInSeries,
@@ -93,9 +93,7 @@ const articleSchema = {
   keywords: post.data.tags.join(', '),
   articleSection: post.data.category,
   inLanguage: SITE_CONFIG.defaultLocale,
-  image: post.data.heroImage
-    ? new URL(post.data.heroImage, SITE_CONFIG.url).toString()
-    : undefined,
+  image: post.data.heroImage ? new URL(post.data.heroImage, SITE_CONFIG.url).toString() : undefined,
 }
 
 const breadcrumbSchema = {

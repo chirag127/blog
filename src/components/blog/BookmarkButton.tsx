@@ -5,17 +5,18 @@
  *
  * Embedded inline on each post page; wired with `client:idle`.
  */
+
+import type { User } from 'firebase/auth'
 import { Bookmark, BookmarkCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import {
   addBookmark,
+  type Bookmark as BookmarkData,
   isBookmarked,
   removeBookmark,
   watchAuth,
   watchBookmarks,
-  type Bookmark as BookmarkData,
 } from '~/lib/bookmarks'
-import type { User } from 'firebase/auth'
 
 interface Props {
   slug: string

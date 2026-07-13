@@ -7,6 +7,7 @@
  *
  * Props mirror Astro MarkdownHeading entries filtered to depth 2 + 3.
  */
+import type { JSX } from 'react'
 import { useEffect, useState } from 'react'
 import { Drawer } from 'vaul'
 
@@ -62,9 +63,7 @@ export default function MobileTocDrawer({ items }: Props): JSX.Element | null {
         <Drawer.Content className="mtd-sheet">
           <div className="mtd-handle" aria-hidden="true" />
           <Drawer.Title className="mtd-title">On this page</Drawer.Title>
-          <Drawer.Description className="mtd-desc">
-            Jump to a section
-          </Drawer.Description>
+          <Drawer.Description className="mtd-desc">Jump to a section</Drawer.Description>
           <ol className="mtd-list">
             {items.map((h) => (
               <li key={h.slug} className={`mtd-item mtd-d${h.depth}`}>

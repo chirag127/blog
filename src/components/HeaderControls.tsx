@@ -11,7 +11,7 @@
  * picker in the header chrome — it lives behind the ··· overflow per the
  * brief.
  */
-import { useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
 type Theme = 'auto' | 'light' | 'dark'
 
@@ -22,6 +22,16 @@ export default function HeaderControls() {
   const mountRef = useRef<HTMLDivElement>(null)
   const mountedRef = useRef(false)
   const id = useId()
+
+  const applyTheme = useCallback((next: Theme, persist = true) => {
+    if (next === 'auto') {
+      document.documentElement.removeAttribute('data-theme')
+    } else {
+      document.documentElement.setAttribute('data-theme', next)
+    }
+    if (persist) localStorage.setItem('oriz:theme', next)
+    setTheme(next)
+  }, [])
 
   useEffect(() => {
     const stored = (localStorage.getItem('oriz:theme') as Theme | null) ?? 'auto'
@@ -45,7 +55,7 @@ export default function HeaderControls() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [applyTheme])
 
   useEffect(() => {
     if (!searchOpen || !mountRef.current || mountedRef.current) return
@@ -55,7 +65,6 @@ export default function HeaderControls() {
         const [{ PagefindUI }] = await Promise.all([
           // @ts-expect-error — runtime import; types not bundled
           import('@pagefind/default-ui'),
-          // @ts-ignore — pagefind UI requires its own CSS
           import('@pagefind/default-ui/css/ui.css'),
         ])
         if (cancelled || !mountRef.current) return
@@ -87,16 +96,6 @@ export default function HeaderControls() {
     }
   }, [searchOpen])
 
-  const applyTheme = (next: Theme, persist = true) => {
-    if (next === 'auto') {
-      document.documentElement.removeAttribute('data-theme')
-    } else {
-      document.documentElement.setAttribute('data-theme', next)
-    }
-    if (persist) localStorage.setItem('oriz:theme', next)
-    setTheme(next)
-  }
-
   return (
     <>
       <div className="hc">
@@ -108,7 +107,9 @@ export default function HeaderControls() {
         >
           <span className="hc-kbd mono">⌘K</span>
         </button>
-        <a className="hc-link" href="/rss.xml" aria-label="RSS feed">rss</a>
+        <a className="hc-link" href="/rss.xml" aria-label="RSS feed">
+          rss
+        </a>
         <button
           type="button"
           className="hc-trigger hc-overflow"
@@ -122,11 +123,21 @@ export default function HeaderControls() {
 
         {menuOpen && (
           <div className="hc-menu" id={`${id}-menu`} role="menu">
-            <a href="/about/" role="menuitem">about</a>
-            <a href="/now/" role="menuitem">now</a>
-            <a href="/series/" role="menuitem">series</a>
-            <a href="/archive/" role="menuitem">archive</a>
-            <a href="/account/" role="menuitem">account</a>
+            <a href="/about/" role="menuitem">
+              about
+            </a>
+            <a href="/now/" role="menuitem">
+              now
+            </a>
+            <a href="/series/" role="menuitem">
+              series
+            </a>
+            <a href="/archive/" role="menuitem">
+              archive
+            </a>
+            <a href="/account/" role="menuitem">
+              account
+            </a>
             <hr />
             <p className="hc-menu-h mono">theme</p>
             <button
@@ -166,16 +177,26 @@ export default function HeaderControls() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setSearchOpen(false)
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setSearchOpen(false)
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Search the blog"
+          tabIndex={-1}
         >
           <div className="search-panel">
             <div ref={mountRef} className="pagefind-mount" />
             <div className="search-foot mono">
-              <span><kbd>↵</kbd> open</span>
-              <span><kbd>esc</kbd> close</span>
-              <a href="/search/" className="search-foot-link">Open dedicated search →</a>
+              <span>
+                <kbd>↵</kbd> open
+              </span>
+              <span>
+                <kbd>esc</kbd> close
+              </span>
+              <a href="/search/" className="search-foot-link">
+                Open dedicated search →
+              </a>
             </div>
           </div>
         </div>

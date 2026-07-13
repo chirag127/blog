@@ -1,4 +1,8 @@
-import { BlogMetadata, SyndicationAdapter, SyndicationResult } from "../types";
+import type {
+  BlogMetadata,
+  SyndicationAdapter,
+  SyndicationResult,
+} from "../types";
 
 /**
  * A highly robust, lightweight Markdown to HTML compiler that runs client-side / script-side
@@ -23,7 +27,7 @@ export function mdToHtml(md: string): string {
     .replace(/>/g, "&gt;");
 
   // Code Blocks
-  text = text.replace(/```(\w*)\n?([\s\S]*?)```/gm, (match, lang, code) => {
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/gm, (_match, lang, code) => {
     const classAttr = lang ? ` class="language-${lang}"` : "";
     return `<pre><code${classAttr}>${code.trim()}</code></pre>`;
   });
@@ -32,7 +36,7 @@ export function mdToHtml(md: string): string {
   text = text.replace(/`([^`\n]+)`/g, "<code>$1</code>");
 
   // Headers (h1-h6)
-  text = text.replace(/^(#{1,6})\s+(.+)$/gm, (match, hashes, content) => {
+  text = text.replace(/^(#{1,6})\s+(.+)$/gm, (_match, hashes, content) => {
     const level = hashes.length;
     return `<h${level}>${content.trim()}</h${level}>`;
   });

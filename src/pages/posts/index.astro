@@ -8,9 +8,9 @@
  * Algolia <Search /> island bolted on top.
  */
 import { getCollection } from 'astro:content'
-import BaseLayout from '~/layouts/BaseLayout.astro'
-import Search from '~/components/Search.tsx'
 import FeedDiscovery from '~/components/FeedDiscovery.astro'
+import Search from '~/components/Search.tsx'
+import BaseLayout from '~/layouts/BaseLayout.astro'
 
 const all = await getCollection('posts', ({ data }) => data.draft === false).catch(() => [])
 const sorted = all.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())

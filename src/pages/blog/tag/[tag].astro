@@ -1,12 +1,12 @@
 ---
+import type { CollectionEntry } from 'astro:content'
 /**
  * /blog/tag/[tag] — all published posts that share a tag.
  * Tag slug is the kebab-cased tag name (mirrors slugifyTag()).
  */
 import type { GetStaticPaths } from 'astro'
-import type { CollectionEntry } from 'astro:content'
-import BaseLayout from '~/components/layout/BaseLayout.astro'
 import PostCard from '~/components/blog/PostCard.astro'
+import BaseLayout from '~/components/layout/BaseLayout.astro'
 import { getPublishedPosts, slugifyTag } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 

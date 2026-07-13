@@ -31,8 +31,7 @@ const scored: Scored[] = candidates
   .filter((p) => p.id !== current.id)
   .map((post) => ({
     post,
-    tagOverlap: post.data.tags.filter((t) => currentTags.has(t.toLowerCase()))
-      .length,
+    tagOverlap: post.data.tags.filter((t) => currentTags.has(t.toLowerCase())).length,
     sameCategory: post.data.category.toLowerCase() === currentCategory,
   }))
 

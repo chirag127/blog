@@ -1,4 +1,4 @@
-import { LinkShortener } from "./types";
+import type { LinkShortener } from "./types";
 
 export class IsGdShortener implements LinkShortener {
   private apiEndpoint = "https://is.gd/create.php";

@@ -8,7 +8,7 @@ import { BloggerAdapter } from "./adapters/blogger";
 import { XAdapter } from "./adapters/x";
 import { IsGdShortener } from "./shortener";
 import { SyndicationRegistry } from "./registry";
-import { BlogMetadata, SyndicationAdapter } from "./types";
+import type { BlogMetadata, SyndicationAdapter } from "./types";
 
 /**
  * Robust frontmatter and Markdown parser.

@@ -14,7 +14,11 @@ for (const post of allPosts) {
 const sortedTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1])
 
 function slugifyTag(value: string): string {
-  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 ---
 

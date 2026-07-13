@@ -11,6 +11,7 @@
  *    handles its own search backend (Pagefind for small corpora,
  *    Algolia for oriz-blog per Batch-4 lock).
  */
+import type { JSX } from 'react'
 import { useEffect, useRef, useState } from 'react'
 
 interface FamilySite {
@@ -22,14 +23,62 @@ interface FamilySite {
 }
 
 const SITES: FamilySite[] = [
-  { id: 'home', label: 'oriz', url: 'https://oriz.in', searchPath: '/search/?q=', hint: 'home + family directory' },
-  { id: 'blog', label: 'blog', url: 'https://blog.oriz.in', searchPath: '/search/?q=', hint: 'engineering writing' },
-  { id: 'me', label: 'me', url: 'https://me.oriz.in', searchPath: '/search/?q=', hint: 'lifestream' },
-  { id: 'books', label: 'books', url: 'https://books.oriz.in', searchPath: '/search/?q=', hint: 'reviews + reading' },
-  { id: 'finance', label: 'finance', url: 'https://finance.oriz.in', searchPath: '/search/?q=', hint: 'finance writing' },
-  { id: 'tools', label: 'tools', url: 'https://tools.oriz.in', searchPath: '/search/?q=', hint: 'small dev tools' },
-  { id: 'ext', label: 'extensions', url: 'https://extensions.oriz.in', searchPath: '/search/?q=', hint: 'browser extensions' },
-  { id: 'status', label: 'status', url: 'https://status.oriz.in', searchPath: '/?q=', hint: 'uptime board' },
+  {
+    id: 'home',
+    label: 'oriz',
+    url: 'https://oriz.in',
+    searchPath: '/search/?q=',
+    hint: 'home + family directory',
+  },
+  {
+    id: 'blog',
+    label: 'blog',
+    url: 'https://blog.oriz.in',
+    searchPath: '/search/?q=',
+    hint: 'engineering writing',
+  },
+  {
+    id: 'me',
+    label: 'me',
+    url: 'https://me.oriz.in',
+    searchPath: '/search/?q=',
+    hint: 'lifestream',
+  },
+  {
+    id: 'books',
+    label: 'books',
+    url: 'https://books.oriz.in',
+    searchPath: '/search/?q=',
+    hint: 'reviews + reading',
+  },
+  {
+    id: 'finance',
+    label: 'finance',
+    url: 'https://finance.oriz.in',
+    searchPath: '/search/?q=',
+    hint: 'finance writing',
+  },
+  {
+    id: 'tools',
+    label: 'tools',
+    url: 'https://tools.oriz.in',
+    searchPath: '/search/?q=',
+    hint: 'small dev tools',
+  },
+  {
+    id: 'ext',
+    label: 'extensions',
+    url: 'https://extensions.oriz.in',
+    searchPath: '/search/?q=',
+    hint: 'browser extensions',
+  },
+  {
+    id: 'status',
+    label: 'status',
+    url: 'https://status.oriz.in',
+    searchPath: '/?q=',
+    hint: 'uptime board',
+  },
 ]
 
 export default function MultiSearch(): JSX.Element {
@@ -85,7 +134,7 @@ export default function MultiSearch(): JSX.Element {
                 if (e.key === 'Enter' && query.trim()) submit(SITES[1]) // default to blog
               }}
             />
-            <ul className="oriz-multisearch__sites" role="listbox">
+            <ul className="oriz-multisearch__sites">
               {SITES.map((s) => (
                 <li key={s.id}>
                   <button type="button" onClick={() => submit(s)} disabled={!query.trim()}>
@@ -95,7 +144,11 @@ export default function MultiSearch(): JSX.Element {
                 </li>
               ))}
             </ul>
-            <button type="button" className="oriz-multisearch__close" onClick={() => setOpen(false)}>
+            <button
+              type="button"
+              className="oriz-multisearch__close"
+              onClick={() => setOpen(false)}
+            >
               Close
             </button>
           </div>

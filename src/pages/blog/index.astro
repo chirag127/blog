@@ -1,4 +1,5 @@
 ---
+import PostCard from '~/components/blog/PostCard.astro'
 /**
  * /blog — page 1 of the paginated blog index.
  * Pages 2+ live at /blog/page/[page] (see ./page/[page].astro).
@@ -6,12 +7,7 @@
  * Layout: filter chip strip of every category, then a 12-card grid.
  */
 import BaseLayout from '~/components/layout/BaseLayout.astro'
-import PostCard from '~/components/blog/PostCard.astro'
-import {
-  getAllCategories,
-  getPublishedPosts,
-  slugifyTag,
-} from '~/lib/blog'
+import { getAllCategories, getPublishedPosts, slugifyTag } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 
 const PAGE_SIZE = 12
@@ -26,8 +22,7 @@ const jsonLd = {
   '@type': 'Blog',
   name: `Blog — ${SITE_CONFIG.title}`,
   url: new URL('/blog/', SITE_CONFIG.url).toString(),
-  description:
-    'Writing on software, AI agents, finance tooling, and the tools I build at oriz.in.',
+  description: 'Writing on software, AI agents, finance tooling, and the tools I build at oriz.in.',
   author: {
     '@type': 'Person',
     name: SITE_CONFIG.author.name,

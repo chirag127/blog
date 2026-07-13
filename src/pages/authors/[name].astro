@@ -3,8 +3,8 @@
  * /authors/[name] — every post by a single author.
  */
 import type { GetStaticPaths } from 'astro'
-import BaseLayout from '~/layouts/BaseLayout.astro'
 import PostCard from '~/components/blog/PostCard.astro'
+import BaseLayout from '~/layouts/BaseLayout.astro'
 import { getAuthorsWithCounts, getPostsByAuthor, slugifyTag } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 

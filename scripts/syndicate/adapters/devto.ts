@@ -1,4 +1,8 @@
-import { BlogMetadata, SyndicationAdapter, SyndicationResult } from "../types";
+import type {
+  BlogMetadata,
+  SyndicationAdapter,
+  SyndicationResult,
+} from "../types";
 
 export class DevToAdapter implements SyndicationAdapter {
   id = "devto";

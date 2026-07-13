@@ -9,8 +9,9 @@
  * Hand-rolled because @astrojs/rss is RSS-only. Spec:
  *   https://datatracker.ietf.org/doc/html/rfc4287
  */
-import type { APIContext } from 'astro'
+
 import { getCollection } from 'astro:content'
+import type { APIContext } from 'astro'
 import { SITE_CONFIG } from '~/lib/config'
 
 const escapeXml = (s: string): string =>
@@ -25,7 +26,16 @@ export async function GET(context: APIContext): Promise<Response> {
   const blog = await getCollection('blog', ({ data }) => data.draft === false).catch(() => [])
   const posts = await getCollection('posts', ({ data }) => data.draft === false).catch(() => [])
 
-  type Entry = { id: string; title: string; description: string; pubDate: Date; updatedDate?: Date; author: string; url: string; tags: string[] }
+  type Entry = {
+    id: string
+    title: string
+    description: string
+    pubDate: Date
+    updatedDate?: Date
+    author: string
+    url: string
+    tags: string[]
+  }
   const entries: Entry[] = [
     ...blog.map((p) => ({
       id: p.id,

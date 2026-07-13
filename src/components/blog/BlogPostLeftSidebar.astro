@@ -36,9 +36,7 @@ if (post.data.series) {
 }
 
 const isSeries = seriesPosts.length > 1
-const recent = allPosts
-  .filter((p) => p.id !== post.id)
-  .slice(0, isSeries ? 5 : 10)
+const recent = allPosts.filter((p) => p.id !== post.id).slice(0, isSeries ? 5 : 10)
 
 let topTags: { tag: string; count: number }[] = []
 if (!isSeries) {

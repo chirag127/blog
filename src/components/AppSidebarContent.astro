@@ -10,22 +10,22 @@ import { getCollection } from 'astro:content'
 const categories = [
   { label: 'Engineering', href: '/blog/category/engineering/' },
   { label: 'Finance', href: '/blog/category/finance/' },
-  { label: 'Books', href: '/blog/category/books/' },
-  { label: 'Notes', href: '/blog/category/notes/' },
+  { label: 'Tech', href: '/blog/category/tech/' },
+  { label: 'Personal', href: '/blog/category/personal/' },
 ]
 
 let recent: { slug: string; title: string }[] = []
 try {
   const all = await getCollection('blog')
   recent = all
-    .filter((p: any) => !p.data?.draft)
-    .sort((a: any, b: any) => {
+    .filter((p) => !p.data?.draft)
+    .sort((a, b) => {
       const ad = a.data?.pubDate ? new Date(a.data.pubDate).getTime() : 0
       const bd = b.data?.pubDate ? new Date(b.data.pubDate).getTime() : 0
       return bd - ad
     })
     .slice(0, 5)
-    .map((p: any) => ({ slug: p.slug ?? p.id, title: p.data?.title ?? p.slug ?? p.id }))
+    .map((p) => ({ slug: p.id, title: p.data?.title ?? p.id }))
 } catch {
   recent = []
 }
