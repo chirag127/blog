@@ -1,0 +1,94 @@
+---
+title: "Managing 50+ repos as a solo developer: what actually works"
+description: "After two years and fifty-odd repositories, here is the honest system I use to keep a large personal portfolio from becoming a liability."
+pubDate: 2026-07-31
+tags: ["solo-dev", "git", "monorepo", "open-source", "productivity", "indie-hacking"]
+category: "Tools"
+draft: false
+author: "Chirag Singhal"
+readingTime: "8 min"
+---
+
+Two years ago I had eleven repositories. Today I have fifty-three. The honest answer to "how do you manage that many repos" is that most people asking the question are imagining the wrong kind of management. They picture a spreadsheet, a dashboard, a weekly review. What actually works is a system that mostly runs itself, with a few sharp rules that prevent accumulation from becoming chaos.
+
+## The number is not the problem
+
+Fifty repos sounds like a lot. It is not, for one reason: most of them do nothing.
+
+A repository in maintenance mode requires zero active management. It accepts issues, you triage them occasionally, and you either fix bugs or you do not. The cost is a few minutes a month, not hours. GitHub is free; the cost of keeping a dormant repo is asymptotically zero.
+
+The number that does matter is your *active* repo count — the ones you are currently building, breaking, or deliberately improving. For me that is usually five to eight. That number is manageable by a single person working in the margins of a full-time job, and it is the number you should be thinking about when you feel overwhelmed.
+
+## One workspace, everything inside
+
+The first thing I did that actually helped was moving every repository into a single private monorepo as git submodules. The workspace lives at `C:\g\ws`. Every active repo, every fork I maintain, every private project — all of them are registered as submodules under `repos/own/`, `repos/frk/`, or `repos/private/`.
+
+This is not a monorepo in the Nx / Turborepo sense. I am not sharing build tooling or packages across repos. Each submodule is an independent project with its own `package.json` and its own CI. The workspace is purely an *index* — a single place where I can run `git submodule status` and see every project at once.
+
+What this buys you:
+
+- **One config file to rule them all.** Shared scripts, shared env variables (encrypted with sops+age), shared agent configuration for Claude Code — all at the workspace root. I do not maintain `.env` files in isolation or keep CI secrets in seventeen different places.
+- **An Obsidian vault for free.** The workspace root is also my personal knowledge base. Every architectural decision, every runbook, every "why did I do it this way" note lives in `knowledge/` as plain markdown. Obsidian indexes it. No separate Notion workspace. No context-switching.
+- **One place to search.** When I need to find where I defined something, I search the workspace root. Not GitHub, not grep-across-repos, not memory.
+
+The cost: `git submodule` is annoying. Clone times are long if you recurse. The solution is to clone top-level only (`--no-recurse-submodules`) and init individual submodules on demand. The annoyance is a one-time adjustment; the benefit is permanent.
+
+## Naming is more important than structure
+
+I spent a year with category folders: `repos/own/apis/`, `repos/own/cli/`, `repos/own/extensions/`. I flattened it all in 2026 and I should have done it sooner.
+
+Category folders are a tax on every future decision. When you build something new, you spend ten minutes deciding where it lives before you have written a line of code. When a tool evolves — your CLI tool grows an API, your API gets a frontend — the folder name becomes a lie. The category folder pays no rent and costs attention every time you interact with the workspace.
+
+Flat works. The rule is: bare kebab-case names, identity derived from repo content, no category prefixes. `ncert` not `education/ncert`. `fii-dii-activity-api` not `apis/finance/fii-dii-activity`. The name is just a name; the README tells you what it is.
+
+The only exception is type suffixes where ambiguity is real: browser extensions get `-bs-ext`, VS Code extensions get `-vsc-ext`. Not because categories are good, but because without them `bookmark-mind` and `bookmark-mind-bs-ext` would collide.
+
+## The three lifecycle stages
+
+Every repo in my workspace is in one of three states:
+
+**Active.** You are working on this regularly. It gets CI, a README with a live link, and actual attention. Five to eight repos at any time.
+
+**Stable.** It works, it is deployed, you maintain it but do not develop it. Bugs get fixed; features do not get added. The CI stays green because the CI is simple.
+
+**Archived.** You are not working on it and you are not maintaining it. Archive it on GitHub — it stays visible, cloneable, and searchable, but issues are locked and the expectations are clear.
+
+The mistake I made for the first year was keeping repos in a limbo between stable and archived. They would accumulate issues I felt guilty about not fixing, PRs I felt guilty about not merging, half-finished features I planned to "get back to." The archive function exists for exactly this. Use it without guilt. Git history survives archiving. If you unarchive it in two years, everything is still there.
+
+## One commit message format, everywhere
+
+Conventional commits — `feat(scope): what changed`, `fix: what broke`, `docs(knowledge): what decision landed` — sounds like bureaucracy for a solo developer. It is not, for one reason: you will not remember why you made a change six months later, but your commit message will.
+
+The format also makes changelogs automatable and keeps the `git log` readable at a glance. When you are debugging why a deployment broke on a Friday night, `fix(api): handle null response from BSE scraper` is more useful than `updates`.
+
+The rule I keep: one decision per commit. Do not mix a refactor with a feature. Do not mix a config change with a bug fix. This is not about code review — there is nobody reviewing. It is about future you being able to run `git bisect` and have the bisected commit mean something.
+
+## What CI is actually for
+
+Solo dev CI is not about catching the bugs your code reviewer would have caught. It has no code reviewer. Solo dev CI is about three things:
+
+**Catching broken builds before deployment.** Nothing else. If your build passes and your tests pass, you ship. The CI is a checkpoint, not a committee.
+
+**Running the things you would otherwise skip.** Type checking, lint, tests. All of these are things a solo developer will skip when they are tired or in a hurry. CI means they run anyway.
+
+**Providing a public signal of quality.** The green checkmark on a public repo is a signal to potential users that the thing works. It costs nothing to add and it matters.
+
+I keep CI simple: a single workflow file, `ubuntu-latest`, the same Node/Python version I develop on, lint + build + test. No matrix builds until there is a concrete reason. No Docker unless the app needs Docker. The more complex the CI, the more often it breaks on issues unrelated to your code.
+
+## The repos worth keeping
+
+The honest question is not "how do I manage many repos" but "which repos deserve to exist at all."
+
+The test I use: can I describe what this repo does in one sentence, and does that sentence describe something useful to at least one person besides me? If both answers are yes, keep it. If the answer to either is no, archive it or delete it.
+
+"A scraper for FII/DII data that updates a live dashboard and sends a Telegram notification when flows cross a threshold" — that is a useful repo. "Experiments with OpenAI API" with three files and no README — that is not a repo, that is a scratch directory that mistakenly got `git init`-ed. Archive it.
+
+The portfolio effect of many public repos is real but it is the *quality distribution* that matters, not the count. Twenty repos where ten are well-documented, actively maintained, and genuinely useful are better than fifty repos where thirty are unintelligible. Prune aggressively.
+
+## The one thing that changed everything
+
+I use Claude Code as my primary development collaborator. I describe what I want; it writes the code, commits it, pushes it, manages the CI. This is not autocomplete. This is a collaborator that knows the whole codebase, follows the conventions I have defined in `AGENTS.md`, and does not complain about writing tests.
+
+The effect on repo management is indirect but real. When the marginal cost of adding a test or writing a README drops to near zero, you do it. When committing conventionally is as easy as committing carelessly, you do it conventionally. The habits that were previously too expensive to maintain consistently become cheap.
+
+Fifty repos managed well is a capability story, not a volume story. The volume is incidental; the system is the point.

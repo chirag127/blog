@@ -1,0 +1,94 @@
+---
+title: "Claude Code as a development partner: what actually changed"
+description: "After six months of using Claude Code as my primary collaborator — not autocomplete, not a chatbot — here is what genuinely changed about how I build software."
+pubDate: 2026-07-31
+tags: ["claude-code", "ai", "solo-dev", "productivity", "agents", "indie-hacking"]
+category: "Tools"
+draft: false
+author: "Chirag Singhal"
+readingTime: "10 min"
+---
+
+The framing that most people bring to AI coding tools is wrong. They think about autocomplete — the tool predicts the next line, you accept or reject. That is a fine feature. It is not what changed my development workflow.
+
+What changed is this: I now have a collaborator who reads the whole codebase, knows the conventions I have established, commits to git, pushes to GitHub, triages CI failures, writes tests, and does not need me to explain what a submodule is. The unit of work moved from "write this function" to "implement this feature end to end."
+
+That shift has a different name than autocomplete. I call it a development partner.
+
+## What the setup actually looks like
+
+My workspace is a private monorepo at `C:\g\ws`. Every active project is a git submodule. The workspace root contains an `AGENTS.md` file — a plain markdown document that defines how every AI agent in my fleet should behave. Commit format. Naming conventions. Which tools to use. Which decisions are locked. Which rules override defaults.
+
+Claude Code reads this file at the start of every session. It does not forget between conversations because it is reading from a file, not from chat history. When I start a new session and say "fix the CI on fii-dii-activity-api," it already knows the project structure, the commit format, the deployment target, and the conventions. I do not re-explain them.
+
+This is the thing most people miss when they try AI coding tools and find them frustrating: the frustration is usually about context, not capability. The model is capable. It does not know your project. Solve the context problem and the capability becomes useful.
+
+## The AGENTS.md system
+
+The file is about 400 lines. It covers:
+
+- **Repo layout rules.** Flat structure, bare kebab names, no category folders.
+- **Commit format.** Conventional commits, one decision per commit, push by default.
+- **Deployment targets.** Cloudflare Pages for apps, GitHub Pages for docs, never self-hosted paid infrastructure.
+- **Locked decisions.** Things that have been decided and do not need to be re-decided. Auth provider, database, secrets management, naming conventions.
+- **Behaviour rules.** Terse prose, act then report, build complete not MVP, search the web before answering questions about tools.
+
+The locked decisions section is the most valuable. Without it, Claude Code would suggest Firebase on one session and Supabase on the next, depending on what it had recently seen. With it, every session starts from the same architectural baseline. The workspace accumulates knowledge instead of restarting from zero.
+
+The system is not unique to Claude Code. Any agent that reads a context file at session start benefits from the same pattern. The investment in writing the file pays back on every subsequent session.
+
+## What it does that I used to do
+
+The work I have stopped doing myself, and delegated to Claude Code:
+
+**Boilerplate.** Package setup, tsconfig, biome config, CI workflows, README structure. I describe what I want; the agent scaffolds it. Not from a template — from context about the project and conventions.
+
+**Test writing.** I still write tests for complex logic. For CRUD, API clients, utility functions — the agent writes them. They pass. The coverage is real.
+
+**CI debugging.** When a CI run fails, I paste the error and ask for a fix. It reads the workflow file, reads the error, fixes the issue. For 80% of CI failures, this is faster than opening the logs myself.
+
+**Commit messages.** I do not write commit messages anymore. I say "commit this," the agent reads the diff, writes a conventional commit message, and pushes. The messages are accurate. Sometimes they are better than what I would have written.
+
+**Documentation.** README updates, inline comments on non-obvious logic, runbooks for operations. The agent writes them in the same voice as the existing documentation because it has read the existing documentation.
+
+What I still do: architecture decisions, judgment calls on trade-offs, anything that requires knowing something outside the codebase (user feedback, business context, aesthetic preferences), and review. I read what the agent committed. Not every line — but I stay in the loop on direction.
+
+## The failure modes
+
+It is not uniformly good. The failure modes I have hit:
+
+**Scope creep.** Ask for a bug fix; get a refactor. The agent's instinct is toward completeness, which is usually right but occasionally wrong. The fix: be specific. "Fix the null check on line 47" is better than "fix the bug in the auth module" when you know exactly what the bug is.
+
+**Hallucinated APIs.** The model's training data has a cutoff. For tools and libraries that change fast, it will sometimes use an API that existed a year ago but was deprecated. The fix: keep dependencies pinned, run tests before trusting the output, and tell the agent to search the web for current API docs before using a library it has not touched recently.
+
+**Confidently wrong architecture.** On sufficiently novel problems, the agent will produce a solution that compiles and passes tests but has a subtle architectural flaw — a race condition, an inefficient query pattern, a security boundary that leaks. These are hard to catch in review because the code looks right. The fix: for anything touching auth, data access patterns, or concurrency, review more carefully. These are the places where the agent's confidence is least correlated with correctness.
+
+**Context window limits.** A 50K-line codebase does not fit in context. The agent will miss things. The fix: index the codebase with a tool like codebase-memory-mcp so the agent can query the knowledge graph rather than reading every file.
+
+## What changed about the work itself
+
+The most honest answer to "what changed" is: the feedback loop got faster, which changed what I build.
+
+Before: I would have an idea, spend two days implementing it, discover a design flaw, spend a day refactoring, ship. The total time from idea to shipped is three days minimum. The flaw is often something I would have caught if I had thought longer before starting.
+
+After: idea → agent scaffolds an implementation → I review and find the design flaw → agent refactors → ship. Total time: four hours. The flaw gets caught at the same moment, but the cost of the rework is ninety minutes instead of a day. With a lower cost of iteration, I am willing to start with a rougher hypothesis and refine. The willingness to start rougher means I start more things. The things I start have a higher survival rate because they are not protected by the sunk cost of two days of work.
+
+This is the actual change. Not that the code writes itself. That the cost of being wrong is lower, so I am less afraid of starting, and I start more things that turn out to be right.
+
+## The India-specific angle
+
+Running this setup in India, on a corporate laptop, through a company proxy, with a Defender-managed machine — the infrastructure is more complicated than the tutorials assume.
+
+The model provider is not OpenAI directly. I run a self-hosted LiteLLM proxy (hai) that routes to corporate Bedrock. The agent config points at `localhost:6655/anthropic/v1`. The credentials come from the encrypted workspace vault (sops+age), not from environment variables set ad hoc. The setup took a day to configure. It has not needed maintenance since.
+
+The corporate machine restriction means some tools do not work — pip install is blocked by Defender ASR rules, unsigned executables are blocked, admin rights are unavailable. The agent knows this. It is in `AGENTS.md`. When it would suggest a solution involving a local Python environment, it suggests an alternative instead.
+
+The constraint-aware agent is more useful than a constraint-ignorant one. The time spent documenting the constraints in `AGENTS.md` pays back every time the agent avoids suggesting something that would not work.
+
+## What it is not
+
+It is not a replacement for knowing what you are doing. An agent that works in a well-structured codebase with clear conventions and a context file will produce good results. The same agent on a codebase with no tests, no naming conventions, and no architectural documentation will produce mediocre results and occasionally break things.
+
+The quality of the output scales with the quality of the context you provide. The investment is in the context, not in the model.
+
+It is not magic. It is a fast, well-read collaborator who does not get tired and does not complain about writing tests. That is already very useful.

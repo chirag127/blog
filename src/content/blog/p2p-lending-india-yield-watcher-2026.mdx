@@ -1,0 +1,97 @@
+---
+title: "P2P lending in India, 2026: what I learned building a yield watcher"
+description: "I built a tool to track i2i Fundos loans and alert on high-yield opportunities. Here is what the data showed, and what every P2P investor in India should know before putting in a rupee."
+pubDate: 2026-07-31
+tags: ["p2p-lending", "india", "investing", "fintech", "i2i", "yield"]
+category: "Finance"
+draft: false
+author: "Chirag Singhal"
+readingTime: "11 min"
+---
+
+I have been investing in P2P lending in India since 2024. Last year I built a tool — i2i YieldWatch — that scrapes the i2i Fundos marketplace every hour, stores the loan listings, and sends me a notification when a loan appears that meets specific criteria. Here is what the data showed, and here is what I think every retail P2P investor in India should understand before committing capital.
+
+The short version: the returns are real, the risks are different from what the platforms advertise, and the information asymmetry between you and the platform is larger than it appears.
+
+## What P2P lending actually is in India
+
+Reserve Bank of India regulates P2P lending platforms as NBFC-P2P. The regulatory framework was updated in 2023 and again in 2024. The current rules:
+
+- Maximum investment by a single lender: ₹50 lakh across all P2P platforms combined.
+- Maximum exposure to a single borrower: ₹50,000.
+- Minimum loan tenure: 3 months.
+- Platforms cannot guarantee returns or provide capital protection.
+- Funds must move through an escrow account; the platform does not hold lender money.
+
+The registered NBFC-P2P count in India is small — around 22 as of mid-2026. The operational ones that have meaningful volume are fewer. i2i Fundos, Faircent, Lendbox, and LiquiLoans are the names you see repeatedly.
+
+## Why I built a watcher
+
+i2i Fundos shows live loan listings on a marketplace. You can browse loans by tenure, interest rate, and borrower grade. The problem: good loans — high credit score, high interest rate, short tenure — fill within minutes of listing. By the time you log in and find them, they are gone.
+
+The platforms do not provide a notification API. They do not have a webhook for "new loan listed matching your criteria." The only way to be first is to be watching continuously, which humans cannot do.
+
+So I wrote a scraper. It polls the listing endpoint, stores the results in a database, diffs against the previous run, and fires a notification if a new loan matches: credit score above a threshold, interest rate above a threshold, tenure within a range. The tool is open source at [github.com/chirag127/i2i-yield-watch](https://github.com/chirag127/i2i-yield-watch).
+
+## What the data showed
+
+Over eight months of data collection, a few patterns became clear.
+
+**The listed rate is not the effective yield.** i2i Fundos deducts a platform fee from the borrower interest before passing it to you. The fee is not prominently displayed in the listing. The listed rate is 14%; your effective receipt is 12.8% after the platform cut. For borrowers in the higher-risk grades, the platform fee percentage is higher. Always calculate the post-fee yield before making a lending decision.
+
+**Credit scores are a lagging indicator.** The credit score shown is the score at loan origination, which may be months before the loan appears on the secondary market or at the time you see it. A borrower's situation changes. The score does not update in real time. This is not unique to i2i — it is an inherent limitation of point-in-time credit scoring — but it is worth understanding.
+
+**Loan duration clustering.** Most loans on the platform are 12–36 month tenure. Short-tenure loans (3–6 months) at high interest rates are rare and disappear instantly. My watcher typically sees them within 4 minutes of listing; they are gone within 10. If you are targeting short-duration paper, automation is not optional.
+
+**Default rates differ from advertised rates.** Platforms advertise historical NPA (Non-Performing Asset) rates. The denominator matters enormously — NPA as a percentage of total disbursed amount vs NPA as a percentage of currently active loans vs NPA as a percentage of loans past their maturity date are three different numbers that can all be technically accurate and tell very different stories. Ask for the cohort default rate — the percentage of loans originated in a given quarter that have defaulted by month 24.
+
+**Interest rate trends.** Over the eight months I have been watching, the average listed rate on i2i Fundos has moved between 13.5% and 17.5%. The rate reflects broader credit market conditions, platform supply-demand dynamics, and the regulatory environment. It is not static. A portfolio decision made at 17% average yield looks different at 13.5%.
+
+## The risk model P2P platforms understate
+
+The marketing for P2P lending emphasises: "Earn 12–18% returns." The risks that get mentioned: "borrower default." The risks that do not get mentioned:
+
+**Platform risk.** The NBFC-P2P holds the escrow. If the platform goes insolvent, your money is in escrow — not lost, but frozen. Recovery from a failed NBFC-P2P is a legal process that takes years. This happened with a few smaller platforms pre-2023. The RBI framework makes it harder now, but platform concentration risk is real. Do not put more in any single platform than you are willing to have locked up for 2–3 years in a worst case.
+
+**Liquidity risk.** There is no standardised secondary market for P2P loans in India. Some platforms offer a secondary listing feature; most do not. Once you lend, your money is locked until the loan matures or the borrower repays. If you need liquidity urgently, you cannot sell the loan. This is different from a liquid mutual fund. If your emergency fund is in P2P, it is not an emergency fund.
+
+**Concentration risk.** The RBI's ₹50,000 per-borrower limit is a ceiling, not a recommendation. Best practice is to spread across many more borrowers at lower amounts per borrower. A ₹1 lakh portfolio lending ₹2,000 across 50 borrowers is materially less risky than the same amount across 2 borrowers at ₹50,000 each. The math is elementary; people ignore it because small individual investments feel tedious.
+
+**Regulatory risk.** The RBI has tightened P2P lending regulations twice in two years. Each tightening has restricted what platforms can offer. The August 2023 circular prohibited platforms from offering assured returns. Future circulars could restrict further. P2P lending in India is a regulated product in an evolving regulatory environment. The regulatory risk is non-trivial.
+
+## What my portfolio looks like
+
+I invest a small allocation — under 5% of investable assets — in P2P lending. I treat it as a fixed-income alternative with higher yield and higher risk than corporate bonds. Not equity, not emergency fund, not a primary vehicle.
+
+The criteria I use with the watcher:
+- Credit score above 750 (platform-specific score, not CIBIL directly)
+- Interest rate above 14% post-platform fee
+- Tenure 6–18 months
+- Loan purpose: personal loan, not business loan (personal loans in India have better recovery rates historically)
+- Amount: ₹1,000–₹3,000 per loan to force diversification
+
+The watcher notifies me when a loan matches. I review it manually and decide whether to fund. The tool handles discovery; I handle the decision.
+
+Over the period I have been invested, the actual yield (accounting for defaults and prepayments) has tracked within 150 basis points of the listed rate. That is roughly what you should expect if your credit filters are working. Significantly higher or lower is a signal to check your assumptions.
+
+## The technical side
+
+The watcher is a Node.js application running as a GitHub Actions scheduled job. It polls the marketplace API, stores results in a SQLite database (committed to the repo — small enough to fit), diffs against the previous run, and sends a notification via Telegram bot when new loans match criteria.
+
+The code is available at [github.com/chirag127/i2i-yield-watch](https://github.com/chirag127/i2i-yield-watch). It is specific to i2i Fundos; adapting it to another platform requires changing the scraper module.
+
+One caveat: web scraping P2P platforms is in a legal grey zone. I use it for personal investment decisions only and do not commercialise the data. Read each platform's terms of service before running a scraper against their endpoints.
+
+## What I would tell someone starting today
+
+Start small. The minimum investment is ₹1,000 on most platforms. Invest that, let a few loans mature, understand the actual mechanics before you commit a significant amount.
+
+Diversify aggressively. Twenty loans at ₹2,000 is better than four loans at ₹10,000 at the same yield.
+
+Do not use P2P as a cash substitute. It is illiquid. If you need the money in the next two years, do not put it in a 24-month P2P loan.
+
+Ask the hard questions about defaults. The platform sales team will give you the optimistic number. Ask for the cohort data.
+
+Build or use tooling to stay competitive. The best loans fill fast. Manual browsing is not a viable strategy for high-yield paper.
+
+And finally: the returns are real, but they are compensation for real risk. There is no 15% return without 15%-yield risk somewhere in the system. Understand what the risk is before you take it.
