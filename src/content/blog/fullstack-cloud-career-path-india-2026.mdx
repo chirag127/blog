@@ -1,0 +1,189 @@
+---
+title: "The full-stack + cloud path: build in public, escape the service company"
+description: "How a CS grad at a service company builds a portfolio and jumps to a product company — the stack, the strategy, and the exact Udemy courses."
+pubDate: 2026-08-01
+tags: ["fullstack", "career", "india", "cloud", "udemy", "build-in-public"]
+category: "Career"
+draft: false
+author: "Chirag Singhal"
+readingTime: "13 min"
+---
+
+Let me talk to you directly.
+
+You graduated B.Tech CS from RKGIT in 2024. You sat in placement drives, cleared the TCS NQT, and joined in June 2025. Now it's your ILP or your first project rotation, and someone has decided you're going to learn SAP and the healthcare domain. Your offer letter says ₹3.36 LPA — that's ₹25K a month after nothing much gets cut. And somewhere in the last few weeks a thought showed up and won't leave: *maybe I should just quit and start the sand business my uncle keeps talking about. Or agriculture. Anything but this.*
+
+I want to be honest with you before you do something expensive. I'm not a motivational speaker. I'm a developer who works a corporate SAP-adjacent job and has shipped 50+ open source repositories on the side. I've felt the exact stuck feeling you're feeling. So this is the practical version, India-grounded, real numbers, no hype.
+
+This is **Part 2** of a 3-part series.
+
+- **Part 1** was the SAP path — how to *not* waste the domain training TCS is giving you for free, because SAP consultants get paid embarrassingly well. → [Part 1: The SAP path](/blog/sap-path-service-company)
+- **Part 3** is the AI path — how to ride the wave without becoming a "prompt engineer" who gets replaced. → [Part 3: The AI path](/blog/ai-path-service-company)
+
+This part is the one most people mean when they say "I want to switch to development." It's the full-stack + cloud path: build things in public, let your GitHub become your resume, and jump from a service company to a product company.
+
+## First: don't escape into a capital-heavy business
+
+Let me get this out of the way, because the sand/agriculture idea is the thing actually driving your search history right now.
+
+A sand business needs trucks, a mining lease or a supplier relationship, working capital, and the ability to survive a state government changing the rules overnight. Agriculture needs land, water, weather luck, and a market that pays you last. Both are real businesses that real people run well — but they need **capital you don't have** and they destroy the one asset you *do* have: four years of CS plus a company literally paying to train you in an enterprise domain.
+
+Here's the asymmetry nobody at TCS will point out to you. To escape into sand, you need lakhs. To escape into software product work, you need a laptop, an internet connection, and consistency. The downside of the software bet is a few months of evenings. The downside of the sand bet is your savings.
+
+You're not stuck because you're a developer. You're stuck because you're a developer at ₹25K who hasn't yet built the evidence that gets you to ₹12L. That evidence is buildable. Let's build it.
+
+## The core strategy: build in public
+
+Here's the thing about product companies — Razorpay, Zoho, Postman, Atlassian's India offices, the funded startups in Bangalore and Gurgaon. They do not care about your CGPA. They barely care about your college. They care about one question: **can you build software that works?**
+
+The problem is that at TCS, on an SAP project, you can't *show* them you can. Your work is behind an NDA, on a client system, in a domain the interviewer doesn't recognize. Your résumé says "worked on SAP healthcare module" and the product-company recruiter's eyes glaze.
+
+"Build in public" fixes exactly this. The idea is simple: **build real things, put the code on GitHub in the open, deploy them to a live URL, and talk about them.** Your GitHub profile becomes a résumé that a stranger can verify in ninety seconds without believing a word you say.
+
+I do this. I have 50+ public repos. Not because I'm special — because I decided that every problem I hit in daily life gets a repo instead of a complaint. That's the whole trick. You are not building a "portfolio project." You are building a tool *you actually use*, and the portfolio is a side effect.
+
+Three examples of the kind of thing I mean, none of which need money to build:
+
+- **A card comparison site.** Credit cards in India are a mess — reward rates, lounge access, fuel surcharge waivers, joining fees. Build a site that lets you compare them properly. You'll touch data modelling, a real UI, filtering, maybe a small API. And it's genuinely useful, so people will actually visit it.
+- **A market-data API.** Pull some public data — mandi prices, stock quotes, whatever — normalize it, cache it, expose it as a clean JSON API on the edge. Now you understand APIs, caching, rate limits, and cloud deployment, which is 40% of every backend interview.
+- **A browser extension.** Something small that annoys you on a website you use daily. Extensions are a fantastic first project because the scope is naturally tiny and you ship something people can install.
+
+The point of naming these: **they're tools, not tutorials.** A "todo app" from a tutorial tells an interviewer nothing — everyone has one and everyone knows it was copied. A card comparison site with a live URL, real data, and a commit history spread over three months tells them you can *finish things*, which is rarer than you'd think.
+
+## The stack that gets you hired in 2026
+
+You have limited evenings. Don't spread them across ten technologies. Here's the stack I'd bet on for the next few years, and why each piece is on the list.
+
+**TypeScript.** Not JavaScript — TypeScript. Almost every product company writing web software in 2026 has moved to it. It's JavaScript with types, and the types are what let you work in a large codebase without breaking things constantly. Learn JS first, then add TS; don't skip the JS.
+
+**React and Next.js.** React is still the default UI library at the vast majority of product companies. Next.js is the framework most teams wrap around it for full-stack apps — routing, server rendering, API routes, all in one. If you learn one frontend thing deeply, learn React; if you learn one framework, learn Next.js.
+
+**Astro.** This is the odd one out and I include it on purpose. Astro is a fantastic choice for content-heavy sites (like the card comparison site, or your own blog). It ships almost no JavaScript by default, so your sites are fast, and fast sites rank and convert. Building your *own* blog in Astro to write these posts is itself a project.
+
+**Cloudflare / the edge.** This is where I'd differentiate from the average bootcamp grad. Most people learn to deploy to a single server. Learn to deploy to the edge — Cloudflare Workers, Pages, and their storage (KV, R2, D1). It's cheap-to-free at your scale, it's genuinely modern, and "I run my projects on Cloudflare Workers" is a sentence that makes a good interviewer lean in.
+
+**Postgres, via Neon.** Every serious backend touches a relational database, and Postgres is the one worth knowing. Neon is a managed Postgres with a real free tier and no card required, so you can spin up a real database for every project without spending a rupee. Learn SQL properly — joins, indexes, transactions. It comes up in interviews constantly.
+
+**APIs.** REST first, then understand when you'd reach for something else. Building and consuming APIs is the connective tissue of everything above.
+
+Notice what's *not* on this list: no Java Spring, no ten different databases, no Kubernetes-on-day-one. You can add those later if a job needs them. This stack is chosen to get you from zero to hireable with the fewest moving parts.
+
+## The realistic salary path
+
+Let me give you numbers, because vague "you'll earn more" talk is useless when you're staring at ₹25K.
+
+**Service company (where you are): ₹3–5 LPA.** TCS, Infosys, Wipro, Cognizant, Accenture at the fresher level. This is your floor, and the annual hikes here are 5–10%, which is why three years in you might be at ₹5–6L and feeling exactly as stuck as you do now. That slow curve is the real reason to jump — not the starting number.
+
+**Product company / funded startup (the jump): ₹8–15 LPA.** This is the target for your *first* switch, roughly 1.5–3 years into your career, once you have the portfolio and can clear the interviews. Mid-tier product companies and well-funded startups pay freshers-with-proof in this band. The jump from ₹4L to ₹10L in a single switch is normal here — it's not a raise, it's a repricing, because you moved from "labor sold by the hour to a client" to "engineer who builds the company's product."
+
+**Senior engineer (2–4 years after that): ₹20–35 LPA.** Once you're inside a good product company and you're genuinely good, this is where the curve goes. The top of this band, and the ₹40L+ FAANG-India range, exists too, but don't optimize for it yet — it's a distraction from the jump that actually matters, which is the first one.
+
+Compare curves, not points. Service company: ₹4L → ₹5L → ₹6L over three years. Product path: ₹4L → ₹10L → ₹18L over the same three years. The gap compounds, and it compounds specifically because you built the evidence.
+
+## How to build a portfolio that actually stands out
+
+Not all portfolios are equal. Here's what separates one that gets you interviews from one that gets ignored.
+
+**Live URLs, always.** Every project must be deployed and clickable. A repo with no live link makes the recruiter do work; a live link makes them curious. Buy one cheap domain, or use the free subdomains Cloudflare Pages and similar give you. "Code + live demo" beats "code" every single time.
+
+**Real projects, not tutorial clones.** I said this already but it's worth repeating because it's the single biggest mistake. If your GitHub is a Colt Steele YARN clone, a Jonas mapty clone, and a Maximilian pizza-app clone, an interviewer has seen all three a hundred times. Do the courses — absolutely do them — but then build *your own* thing on top. The card site. The market API. The extension. Something with your name on the idea.
+
+**A commit history that shows persistence.** A repo built in one weekend with three commits reads as "did it for the résumé." A repo with commits spread across two months reads as "this person works on things consistently even when no one's watching." Product companies are hiring for the second person. Build in public *over time*, not in a panic before applying.
+
+**A clean README with a screenshot and a live link in the first ten lines.** Most engineers write terrible READMEs. A good one — what it does, a screenshot or GIF, the live link, the stack, how to run it — makes your repo look professional next to the ones that just say "my project." This is a five-minute edge almost nobody takes.
+
+**Pin your best four to six repos** on your GitHub profile. The recruiter looks at the pinned ones. Curate.
+
+## Open source contribution as a hiring signal
+
+There's a level above "I built my own things," and it's "I improved software other people depend on."
+
+You don't need to rewrite a framework. Start small and real:
+
+- Fix a bug in a library you actually use. You hit the bug, you find the fix, you send the pull request.
+- Improve documentation — genuinely valuable, genuinely welcomed by maintainers, and a real merged PR either way.
+- Add a small feature to a tool you like.
+
+The reason this is a strong hiring signal: it proves you can read *someone else's* codebase, follow *their* conventions, and get a change accepted by a maintainer who owes you nothing. That's most of what the job actually is. A candidate with three merged PRs to real projects has demonstrated, in public, the exact skill the interview is trying to guess at.
+
+A grounded way in: the tools you build for yourself will depend on open source libraries. When one of them has a rough edge, fix it upstream. The contribution flows naturally from the building — you don't have to manufacture it.
+
+## The jump: TCS to a product company
+
+Now the hard part — the actual interview. Be clear-eyed: **product company jobs are competitive.** More people want them than there are seats. But "competitive" is not "closed," and most applicants are weaker than they think because they never built anything real. Your portfolio already puts you ahead of the tutorial crowd. The interview is what's left.
+
+Three things get tested, in roughly this order:
+
+**1. DSA — the reality check.** Data structures and algorithms. This is the filter, the thing that hurts, and there's no way around it: product companies and startups run DSA rounds, usually on a platform like LeetCode-style problems. You need to be comfortable with arrays, strings, hashmaps, two pointers, sliding window, recursion, trees, graphs, and basic dynamic programming. This is a **grind of a few hundred problems over a few months** — not a weekend. Start now, do 2–3 problems a day, and don't let anyone tell you it's optional. It's the most common reason good builders fail these interviews.
+
+**2. System design.** For freshers this is lighter, but it shows up as "how would you build a URL shortener / a rate limiter / the backend for your own project?" The good news: **you've already been doing system design if you built the market-data API.** Caching, databases, APIs, the edge — you lived it. Be ready to whiteboard the projects you built and explain the trade-offs.
+
+**3. Your projects, deeply.** They will open your GitHub and ask "why did you do it this way?" This is where the tutorial-clone crowd falls apart and you don't — because you made the decisions yourself and you remember why. Know your own code cold.
+
+On applying: use referrals wherever you can (LinkedIn, your batch mates who already jumped), apply directly on company career pages, and don't wait until the portfolio is "perfect." Start applying when you have two or three solid live projects and a few dozen LeetCode problems behind you. You'll fail some interviews. Everyone does. Each one tells you what to fix.
+
+## The Udemy roadmap: beginner → advanced
+
+You asked for specifics, so here they are — real courses, real instructors, ordered so each builds on the last. You do **not** need all of these before you start applying. Do the first block, build a project, do the next block, build another. Learning and building interleave; they don't happen in sequence.
+
+A note on how to use these: Udemy runs frequent sales — never pay full price, wait for the ₹400–₹700 sale. And watch at 1.25–1.5x, code along, skip nothing.
+
+### Block 1 — Foundations (web + JavaScript)
+
+1. **The Web Developer Bootcamp** — *Colt Steele*. The classic all-in-one starting point. HTML, CSS, JS, a bit of backend. Gets you from zero to "I can build a webpage."
+2. **The Complete JavaScript Course** — *Jonas Schmedtmann*. Deep, modern JavaScript. This is the one that turns "I copy JS" into "I understand JS." Do it fully; it's the foundation for everything React.
+3. **Build Responsive Real-World Websites with HTML and CSS** — *Jonas Schmedtmann*. Because you need to be able to make things *look* decent, and this teaches real layout and design sense, not just syntax.
+
+### Block 2 — TypeScript + React
+
+4. **Understanding TypeScript** — *Maximilian Schwarzmüller*. Add types to your JavaScript. Short, focused, essential before serious React.
+5. **The Ultimate React Course** — *Jonas Schmedtmann*, **or** **React – The Complete Guide** — *Maximilian Schwarzmüller*. Pick one (both are excellent; Jonas for tighter teaching, Max for breadth). This is the single most important course for employability.
+6. **Next.js — The Complete Developer's Guide** — *Stephen Grider*, or Maximilian's Next.js course. Full-stack React with routing, server components, and API routes.
+
+### Block 3 — Backend + databases
+
+7. **Node.js, Express, MongoDB & More: The Complete Bootcamp** — *Jonas Schmedtmann*. Backend fundamentals, REST APIs, auth. (You'll use Postgres over Mongo in real projects, but the API and Node concepts transfer directly.)
+8. **The Complete SQL Bootcamp** — *Jose Portilla*. Learn SQL properly on Postgres. Joins, indexes, the works. Comes up in interviews constantly.
+9. **NodeJS: The Complete Guide** — *Maximilian Schwarzmüller* (optional deeper dive if you want more backend depth).
+
+### Block 4 — Cloud + DevOps
+
+10. **Docker & Kubernetes: The Complete Guide** — *Stephen Grider*. Containers are everywhere in product companies. You don't need to be an expert, but "I can Dockerize an app" is table stakes.
+11. **Ultimate AWS Certified Cloud Practitioner** — *Stephane Maarek*. The gentlest real cloud course; gives you the vocabulary (compute, storage, networking) that every cloud conversation assumes.
+12. **Ultimate AWS Certified Solutions Architect Associate** — *Stephane Maarek* (optional, but a genuinely respected cert if you want cloud on your résumé). For the edge stack, pair this with Cloudflare's own free docs and their Workers tutorials — there isn't a definitive Udemy Cloudflare course, and their docs are excellent.
+
+### Block 5 — Interview prep (do this in parallel from month 2)
+
+13. **Master the Coding Interview: Data Structures + Algorithms** — *Andrei Neagoie & Yihua Zhang* (Zero To Mastery). Structured DSA for interviews with a study plan.
+14. **JavaScript Algorithms and Data Structures Masterclass** — *Colt Steele*. DSA taught in JavaScript specifically, which matches your stack.
+15. **Grokking the System Design Interview** style content — the book **and** any of Maximilian/other system-design courses; pair with the free "System Design Primer" GitHub repo. For freshers, keep this light until you're closer to interviewing.
+16. **Data Structures & Algorithms in Java/C++** — *Abdul Bari* (his algorithms course) if you want the theory rock-solid. Language-agnostic, deeply explained.
+
+That's 16 courses. **Do not do all 16 before applying.** Realistically: Blocks 1–2 plus one project gets you to junior-frontend interviews. Add Block 3 and you're full-stack. Block 4 differentiates you. Block 5 runs alongside everything from month two, because DSA takes months and can't be crammed.
+
+## Honest caveats
+
+I'd be lying to you if I made this sound easy, so here's the truth in plain terms.
+
+**Product company jobs are competitive.** You will send applications that get no reply. You will fail interviews on problems you thought you knew. This is normal and it is not a verdict on you — it's the base rate. The people who make it are the ones who treat each rejection as debugging information, not as a final answer.
+
+**The DSA grind is real and it's boring.** There's no course that makes it painless. It's a few hundred problems over a few months, most of them frustrating. The only way through is a daily habit — two problems a day beats twenty on a Sunday. Start before you feel ready.
+
+**Building in public takes consistency, not talent.** The reason 50+ repos sounds impressive is not that any single one is genius — it's that they accumulated because I kept showing up. Your portfolio will be built in the evenings after your TCS workday, when you're tired and would rather scroll. The developers who make the jump are the ones who ship one small thing anyway. Consistency is the entire game.
+
+**You don't have to quit tomorrow.** Here's the part that makes this bet safe: you keep your ₹25K TCS job while you build. The salary pays your bills; the evenings build your escape. You only jump when you have offers in hand. That's the opposite of the sand business, which asks you to bet your savings *before* you know if it works.
+
+## Where this leaves you
+
+You joined TCS in June 2025 feeling like the ceiling was already visible. It's not — you're just standing in the wrong building, and the door out is a laptop and about eighteen months of consistent evenings.
+
+Don't escape into sand. Don't escape into agriculture. Both cost capital you don't have and throw away the CS degree and the enterprise training you *do* have. Instead, compound what you already own: pick the stack (TypeScript, React/Next.js, Astro, Cloudflare, Postgres/Neon), build tools you actually use, put every one on GitHub with a live URL, grind the DSA on the side, and apply when you have proof.
+
+The service company gave you a floor of ₹25K and a job while you build. Use both. Build in public. Let your GitHub be the résumé that a stranger can verify in ninety seconds. That's how you go from ₹4L to ₹10L to ₹20L — not by escaping software, but by finally doing the part of it that pays.
+
+Read the other two parts before you decide:
+
+- **Part 1 — [The SAP path](/blog/sap-path-service-company):** why the domain training you're resenting is actually a high-paying specialty, and how to not waste it.
+- **Part 3 — [The AI path](/blog/ai-path-service-company):** how to ride the AI wave as a builder instead of getting automated by it.
+
+Pick a path. Or blend them — SAP by day, full-stack by night, AI woven through both. Just don't pick sand. You have better raw material than that, and it's sitting in your hands right now.
