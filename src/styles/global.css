@@ -1,91 +1,142 @@
 @import "tailwindcss";
-@import "@fontsource-variable/source-serif-4";
 @import "@fontsource-variable/inter";
-@import "@fontsource/ibm-plex-mono/400.css";
-@import "@fontsource/ibm-plex-mono/500.css";
-@import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&family=Google+Sans+Text:wght@400;500;700&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap");
+@import "@fontsource-variable/inter-tight";
+@import "@fontsource-variable/jetbrains-mono";
 
 /*
- * oriz-blog — MD3 dark-first design tokens (2026-07-08).
+ * oriz-blog — shared oriz.in design system (2026-08-01, one system across all
+ * oriz.in apps). Bright, crisp, Stripe/Linear-clean: white paper, indigo
+ * accent, near-black ink. Inter Tight (headings) · Inter (body) ·
+ * JetBrains Mono (dates/code/reading-time). Reads as ONE family with the
+ * sister sites.
  *
- * Material Design 3 dark theme. Primary: purple (D0BCFF). Surface: deep ink.
- * Display: Google Sans Display / Roboto · Body: Google Sans Text / Roboto ·
- * Mono: Roboto Mono / IBM Plex Mono.
+ * Light-first with a dark theme. Theme is chosen by:
+ *   :root                              → light (default)
+ *   @media (prefers-color-scheme:dark) → dark, UNLESS [data-theme="light"]
+ *   [data-theme="dark"]                → dark, always (overrides system)
+ * Toggle set in HeaderControls.tsx (auto / light / dark).
  *
- * Legacy `--color-*` and `--paper`/`--ink`/`--cobalt` aliases retained so
- * existing components compile unchanged.
+ * Every component reads through the alias layer below (--paper/--ink/--cobalt
+ * /--rule/--font-*), so restyling happens here — components stay unchanged.
+ * `--cobalt` keeps its name but now resolves to the indigo brand accent.
  */
 
 @theme {
-  --font-display: "Google Sans Display", Roboto, sans-serif;
-  --font-serif: "Google Sans Display", Roboto, sans-serif;
-  --font-sans: "Google Sans Text", Roboto, sans-serif;
-  --font-body: "Google Sans Text", Roboto, sans-serif;
-  --font-mono: "Roboto Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-utility: "Roboto Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Inter Tight Variable", "Inter Tight", Inter, system-ui, sans-serif;
+  --font-serif: "Inter Variable", Inter, system-ui, sans-serif;
+  --font-sans: "Inter Variable", Inter, system-ui, sans-serif;
+  --font-body: "Inter Variable", Inter, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-utility: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --container-spine: 920px;
-  --container-prose: 66ch;
+  --container-prose: 68ch;
 }
 
 @layer base {
+  /* ── Shared oriz.in palette — LIGHT (default) ───────────────────────── */
   :root {
+    color-scheme: light;
+
+    --brand: #635bff; /* indigo — links, active, primary */
+    --brand-soft: #eeedff; /* soft tint — hover / chips */
+    --success: #0e9f6e;
+    --danger-color: #c1440e;
+
+    /* alias layer every component reads through */
+    --paper: #ffffff; /* clean white */
+    --paper-2: #fbfbfd; /* faint grey panels / surface */
+    --surface: var(--paper-2);
+    --ink: #1a1a2e; /* near-black text */
+    --ink-mute: #6b7280; /* secondary */
+    --rule: #ececf1; /* light hairlines */
+    --cobalt: var(--brand); /* accent (name kept, indigo value) */
+    --brand-tint: var(--brand-soft);
+    --sage: var(--success);
+    --vermilion: var(--danger-color);
+    --highlighter: var(--brand);
+
+    /* semantic passthroughs */
+    --color-bg: var(--paper);
+    --color-fg: var(--ink);
+    --color-accent: var(--brand);
+    --color-accent-fg: #ffffff;
+    --color-sage: var(--success);
+    --color-muted: var(--ink-mute);
+    --color-border: var(--rule);
+    --color-bg-soft: var(--paper-2);
+    --color-bg-muted: var(--paper-2);
+    --color-prose: var(--ink);
+    --color-fg-muted: var(--ink-mute);
+    --color-fg-soft: var(--ink-mute);
+
+    --radius-card: 10px;
+    --radius-button: 8px;
+    --container-page: 1100px;
+  }
+
+  /* ── DARK — system preference, unless user forced light ─────────────── */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+
+      --brand: #8f8aff; /* indigo lifted for contrast on dark */
+      --brand-soft: #23213a;
+
+      --paper: #0f0f1a; /* near-black indigo-tinted */
+      --paper-2: #17172a;
+      --ink: #ececf1;
+      --ink-mute: #9aa0ad;
+      --rule: #262640;
+      --color-accent-fg: #0f0f1a;
+    }
+  }
+
+  /* ── DARK — explicit user override, wins over system ────────────────── */
+  :root[data-theme="dark"] {
     color-scheme: dark;
 
-    /* ── MD3 dark-theme tokens ─────────────────────────────────────────── */
-    --md-surface: #0F0D13;
-    --md-surface-container-low: #1D1B20;
-    --md-surface-container: #211F26;
-    --md-surface-container-high: #2B2930;
-    --md-primary: #D0BCFF;
-    --md-on-surface: #E6E1E5;
-    --md-on-surface-variant: #CAC4D0;
-    --md-outline-variant: #49454F;
-    --md-outline: #938F99;
-    --md-secondary-container: #4A4458;
-    --md-on-secondary-container: #E8DEF8;
-    --md-surface-container-highest: #36343B;
-    --md-on-primary: #381E72;
-    --md-primary-container: #4F378B;
-    --md-on-primary-container: #EADDFF;
-    --md-secondary: #CCC2DC;
-    --md-shape-sm: 8px;
-    --md-shape-md: 12px;
-    --md-font-display: "Google Sans Display", Roboto, sans-serif;
-    --md-font-body: "Google Sans Text", Roboto, sans-serif;
-    --md-font-mono: "Roboto Mono", monospace;
-    --md-shape-lg: 16px;
-    --md-shape-xl: 28px;
+    --brand: #8f8aff;
+    --brand-soft: #23213a;
 
-    /* ── Internal token aliases → MD3 ─────────────────────────────────── */
-    --color-bg: var(--md-surface);
-    --color-fg: var(--md-on-surface);
-    --color-accent: var(--md-primary);
-    --color-sage: var(--md-on-secondary-container);
-    --color-muted: var(--md-on-surface-variant);
-    --color-border: var(--md-outline-variant);
+    --paper: #0f0f1a;
+    --paper-2: #17172a;
+    --ink: #ececf1;
+    --ink-mute: #9aa0ad;
+    --rule: #262640;
+    --color-accent-fg: #0f0f1a;
+  }
 
-    --paper: var(--md-surface);
-    --paper-2: var(--md-surface-container-low);
-    --ink: var(--md-on-surface);
-    --ink-mute: var(--md-on-surface-variant);
-    --rule: var(--md-outline-variant);
-    --cobalt: var(--md-primary);
-    --sage: var(--md-on-secondary-container);
+  /* ── SEPIA — warm paper, indigo accent ──────────────────────────────── */
+  :root[data-theme="sepia"] {
+    color-scheme: light;
 
-    --vermilion: var(--md-primary);
-    --highlighter: var(--md-primary);
+    --brand: #5a52e0;
+    --brand-soft: #ece7ff;
 
-    /* Legacy --color-* used by existing pages */
-    --color-bg-soft: var(--md-surface-container-low);
-    --color-bg-muted: var(--md-surface-container);
-    --color-prose: var(--md-on-surface);
-    --color-fg-muted: var(--md-on-surface-variant);
-    --color-fg-soft: var(--md-outline);
-    --color-accent-fg: var(--md-surface);
-    --radius-card: var(--md-shape-lg);
-    --radius-button: var(--md-shape-xl);
-    --container-page: 1100px;
+    --paper: #faf4e8;
+    --paper-2: #f3ead6;
+    --ink: #3a2f22;
+    --ink-mute: #7a6a52;
+    --rule: #e0d3ba;
+    --color-accent-fg: #faf4e8;
+    --color-fg-soft: color-mix(in oklab, var(--ink) 55%, var(--paper));
+  }
+
+  /* ── HIGH-CONTRAST — pure black/white, hard borders ─────────────────── */
+  :root[data-theme="hc"] {
+    color-scheme: light;
+
+    --brand: #2e26d6;
+    --brand-soft: #dcd9ff;
+
+    --paper: #ffffff;
+    --paper-2: #ffffff;
+    --ink: #000000;
+    --ink-mute: #2a2a35;
+    --rule: #000000;
+    --color-accent-fg: #ffffff;
+    --color-fg-soft: #2a2a35;
   }
 
   html {
@@ -195,13 +246,10 @@
 }
 .page-head h1 {
   font-family: var(--font-display);
-  font-weight: 380;
-  font-variation-settings:
-    "opsz" 96,
-    "SOFT" 50;
+  font-weight: 640;
   font-size: clamp(2.25rem, 5vw, 3.25rem);
   line-height: 1.05;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.022em;
   margin: 0;
   color: var(--ink);
 }
@@ -220,9 +268,9 @@
 .prose {
   padding-block: 2.5rem 4rem;
   color: var(--ink);
-  line-height: 1.65;
+  line-height: 1.7;
   font-size: 17px;
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
   max-width: var(--container-prose);
   margin-inline: auto;
 }
@@ -233,22 +281,17 @@
 }
 .prose h2 {
   font-family: var(--font-display);
-  font-weight: 380;
-  font-variation-settings:
-    "opsz" 60,
-    "SOFT" 40;
+  font-weight: 640;
   font-size: 1.6625rem;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.018em;
   color: var(--ink);
   margin: 2.5rem 0 1rem;
 }
 .prose h3 {
   font-family: var(--font-display);
-  font-weight: 500;
-  font-variation-settings:
-    "opsz" 36,
-    "SOFT" 30;
+  font-weight: 600;
   font-size: 1.3125rem;
+  letter-spacing: -0.012em;
   color: var(--ink);
   margin: 1.75rem 0 0.625rem;
 }

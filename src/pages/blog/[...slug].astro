@@ -18,7 +18,7 @@ import { type CollectionEntry, render } from 'astro:content'
  *   - Series jump-list ALSO rendered inside BlogPostLeftSidebar.
  *
  * Series spine: inline in the meta row + in the right rail on desktop.
- * Drop-cap: Source Serif 4 cobalt rust, first paragraph (in blog-prose.css).
+ * Visual layer = shared oriz.in design system (Inter / Inter Tight / indigo).
  */
 import type { GetStaticPaths } from 'astro'
 import BlogPostLeftSidebar from '~/components/blog/BlogPostLeftSidebar.astro'
@@ -300,6 +300,72 @@ const breadcrumbSchema = {
 </BaseLayout>
 
 <style>
+  /* ── Shared oriz.in design system — scoped to the post ─────────────────
+     Locked 2026-08-01: one design system across all oriz.in apps (family
+     with cards.oriz.in). Bright, crisp, Stripe/Linear-clean. White paper,
+     near-black ink, indigo (#635BFF) accent, Inter body / Inter Tight
+     display / JetBrains Mono. Tokens overridden here (not globally) so the
+     surrounding chrome is untouched; light + dark provided. */
+  .post-shell {
+    --paper: #ffffff;
+    --paper-2: #fbfbfd;
+    --surface: #fbfbfd;
+    --ink: #1a1a2e;
+    --ink-mute: #6b7280;
+    --rule: #ececf1;
+    --cobalt: #635bff;
+    --color-accent: #635bff;
+    --brand-soft: #eeedff;
+    --success: #0e9f6e;
+    --vermilion: #c1440e;
+    --font-serif: 'Inter Variable', 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter Variable', 'Inter', system-ui, sans-serif;
+    --font-sans: 'Inter Tight', 'Inter Variable', system-ui, sans-serif;
+    --font-display: 'Inter Tight', 'Inter Variable', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--ink);
+  }
+  :global([data-theme='dark']) .post-shell,
+  :global([data-theme='hc']) .post-shell {
+    --paper: #0f1015;
+    --paper-2: #17181f;
+    --surface: #17181f;
+    --ink: #e8e8ef;
+    --ink-mute: #9095a3;
+    --rule: #262832;
+    --cobalt: #8b84ff;
+    --color-accent: #8b84ff;
+    --brand-soft: #211f3a;
+  }
+  :global([data-theme='hc']) .post-shell {
+    --paper: #000000;
+    --ink: #ffffff;
+    --rule: #4a4a55;
+    --cobalt: #a9a4ff;
+    --color-accent: #a9a4ff;
+  }
+  :global([data-theme='sepia']) .post-shell {
+    --paper: #f6f0e3;
+    --paper-2: #efe7d5;
+    --surface: #efe7d5;
+    --ink: #34302a;
+    --ink-mute: #7a7264;
+    --rule: #e0d6c2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(html:not([data-theme='light']):not([data-theme='sepia'])) .post-shell {
+      --paper: #0f1015;
+      --paper-2: #17181f;
+      --surface: #17181f;
+      --ink: #e8e8ef;
+      --ink-mute: #9095a3;
+      --rule: #262832;
+      --cobalt: #8b84ff;
+      --color-accent: #8b84ff;
+      --brand-soft: #211f3a;
+    }
+  }
+
   /* ── Shell ─────────────────────────────────────────────────────────────
      Hero/header full-width above; then a 2-col grid (content + right TOC
      rail) on desktop, single-column on mobile. The mobile FAB + vaul
@@ -455,17 +521,17 @@ const breadcrumbSchema = {
 
   .post-title {
     font-family: var(--font-display);
-    font-variation-settings: 'opsz' 96, 'SOFT' 50, 'wght' 380;
-    font-size: clamp(2rem, 4.6vw, 41.5px);
-    line-height: 1.1;
-    letter-spacing: -0.01em;
+    font-weight: 650;
+    font-size: clamp(2rem, 4.6vw, 42px);
+    line-height: 1.12;
+    letter-spacing: -0.021em;
     margin: 0 0 0.75rem;
     color: var(--ink);
   }
   .post-dek {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-size: 1.0625rem;
+    font-family: var(--font-body);
+    font-size: 1.1875rem;
+    line-height: 1.55;
     color: var(--ink-mute);
     margin: 0 0 1.25rem;
     max-width: 60ch;
@@ -476,7 +542,7 @@ const breadcrumbSchema = {
     gap: 0.5rem;
     flex-wrap: wrap;
     color: var(--ink-mute);
-    font-family: var(--font-sans);
+    font-family: var(--font-body);
     font-size: 13.6px;
     margin: 0 0 1.25rem;
     padding-bottom: 1.25rem;
@@ -504,14 +570,20 @@ const breadcrumbSchema = {
   }
   .post-tag {
     display: inline-block;
-    padding: 0.125rem 0.625rem;
+    padding: 0.1875rem 0.625rem;
     border: 1px solid var(--rule);
+    border-radius: 999px;
     color: var(--ink-mute);
     font-family: var(--font-mono);
     font-size: 12px;
     text-decoration: none;
+    transition: color 120ms ease, border-color 120ms ease, background-color 120ms ease;
   }
-  .post-tag:hover { color: var(--cobalt); border-color: var(--cobalt); }
+  .post-tag:hover {
+    color: var(--cobalt);
+    border-color: color-mix(in oklab, var(--cobalt) 45%, var(--rule));
+    background: var(--brand-soft);
+  }
 
   .post-comments {
     margin-top: 3rem;
@@ -519,7 +591,43 @@ const breadcrumbSchema = {
 </style>
 
 <style is:global>
-  /* ── Mobile TOC drawer (vaul) ──────────────────────────────────────── */
+  /* ── Mobile TOC drawer (vaul) ──────────────────────────────────────────
+     Rendered as a portal to <body> (outside .post-shell), so shared-system
+     tokens are inlined here rather than inherited. Indigo #635BFF accent. */
+  :root {
+    --mtd-accent: #635bff;
+    --mtd-paper: #ffffff;
+    --mtd-paper-2: #fbfbfd;
+    --mtd-ink: #1a1a2e;
+    --mtd-ink-mute: #6b7280;
+    --mtd-rule: #ececf1;
+  }
+  [data-theme='dark'],
+  [data-theme='hc'] {
+    --mtd-accent: #8b84ff;
+    --mtd-paper: #0f1015;
+    --mtd-paper-2: #17181f;
+    --mtd-ink: #e8e8ef;
+    --mtd-ink-mute: #9095a3;
+    --mtd-rule: #262832;
+  }
+  [data-theme='sepia'] {
+    --mtd-paper: #f6f0e3;
+    --mtd-paper-2: #efe7d5;
+    --mtd-ink: #34302a;
+    --mtd-ink-mute: #7a7264;
+    --mtd-rule: #e0d6c2;
+  }
+  @media (prefers-color-scheme: dark) {
+    html:not([data-theme='light']):not([data-theme='sepia']) {
+      --mtd-accent: #8b84ff;
+      --mtd-paper: #0f1015;
+      --mtd-paper-2: #17181f;
+      --mtd-ink: #e8e8ef;
+      --mtd-ink-mute: #9095a3;
+      --mtd-rule: #262832;
+    }
+  }
 
   .mtd-fab {
     position: fixed;
@@ -530,15 +638,15 @@ const breadcrumbSchema = {
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    background: var(--color-accent);
-    color: var(--paper);
-    border: 1px solid var(--color-accent);
+    background: var(--mtd-accent);
+    color: #ffffff;
+    border: 1px solid var(--mtd-accent);
     border-radius: 999px;
-    font-family: var(--font-mono);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 12px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 8px 24px -6px color-mix(in oklab, var(--mtd-accent) 55%, transparent);
     cursor: pointer;
     opacity: 0;
     transform: translateY(8px);
@@ -550,9 +658,9 @@ const breadcrumbSchema = {
     transform: translateY(0);
     pointer-events: auto;
   }
-  .mtd-fab:hover { filter: brightness(1.05); }
+  .mtd-fab:hover { filter: brightness(1.06); }
   .mtd-fab:focus-visible {
-    outline: 2px solid var(--paper);
+    outline: 2px solid var(--mtd-accent);
     outline-offset: 2px;
   }
 
@@ -564,7 +672,7 @@ const breadcrumbSchema = {
     position: fixed;
     inset: 0;
     z-index: 60;
-    background: rgba(15, 20, 25, 0.4);
+    background: rgba(15, 16, 21, 0.45);
   }
   .mtd-sheet {
     position: fixed;
@@ -575,8 +683,8 @@ const breadcrumbSchema = {
     max-height: 80vh;
     overflow-y: auto;
     padding: 16px 20px calc(24px + env(safe-area-inset-bottom, 0px));
-    background: var(--paper);
-    border-top: 1px solid var(--rule);
+    background: var(--mtd-paper);
+    border-top: 1px solid var(--mtd-rule);
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.18);
     outline: none;
@@ -584,29 +692,29 @@ const breadcrumbSchema = {
   .mtd-handle {
     width: 40px;
     height: 4px;
-    background: var(--rule);
+    background: var(--mtd-rule);
     border-radius: 2px;
     margin: 0 auto 12px;
   }
   .mtd-title {
-    font-family: var(--font-mono);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--ink-mute);
+    color: var(--mtd-ink-mute);
     margin: 0 0 0.25rem;
   }
   .mtd-desc {
-    font-family: var(--font-sans);
+    font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
     font-size: 13px;
-    color: var(--ink-mute);
+    color: var(--mtd-ink-mute);
     margin: 0 0 0.75rem;
   }
   .mtd-list {
     list-style: none;
     margin: 0;
     padding: 0;
-    border-left: 1px solid var(--rule);
+    border-left: 1px solid var(--mtd-rule);
   }
   .mtd-item { margin: 0; }
   .mtd-item button {
@@ -618,19 +726,19 @@ const breadcrumbSchema = {
     border-left: 2px solid transparent;
     margin-left: -1px;
     padding: 0.5rem 0.75rem;
-    color: var(--ink);
-    font-family: var(--font-sans);
+    color: var(--mtd-ink);
+    font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
     font-size: 0.9375rem;
     line-height: 1.4;
     cursor: pointer;
   }
   .mtd-item button:hover {
-    color: var(--color-accent);
-    border-left-color: var(--color-accent);
+    color: var(--mtd-accent);
+    border-left-color: var(--mtd-accent);
   }
   .mtd-d3 button {
     padding-left: 1.5rem;
     font-size: 0.875rem;
-    color: var(--ink-mute);
+    color: var(--mtd-ink-mute);
   }
 </style>

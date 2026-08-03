@@ -1,43 +1,50 @@
 /*
- * @chirag127/astro-shell — tokens.css
+ * tokens.css — shared oriz.in design system (locked 2026-08-01).
  *
- * CSS custom properties — every app imports this in its root layout,
- * then overrides per-app in its own CSS. Mobile-first; values are tuned
- * for 320px / 768px / 1024px / 1440px breakpoints.
+ * ONE design system across all oriz.in apps. Bright, crisp, Stripe/Linear-clean;
+ * reads as one family with cards.oriz.in. White paper, indigo accent, Inter type.
  *
- * Override pattern (per-app):
- *   :root { --color-accent: #c1440e; --font-display: 'Fraunces', serif; }
+ * Every `--color-*` name kept as an alias so chrome/legal/Footer components
+ * (which consume the shell token names) compile unchanged.
  */
 :root {
-  /* color — 5 brand + 9 neutral + semantic */
-  --color-brand-vermilion: #c1440e;
-  --color-brand-mustard: #c08a26;
-  --color-brand-cobalt: #1a3a8f;
-  --color-brand-ledger: #1f2937;
-  --color-brand-pencil: #6b7280;
+  /* color — shared oriz.in palette */
+  --color-brand-indigo: #635bff; /* accent — links, active, primary */
+  --color-brand-indigo-soft: #eeedff; /* soft tint — hover, chips */
+  --color-brand-success: #0e9f6e;
+  --color-brand-danger: #c1440e;
 
   --color-neutral-0: #ffffff;
-  --color-neutral-50: #fafaf7;
-  --color-neutral-100: #f4f1ea;
-  --color-neutral-200: #e7e3d8;
-  --color-neutral-300: #cfc9bb;
-  --color-neutral-500: #6b6b66;
-  --color-neutral-700: #3a3a36;
-  --color-neutral-900: #15140f;
+  --color-neutral-50: #fbfbfd; /* faint grey panels */
+  --color-neutral-100: #f4f4f8;
+  --color-neutral-200: #ececf1; /* light hairlines */
+  --color-neutral-300: #d7d7de;
+  --color-neutral-500: #6b7280; /* secondary text */
+  --color-neutral-700: #3a3a44;
+  --color-neutral-900: #1a1a2e; /* near-black text */
   --color-neutral-1000: #000000;
 
-  --color-paper: var(--color-neutral-50);
-  --color-paper-2: var(--color-neutral-100);
-  --color-ink: var(--color-neutral-900);
-  --color-ink-mute: var(--color-neutral-500);
-  --color-rule: var(--color-neutral-200);
-  --color-accent: var(--color-brand-mustard);
-  --color-danger: var(--color-brand-vermilion);
+  /*
+   * Semantic aliases resolve through global.css's theme-aware primitives
+   * (--paper/--ink/--rule/--cobalt/--brand-*) when it is loaded, so chrome
+   * components flip correctly across light/dark/sepia/hc. Shell neutrals are
+   * the standalone fallback for apps that import tokens.css on its own.
+   */
+  --color-paper: var(--paper, var(--color-neutral-0));
+  --color-paper-2: var(--paper-2, var(--color-neutral-50));
+  --color-ink: var(--ink, var(--color-neutral-900));
+  --color-ink-mute: var(--ink-mute, var(--color-neutral-500));
+  --color-rule: var(--rule, var(--color-neutral-200));
+  --color-accent: var(--brand, var(--color-brand-indigo));
+  --color-accent-soft: var(--brand-soft, var(--color-brand-indigo-soft));
+  --color-success: var(--success, var(--color-brand-success));
+  --color-danger: var(--vermilion, var(--color-brand-danger));
 
-  /* type — 3 families + 9 sizes */
-  --font-sans: 'Inter Tight', system-ui, sans-serif;
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* type — shared oriz.in families */
+  --font-sans: 'Inter Tight Variable', 'Inter Tight', Inter, system-ui, sans-serif;
+  --font-display: 'Inter Tight Variable', 'Inter Tight', Inter, system-ui, sans-serif;
+  --font-body: 'Inter Variable', Inter, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
 
   --text-2xs: 10px;
   --text-xs: 11px;
@@ -75,12 +82,3 @@
   --bp-xl: 1440px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-paper: var(--color-neutral-900);
-    --color-paper-2: var(--color-neutral-700);
-    --color-ink: var(--color-neutral-50);
-    --color-ink-mute: var(--color-neutral-300);
-    --color-rule: var(--color-neutral-700);
-  }
-}

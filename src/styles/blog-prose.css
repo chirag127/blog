@@ -1,62 +1,62 @@
 /*
- * blog-prose.css — typography for the body of a single blog post.
+ * blog-prose.css — long-form body typography for a single blog post.
  *
- * Single 66ch column, slightly left of optical center. Source Serif 4
- * 17px / 1.65. Drop-cap on the first paragraph (Fraunces SOFT 100, cobalt,
- * 4 lines tall). Sidenote rail on the left at paper-2 width 22ch.
+ * Shared oriz.in design system (locked 2026-08-01 — one system across all
+ * oriz.in apps, family with cards.oriz.in). Content-first, Stripe/Linear
+ * clean: Inter body 17.5px / 1.7 on a ~68ch measure, Inter Tight semibold
+ * headings, indigo (#635BFF) links + blockquote rule, JetBrains Mono code.
  *
- * Selectors are scoped to `.prose-blog` so they don't leak into the rest
- * of the site (which uses .prose for generic article copy).
+ * Font tokens (--font-body/-sans/-mono/-display), colours (--ink/-mute,
+ * --cobalt, --rule, --paper-2, --brand-soft) resolve from the .post-shell
+ * scope in [...slug].astro (light/dark/sepia/hc variants live there). This
+ * file only styles the article body; selectors scoped to `.prose-blog`.
  */
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 .prose-blog {
   color: var(--ink);
-  font-family: var(--font-serif);
-  font-size: 17px;
-  line-height: 1.65;
-  max-width: 66ch;
+  font-family: var(--font-body, 'Inter Variable', 'Inter', system-ui, sans-serif);
+  font-size: 17.5px;
+  line-height: 1.7;
+  max-width: 68ch;
   margin-inline: auto;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
 }
 
-/* The drop-cap signature — Source Serif 4 display weight, rust, 5 lines tall. */
-.prose-blog > p:first-of-type::first-letter,
-.prose-blog .drop-cap::first-letter {
-  float: left;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: calc(17px * 1.65 * 5); /* 5 line-heights */
-  line-height: 0.85;
-  color: var(--color-accent);
-  margin: 0.05em 0.08em 0 0;
-  padding-right: 0.04em;
+/* Lede — first paragraph slightly larger; no serif drop-cap (retired). */
+.prose-blog > p:first-of-type,
+.prose-blog .drop-cap {
+  font-size: 1.075em;
+  line-height: 1.6;
+  color: var(--ink);
 }
 
 .prose-blog p {
-  margin: 0 0 1.1em;
-  hyphens: auto;
-  hanging-punctuation: first allow-end last;
+  margin: 0 0 1.25em;
 }
 
 .prose-blog h2 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 26.6px;
-  letter-spacing: -0.005em;
-  line-height: 1.2;
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-weight: 650;
+  font-size: 1.55em;
+  letter-spacing: -0.018em;
+  line-height: 1.25;
   color: var(--ink);
-  margin: 2.5em 0 0.75em;
+  margin: 2.5em 0 0.7em;
 }
 .prose-blog h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
   font-weight: 600;
-  font-size: 21.25px;
+  font-size: 1.25em;
+  letter-spacing: -0.012em;
+  line-height: 1.3;
   color: var(--ink);
   margin: 2em 0 0.5em;
 }
 .prose-blog h4 {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 18px;
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-weight: 600;
+  font-size: 1.05em;
   color: var(--ink);
   margin: 1.75em 0 0.5em;
 }
@@ -67,6 +67,7 @@
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   text-decoration-color: color-mix(in oklab, var(--cobalt) 40%, transparent);
+  transition: text-decoration-color 120ms ease;
 }
 .prose-blog a:hover {
   text-decoration-color: var(--cobalt);
@@ -74,40 +75,43 @@
 
 .prose-blog strong {
   color: var(--ink);
-  font-weight: 600;
+  font-weight: 650;
 }
 .prose-blog em {
   font-style: italic;
 }
 
 .prose-blog blockquote {
-  border-left: 2px solid var(--cobalt);
-  padding-left: 1rem;
-  margin: 1.5em 0 1.5em 0;
+  border-left: 3px solid var(--cobalt);
+  padding: 0.25em 0 0.25em 1.1rem;
+  margin: 1.75em 0;
   color: var(--ink-mute);
-  font-style: italic;
+  font-style: normal;
+}
+.prose-blog blockquote p:last-child {
+  margin-bottom: 0;
 }
 
 .prose-blog ul,
 .prose-blog ol {
   padding-left: 1.5rem;
-  margin: 0 0 1.1em;
+  margin: 0 0 1.25em;
 }
 .prose-blog li {
   margin-bottom: 0.4em;
 }
+.prose-blog li::marker {
+  color: var(--ink-mute);
+}
 
 .prose-blog code {
-  font-family: var(--font-mono);
-  font-size: 0.875em;
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-size: 0.86em;
   padding: 0.125em 0.375em;
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--brand-soft, color-mix(in oklab, var(--cobalt) 8%, var(--paper-2)));
   color: var(--ink);
-  font-feature-settings:
-    "tnum" 1,
-    "zero" 1,
-    "calt" 0;
+  font-feature-settings: 'tnum' 1, 'zero' 1, 'calt' 0;
 }
 .prose-blog pre {
   margin-block: 1.5em;
@@ -116,9 +120,10 @@
 .prose-blog pre code {
   background: transparent;
   border: 0;
+  border-radius: 0;
   padding: 0;
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 14.5px;
+  line-height: 1.6;
 }
 
 .prose-blog hr {
@@ -131,6 +136,7 @@
 .prose-blog img {
   max-width: 100%;
   height: auto;
+  border-radius: 8px;
   margin-block: 1.5em;
 }
 
@@ -148,15 +154,30 @@
 }
 .prose-blog th {
   background: var(--paper-2);
+  font-family: var(--font-sans, 'Inter Tight', system-ui, sans-serif);
   font-weight: 600;
 }
 
-/* expressive-code frame on cream paper */
+/* expressive-code frame — tint to the shared surface + indigo. */
 .prose-blog .expressive-code {
   margin-block: 1.5em;
 }
 .prose-blog .expressive-code .frame {
   background: var(--paper-2);
   border: 1px solid var(--rule);
-  border-radius: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.prose-blog .expressive-code .frame .title {
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+}
+.prose-blog .expressive-code .copy button {
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prose-blog a,
+  .prose-blog .expressive-code .copy button {
+    transition: none;
+  }
 }

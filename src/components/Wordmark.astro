@@ -83,11 +83,10 @@ const Tag = asHeading ? 'h1' : ('div' as const)
     gap: 0.18em;
     margin: 0;
     font-family: var(--font-display);
-    font-weight: 500;
-    font-variation-settings: 'opsz' 60, 'SOFT' 30;
+    font-weight: 600;
     font-size: var(--wm-size, 96px);
     line-height: 1;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.02em;
     color: var(--ink);
   }
   .wordmark-mark {
@@ -104,8 +103,8 @@ const Tag = asHeading ? 'h1' : ('div' as const)
   .wordmark-strike {
     position: absolute;
     inset: 50% 0 auto 0;
-    height: 0.04em;
-    background: var(--vermilion);
+    height: 0.06em;
+    background: var(--cobalt);
     transform: translateY(-50%);
     pointer-events: none;
   }
@@ -121,7 +120,6 @@ const Tag = asHeading ? 'h1' : ('div' as const)
   }
   .wordmark-sub {
     color: var(--cobalt);
-    font-style: italic;
-    font-weight: 400;
+    font-weight: 500;
   }
 </style>
