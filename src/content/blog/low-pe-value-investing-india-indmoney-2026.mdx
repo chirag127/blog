@@ -1,0 +1,102 @@
+---
+title: "Buying the world cheap: low-P/E value investing from India via INDmoney"
+description: "A blunt look at global value ETFs (GVAL, EFV, AVDV), which countries are actually cheap, the value-trap warning, and how India's 24-month foreign-asset rule makes low-churn value investing tax-efficient."
+pubDate: 2026-08-03
+tags: ["investing", "india", "value-investing", "etf", "indmoney", "tax"]
+category: "Finance"
+draft: false
+author: "Chirag Singhal"
+readingTime: "13 min"
+---
+
+The honest bottom line first: the cheapest stock markets on earth right now are cheap for reasons that will probably keep them cheap, India is one of the most expensive markets in the world at 20–23x earnings, and the single most valuable thing about value investing is not the "value" part — it is the low turnover, which in the Indian tax regime is worth 1–3% of CAGR you get to keep instead of handing to the government. If you take nothing else from this post: buy cheap, hold long, and stop trading.
+
+I build market tools for a living-adjacent hobby. I wrote a [FII/DII activity API](https://github.com/chirag127) that scrapes the daily institutional flow numbers, and an i2i yield watcher that tracks P2P loan listings hour by hour. Staring at that data for two years taught me one thing above all others: most of the return you think you are earning gets eaten by churn, fees, and taxes before it reaches your account. Value investing done right attacks all three. Value investing done wrong is just a different way to lose money slowly.
+
+<div style="border:1px solid #d97706;background:rgba(217,119,6,0.08);padding:1rem 1.25rem;border-radius:8px;margin:1.5rem 0;">
+
+**Disclaimer — read this before anything else.** I am not a SEBI Registered Investment Adviser. Nothing here is personalised advice. This is one developer's opinion, written from public data, for people who like to understand their own money. Before you move real capital, talk to a fee-only RIA — someone who charges a flat fee and does not earn commission on what they sell you. All investing risks your capital. You can lose the lot. Every number below is an estimate, not a promise; forward returns are unknowable and past returns are not forward returns. Equity has a fat left tail — 40–60% drawdowns happen, and they happen at the worst possible time. Size your positions so a bad decade does not end you.
+
+</div>
+
+## Why "value" and why now
+
+Value investing is boring on purpose. You buy things trading below what they are worth, you wait, and you let the gap close. The academic case (Fama-French, decades of it) is that cheap stocks — low price-to-earnings, low price-to-book — beat expensive ones over long horizons, as compensation for the discomfort of holding unloved assets. The catch is that "long horizon" means a decade, and value can underperform growth for years at a stretch (2010–2020 was brutal for value). If you cannot sit through five bad years, this is not your strategy.
+
+From India, the practical question is different from the American investor's. I already have plenty of Indian equity exposure, and Indian equity is expensive. The Nifty trades around 20–23x forward earnings. That is priced for the growth story to keep delivering flawlessly. It might. But if I want the value premium, I have to look abroad — and INDmoney's US brokerage integration under the RBI's Liberalised Remittance Scheme (LRS) makes buying foreign ETFs from an Indian bank account genuinely easy now.
+
+## The global value ETFs you can actually buy
+
+There are three funds I would look at, all buyable through INDmoney's US stock/ETF rails. They differ in how aggressively they hunt cheapness.
+
+| Ticker | Fund | What it buys | ~P/E | Expense ratio | Region |
+|---|---|---|---|---|---|
+| **GVAL** | Cambria Global Value | Screens the *cheapest countries* by CAPE, then cheapest stocks within them | ~11 | 0.59% | Global (developed + emerging) |
+| **EFV** | iShares MSCI EAFE Value | Value stocks across developed markets ex-US | ~10 | 0.33% | Developed ex-US (Europe, Japan, Australia) |
+| **AVDV** | Avantis International Small-Cap Value | Small-cap value, international developed | ~9 | 0.36% | International developed small-cap |
+
+GVAL is the purest expression of the low-P/E idea. It does not just pick cheap stocks — it first ranks whole *countries* by cyclically-adjusted P/E (CAPE), takes the cheapest baskets, and then buys the cheapest stocks inside them. Roughly 106–129 holdings, deeply diversified, and an expense ratio of 0.59% that is fair for what it does. If you believe in mean reversion at the country level, GVAL is the vehicle that expresses that belief most directly.
+
+EFV is cheaper to own (0.33%) and cleaner — MSCI's developed-market value screen, ex-US, so you get European and Japanese large-caps at ~10x without emerging-market drama. AVDV goes the other way: small-cap value, where the historical premium is largest and the volatility is also largest, at ~9x and 0.36%. AVDV is the highest-expected-return, highest-stomach-required option of the three.
+
+## The low-P/E country map, and the trap inside it
+
+Here is where I have to be blunt, because this is where retail investors light money on fire. When you rank the world's stock markets by forward P/E, the "cheapest" list looks like a shopping opportunity:
+
+| Country market | ~Forward P/E | The reason it is cheap |
+|---|---|---|
+| Bahrain | 4.5x | Tiny, illiquid, oil-dependent, geopolitical |
+| Egypt | 6.6x | Currency devaluation, capital controls, inflation |
+| Turkey | 6.8x | Currency collapse, unorthodox monetary policy |
+| Pakistan | 6.9x | Political instability, IMF dependence, currency risk |
+| South Korea | 7.8x | "Korea discount" — governance, chaebol structure, geopolitics |
+| **India (Nifty)** | **~20–23x** | Growth premium, demographics, domestic flows |
+
+Read that table again. Bahrain at 4.5x is not four times better value than India at 22x. Bahrain is cheap because you might not be able to get your money out, because the currency can halve, because two names dominate the index, and because the political risk is real. This is the value trap: a market can stay cheap for a decade — or get cheaper — because the discount is *correct*. The market is pricing in a real probability of a bad outcome, and sometimes the bad outcome arrives.
+
+Turkey is the textbook case. It has looked "cheap" on P/E for years while the lira lost most of its value against the dollar. A local investor who "bought Turkey cheap" in dollar terms got crushed by currency, even when local stocks rose. Cheapness in local-currency P/E means nothing if the currency is dissolving under you.
+
+This is exactly why I would use GVAL rather than trying to hand-pick country ETFs myself. GVAL diversifies across many cheap countries at once, so no single Turkey or Egypt can sink you, and it *self-rotates* — which brings me to the part that actually matters for an Indian holder.
+
+## The tax mechanics that make or break this from India
+
+If you are Indian and buying US-listed ETFs through INDmoney under LRS, the rules that govern your after-tax return are specific and unforgiving if you ignore them:
+
+- **Long-term capital gains on foreign (US) ETFs: 12.5%, but only if you hold for more than 24 months.** Sell before 24 months and the gain is added to your income and taxed at your slab rate. This is the single most important number in this whole post. The holding-period bar for foreign assets is *twice* as long as for Indian equity.
+- **Indian equity, by contrast, gets LTCG of 12.5% after just 12 months, with the first ₹1.25 lakh of gains each year exempt.** Different asset, different clock.
+- **Dividends on US ETFs are taxed twice-then-credited:** 25% US withholding at source, then added to your Indian income at slab, with a Foreign Tax Credit (FTC) for the US portion via your ITR. Value funds tend to pay dividends, so this is not academic.
+- **LRS TCS: 20% on remittances above ₹10 lakh per year.** It is a *tax collected at source*, refundable/adjustable when you file your ITR — annoying for cash flow, not a permanent cost.
+- **Crypto, for contrast, is a flat 30% with no loss offset.** Do not confuse these regimes.
+
+Now put the two facts together — the 24-month bar and GVAL's self-rotation — and you see why this combination is elegant. GVAL rebalances its country and stock selections *inside the fund*. When it rotates out of a market that got expensive and into one that got cheap, that transaction happens within the ETF. **You, the holder, are not selling anything, so you trigger no capital gains event.** The fund does the value rotation; your holding period keeps counting toward that 24-month LTCG threshold. You get the discipline of an actively-screened value strategy with the tax profile of buy-and-hold.
+
+If I instead tried to run the same country-rotation strategy by hand — selling my Bahrain ETF when it re-rated, buying my Korea ETF — I would trip the 24-month clock constantly, pay slab-rate short-term tax on the gains, and bleed the value premium straight into the treasury.
+
+## Churn is the tax leak nobody prices in
+
+I keep coming back to this because it is the least glamorous and most valuable idea here. Every time you sell a winner, you crystallise a tax bill and stop compounding on the pre-tax amount. Not selling defers the tax indefinitely and keeps the full amount working for you. Over a decade, the difference between a low-turnover and a high-turnover version of the *same strategy* can be 1–3% of CAGR. That is not a rounding error — at 1.5% a year over 10 years, that is roughly 16% more money at the end, for doing *less*.
+
+There is a personal-situation wrinkle that makes this even sharper for some readers. If your taxable income sits below the basic exemption limit — early-career, between jobs, or living off savings — your realised gains might be taxed at near-zero *today*. In that specific case the churn math flips: you might *want* to harvest gains while your rate is low. But that is a narrow window and a deliberate move, not a licence to trade. For everyone earning a normal income, the default is: do not sell.
+
+## What about the >20% CAGR fantasy?
+
+I get asked this constantly, so let me kill it cleanly. There is no diversified, low-churn vehicle that reliably delivers more than 20% CAGR over 10 years. It does not exist. The instruments that *have* printed those numbers — a single semiconductor stock, a leveraged Nasdaq product, one concentrated theme — did it from a favourable starting valuation and paid for it with 40–70% drawdowns and the ever-present risk of a permanent loss. Leveraged daily ETFs (the 3x products) are an outright trap over ten years because volatility decay grinds them down regardless of direction; I would not touch them for a long-term hold.
+
+Past 10-year CAGR is not forward CAGR. Every asset that "did 15% for a decade" did it partly because it *started cheap*. The starting valuation is the return you have not collected yet. Indian small-caps forward-clear maybe 13–16% pre-tax with 40–60% drawdowns baked in; global value clears less than that but from cheaper valuations and with lower correlation to your existing Indian book. Sober expectations are the whole game.
+
+## What I would actually do
+
+Given a ₹10 lakh-plus book, a long horizon, a real belief in value, and a tolerance for holding a few concentrated bets, here is the shape I would run. This is not a recommendation for you — it is what fits *my* stated constraints, and it leans on a max-Sharpe optimisation over the data I trust.
+
+- **GVAL — the core value engine (~30%).** Purest low-P/E, self-rotating, tax-friendly to hold. This is the position I would let sit for a decade and never touch.
+- **Indian flexi-cap (~27%) + Indian mid-cap (~17%).** My home-market growth exposure. Expensive, yes, but it is where I live, earn, and understand the businesses, and the LTCG clock is only 12 months here.
+- **AVDV (~10%) + a moat/quality tilt like MOAT (~10%).** Small-value for the premium, quality for the ballast, so the portfolio is not purely deep-value.
+- **A small concentrated bet (~2%), semis or similar.** Sized so that if it goes to zero, I shrug. That is the only honest way to hold a concentrated position.
+
+Run through a mean-variance optimiser on the data I trust, a mix in that neighbourhood lands around 12.7% expected return, 15.2% volatility, a Sharpe of roughly 0.39. Not a moonshot. A durable, mostly-hold-forever book that lets India's 24-month rule and GVAL's internal rotation do the tax-efficiency work for me.
+
+Concretely, if I were starting Monday: open the INDmoney US account, stage the LRS remittance under ₹10 lakh for the year to sidestep the 20% TCS cash-flow drag, buy GVAL and AVDV as the foreign core, keep the Indian flexi/mid legs in my domestic demat, and then — the hard part — do nothing for 24 months minimum. Set a calendar reminder for the 24-month mark on each foreign lot so I never accidentally sell into slab-rate tax.
+
+Buy the world cheap. Hold it long enough that the taxman becomes your silent business partner instead of your senior one. Then go build something else and stop watching the ticker.
+
+*Talk to a fee-only RIA before you act on any of this. I mean it.*
