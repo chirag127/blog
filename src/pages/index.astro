@@ -47,14 +47,14 @@ for (const { series, count } of seriesAll.slice(0, 4)) {
     (max, p) => (p.data.pubDate > max ? p.data.pubDate : max),
     parts[0].data.pubDate,
   )
-  // Heuristic: if every part declares a `part` field with the largest
-  // explicit value, use that as the total; otherwise pad by 2 to suggest
-  // upcoming parts. Capped at 12 dots so the spine fits on one row.
+  // Total must never be less than what's already published (otherwise the
+  // label reads "part 29 of 12"). Use the larger of: published count, the
+  // largest explicit `part` field, or published+1 to hint one more coming.
   const explicitMax = parts.reduce((mx, p) => {
     const v = typeof p.data.part === 'number' ? p.data.part : Number(p.data.part)
     return Number.isFinite(v) ? Math.max(mx, v) : mx
   }, 0)
-  const total = Math.min(12, Math.max(count + (explicitMax > count ? 0 : 2), explicitMax))
+  const total = Math.max(count, explicitMax, count + 1)
   inProgress.push({
     name: series,
     slug: slugifyTag(series),

@@ -38,12 +38,19 @@ const {
   ariaLabel,
 } = Astro.props
 
-// Build an array of dot states.
+// Build an array of dot states. Cap the VISUAL dots so a long series
+// (e.g. 29 parts) doesn't render an unreadable 29-dot row; the aria-label
+// still states the true numbers.
 type Dot = 'filled' | 'hollow' | 'current'
+const MAX_DOTS = 10
+const scale = total > MAX_DOTS ? MAX_DOTS / total : 1
+const visualTotal = Math.min(total, MAX_DOTS)
+const visualPublished = Math.round(published * scale)
+const visualCurrent = current ? Math.max(1, Math.round(current * scale)) : undefined
 const dots: Dot[] = []
-for (let i = 1; i <= total; i++) {
-  if (i === current) dots.push('current')
-  else if (i <= published) dots.push('filled')
+for (let i = 1; i <= visualTotal; i++) {
+  if (i === visualCurrent) dots.push('current')
+  else if (i <= visualPublished) dots.push('filled')
   else dots.push('hollow')
 }
 
@@ -94,10 +101,10 @@ const label = ariaLabel ?? `Series progress: ${published} of ${total} published`
   .spine-lg { font-size: 16px; }
 
   .spine-connector { color: var(--rule); }
-  .spine-dot-filled { color: var(--cobalt); }
+  .spine-dot-filled { color: var(--accent, var(--cobalt, #635BFF)); }
   .spine-dot-hollow { color: var(--ink-mute); }
   .spine-dot-current {
-    color: var(--cobalt);
+    color: var(--accent, var(--cobalt, #635BFF));
     font-size: 1.4em;
     line-height: 0.7;
     transform: translateY(0.05em);
