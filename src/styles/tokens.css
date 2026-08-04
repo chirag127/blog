@@ -17,31 +17,48 @@
  *   [data-theme="hc"]                  → pure black/white high contrast
  */
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* ── editorial palette — light ─────────────────────────────────────── */
-  --brand: #e63a1f; /* signal orange — links, active, primary */
-  --brand-soft: #fdebe7; /* soft tint — hover, chips */
-  --success: #0e9f6e;
-  --danger-color: #c1440e;
+  /* ── dark-premium palette (2026 revamp) ────────────────────────────────
+     Deep near-black ink surface + elevated glassy panels + a refined amber
+     signal accent (warm, premium — not the loud pure-orange). Light ink on
+     dark. All --color-* aliases below inherit this automatically. */
+  --brand: #ff9d4d; /* refined amber signal — links, active, primary */
+  --brand-soft: #2a1f14; /* deep tint — hover, chips (dark) */
+  --success: #34d399;
+  --danger-color: #f87171;
 
-  --paper: #f5f6f7; /* cool ink-paper */
-  --paper-2: #eceef1; /* faint grey panels / surface */
+  --paper: #0b0d10; /* near-black ink surface (page bg) */
+  --paper-2: #14171c; /* elevated glassy panel / surface */
   --surface: var(--paper-2);
-  --ink: #17191d; /* near-black blue-tinted text */
-  --ink-mute: #5c6470; /* secondary */
-  --rule: #d8dce2; /* light hairlines */
-  --cobalt: var(--brand); /* accent (name kept, orange value) */
+  --ink: #eef1f5; /* soft near-white text */
+  --ink-mute: #98a1af; /* secondary */
+  --rule: #23272e; /* subtle dark hairlines */
+  --rule-strong: #333944; /* heavier masthead rule */
+
+  /* canonical accent — refined amber. Everything routes through --accent.
+     --cobalt kept ONLY as a back-compat alias → --accent. */
+  --accent: var(--brand);
+  --accent-soft: var(--brand-soft);
+  --cobalt: var(--accent);
   --brand-tint: var(--brand-soft);
   --sage: var(--success);
   --vermilion: var(--danger-color);
   --highlighter: var(--brand);
 
+  /* content-vertical marker colours — brightened for dark. Thin rules /
+     kicker dots only, never the page accent. Dev · Finance · Culture · Health. */
+  --v-dev: #6ba0ff;
+  --v-finance: #3ddb9a;
+  --v-culture: #f472b6;
+  --v-health: #38bdf8;
+  --v-personal: #98a1af;
+
   /* semantic passthroughs */
   --color-bg: var(--paper);
   --color-fg: var(--ink);
   --color-accent: var(--brand);
-  --color-accent-fg: #ffffff;
+  --color-accent-fg: #0b0d10;
   --color-sage: var(--success);
   --color-muted: var(--ink-mute);
   --color-border: var(--rule);
@@ -56,15 +73,15 @@
   --color-brand-indigo-soft: var(--brand-soft);
   --color-brand-success: var(--success);
   --color-brand-danger: var(--danger-color);
-  --color-neutral-0: #ffffff;
-  --color-neutral-50: #f5f6f7;
-  --color-neutral-100: #eceef1;
-  --color-neutral-200: #d8dce2;
-  --color-neutral-300: #c3c9d1;
-  --color-neutral-500: #5c6470;
-  --color-neutral-700: #2b3038;
-  --color-neutral-900: #17191d;
-  --color-neutral-1000: #000000;
+  --color-neutral-0: #0b0d10;
+  --color-neutral-50: #14171c;
+  --color-neutral-100: #1b1f25;
+  --color-neutral-200: #23272e;
+  --color-neutral-300: #333944;
+  --color-neutral-500: #98a1af;
+  --color-neutral-700: #c7cdd6;
+  --color-neutral-900: #eef1f5;
+  --color-neutral-1000: #ffffff;
   --color-paper: var(--paper);
   --color-paper-2: var(--paper-2);
   --color-ink: var(--ink);
@@ -123,40 +140,53 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --brand: #ff5a3c; /* orange lifted for contrast on dark */
-    --brand-soft: #2c1a15;
-    --paper: #121417;
-    --paper-2: #1a1d21;
-    --ink: #e7eaed;
-    --ink-mute: #98a0ab;
-    --rule: #262a31;
-    --color-accent-fg: #121417;
-    --color-neutral-50: #121417;
-    --color-neutral-100: #1a1d21;
-    --color-neutral-200: #262a31;
-    --color-neutral-500: #98a0ab;
-    --color-neutral-700: #c6ccd4;
-    --color-neutral-900: #e7eaed;
+    /* matches the dark-premium :root default (single coherent dark) */
+    --brand: #ff9d4d;
+    --brand-soft: #2a1f14;
+    --paper: #0b0d10;
+    --paper-2: #14171c;
+    --ink: #eef1f5;
+    --ink-mute: #98a1af;
+    --rule: #23272e;
+    --rule-strong: #333944;
+    --v-dev: #6ba0ff;
+    --v-finance: #3ddb9a;
+    --v-culture: #f472b6;
+    --v-health: #38bdf8;
+    --v-personal: #98a1af;
+    --color-accent-fg: #0b0d10;
+    --color-neutral-50: #14171c;
+    --color-neutral-100: #1b1f25;
+    --color-neutral-200: #23272e;
+    --color-neutral-500: #98a1af;
+    --color-neutral-700: #c7cdd6;
+    --color-neutral-900: #eef1f5;
   }
 }
 
 /* ── DARK — explicit user override, wins over system ────────────────── */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --brand: #ff5a3c;
-  --brand-soft: #2c1a15;
-  --paper: #121417;
-  --paper-2: #1a1d21;
-  --ink: #e7eaed;
-  --ink-mute: #98a0ab;
-  --rule: #262a31;
-  --color-accent-fg: #121417;
-  --color-neutral-50: #121417;
-  --color-neutral-100: #1a1d21;
-  --color-neutral-200: #262a31;
-  --color-neutral-500: #98a0ab;
-  --color-neutral-700: #c6ccd4;
-  --color-neutral-900: #e7eaed;
+  --brand: #ff9d4d;
+  --brand-soft: #2a1f14;
+  --paper: #0b0d10;
+  --paper-2: #14171c;
+  --ink: #eef1f5;
+  --ink-mute: #98a1af;
+  --rule: #23272e;
+  --rule-strong: #333944;
+  --v-dev: #6ba0ff;
+  --v-finance: #3ddb9a;
+  --v-culture: #f472b6;
+  --v-health: #38bdf8;
+  --v-personal: #98a1af;
+  --color-accent-fg: #0b0d10;
+  --color-neutral-50: #14171c;
+  --color-neutral-100: #1b1f25;
+  --color-neutral-200: #23272e;
+  --color-neutral-500: #98a1af;
+  --color-neutral-700: #c7cdd6;
+  --color-neutral-900: #eef1f5;
 }
 
 /* ── SEPIA — warm paper, amber-orange accent ────────────────────────── */
