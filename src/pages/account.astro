@@ -1,5 +1,5 @@
 ---
-import AccountPanel from '~/components/AccountPanel.tsx'
+import AccountIsland from '~/components/AccountIsland'
 import BaseLayout from '~/layouts/BaseLayout.astro'
 ---
 
@@ -18,7 +18,7 @@ import BaseLayout from '~/layouts/BaseLayout.astro'
   </header>
 
   <section class="panel">
-    <AccountPanel client:load siteName="oriz / blog" />
+    <AccountIsland client:load siteName="oriz / blog" />
   </section>
 </BaseLayout>
 

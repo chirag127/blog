@@ -1,15 +1,11 @@
 /**
- * Firebase singleton — every site in the oriz family initializes the same
- * project (oriz-app) so a logged-in user is logged in across every subdomain.
+ * Firebase singleton — Firestore + Analytics only.
+ * Auth is handled by Clerk (see src/components/AccountIsland.tsx).
  *
- * Lazy proxy pattern. `getAuth()` and `getFirestore()` are deferred until
- * a property is accessed at runtime, so server-side prerender of pages
- * that import an auth island doesn't crash when env vars are absent.
- *
- * Sister sites copy this file verbatim — see anchor-patterns.md.
+ * Lazy proxy pattern: getFirestore() is deferred until a property is
+ * accessed at runtime so SSR prerender doesn't crash when env vars are absent.
  */
 import { type FirebaseApp, getApps, initializeApp } from 'firebase/app'
-import { type Auth, getAuth } from 'firebase/auth'
 import { type Firestore, getFirestore } from 'firebase/firestore'
 
 const config = {
@@ -22,7 +18,6 @@ const config = {
 }
 
 let _app: FirebaseApp | null = null
-let _auth: Auth | null = null
 let _db: Firestore | null = null
 
 function getApp(): FirebaseApp {
@@ -30,13 +25,6 @@ function getApp(): FirebaseApp {
   _app = getApps()[0] ?? initializeApp(config)
   return _app
 }
-
-export const auth: Auth = new Proxy({} as Auth, {
-  get(_t, p) {
-    if (!_auth) _auth = getAuth(getApp())
-    return Reflect.get(_auth, p)
-  },
-}) as Auth
 
 export const db: Firestore = new Proxy({} as Firestore, {
   get(_t, p) {

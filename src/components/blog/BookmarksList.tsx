@@ -1,30 +1,32 @@
 /**
  * BookmarksList — renders the user's bookmarks (Firestore for signed-in,
  * localStorage for anon). Subscribes to live updates.
+ *
+ * Requires a ClerkProvider ancestor.
  */
 
-import type { User } from 'firebase/auth'
+import { useUser } from '@clerk/clerk-react'
 import { Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import {
+  type AuthUser,
   type Bookmark as BookmarkData,
   listBookmarks,
   mergeOnSignIn,
   removeBookmark,
-  watchAuth,
   watchBookmarks,
 } from '~/lib/bookmarks'
 
 export default function BookmarksList() {
-  const [user, setUser] = useState<User | null>(null)
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser()
+  const user: AuthUser | null = isLoaded && isSignedIn && clerkUser ? { id: clerkUser.id } : null
+  const email = clerkUser?.primaryEmailAddress?.emailAddress ?? null
   const [items, setItems] = useState<BookmarkData[] | null>(null)
 
-  useEffect(() => watchAuth(setUser), [])
-
   useEffect(() => {
+    if (!isLoaded) return
     let cancelled = false
     if (user) {
-      // On sign-in, merge any pending anon bookmarks.
       mergeOnSignIn(user).catch(() => {})
     }
     listBookmarks(user)
@@ -35,7 +37,7 @@ export default function BookmarksList() {
       cancelled = true
       unsub()
     }
-  }, [user])
+  }, [isLoaded, user?.id])
 
   if (items === null) {
     return <p className="muted">Loading…</p>
@@ -88,7 +90,7 @@ export default function BookmarksList() {
       <p className="status">
         {user ? (
           <>
-            Synced as <strong>{user.email ?? 'signed-in user'}</strong>. {items.length} saved.
+            Synced as <strong>{email ?? 'signed-in user'}</strong>. {items.length} saved.
           </>
         ) : (
           <>

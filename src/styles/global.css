@@ -1,29 +1,25 @@
 @import "tailwindcss";
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/inter-tight";
+@import "@fontsource-variable/source-serif-4";
 @import "@fontsource-variable/jetbrains-mono";
 
 /*
- * oriz-blog — shared oriz.in design system (2026-08-01, one system across all
- * oriz.in apps). Bright, crisp, Stripe/Linear-clean: white paper, indigo
- * accent, near-black ink. Inter Tight (headings) · Inter (body) ·
- * JetBrains Mono (dates/code/reading-time). Reads as ONE family with the
- * sister sites.
+ * oriz-blog — "Signal Press" editorial design (2026-08-04).
  *
- * Light-first with a dark theme. Theme is chosen by:
- *   :root                              → light (default)
- *   @media (prefers-color-scheme:dark) → dark, UNLESS [data-theme="light"]
- *   [data-theme="dark"]                → dark, always (overrides system)
- * Toggle set in HeaderControls.tsx (auto / light / dark).
+ * Distinct identity, by design: cool ink-paper, international-orange signal
+ * accent, serif display (Source Serif 4), Inter body, JetBrains Mono metadata.
+ * Not the indigo Stripe/Linear look of the sister oriz.in apps — every site
+ * owns its look (see workspace AGENTS.md, design-diversity rule).
  *
- * Every component reads through the alias layer below (--paper/--ink/--cobalt
- * /--rule/--font-*), so restyling happens here — components stay unchanged.
- * `--cobalt` keeps its name but now resolves to the indigo brand accent.
+ * Palette + theme modes (light / dark / sepia / hc) live in tokens.css.
+ * This file: base element styles, layout utilities, masthead/page-head,
+ * generic .prose, and third-party polish (katex, pagefind, expressive-code).
  */
 
 @theme {
-  --font-display: "Inter Tight Variable", "Inter Tight", Inter, system-ui, sans-serif;
-  --font-serif: "Inter Variable", Inter, system-ui, sans-serif;
+  --font-display: "Source Serif 4 Variable", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, serif;
   --font-sans: "Inter Variable", Inter, system-ui, sans-serif;
   --font-body: "Inter Variable", Inter, system-ui, sans-serif;
   --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -34,111 +30,6 @@
 }
 
 @layer base {
-  /* ── Shared oriz.in palette — LIGHT (default) ───────────────────────── */
-  :root {
-    color-scheme: light;
-
-    --brand: #635bff; /* indigo — links, active, primary */
-    --brand-soft: #eeedff; /* soft tint — hover / chips */
-    --success: #0e9f6e;
-    --danger-color: #c1440e;
-
-    /* alias layer every component reads through */
-    --paper: #ffffff; /* clean white */
-    --paper-2: #fbfbfd; /* faint grey panels / surface */
-    --surface: var(--paper-2);
-    --ink: #1a1a2e; /* near-black text */
-    --ink-mute: #6b7280; /* secondary */
-    --rule: #ececf1; /* light hairlines */
-    --cobalt: var(--brand); /* accent (name kept, indigo value) */
-    --brand-tint: var(--brand-soft);
-    --sage: var(--success);
-    --vermilion: var(--danger-color);
-    --highlighter: var(--brand);
-
-    /* semantic passthroughs */
-    --color-bg: var(--paper);
-    --color-fg: var(--ink);
-    --color-accent: var(--brand);
-    --color-accent-fg: #ffffff;
-    --color-sage: var(--success);
-    --color-muted: var(--ink-mute);
-    --color-border: var(--rule);
-    --color-bg-soft: var(--paper-2);
-    --color-bg-muted: var(--paper-2);
-    --color-prose: var(--ink);
-    --color-fg-muted: var(--ink-mute);
-    --color-fg-soft: var(--ink-mute);
-
-    --radius-card: 10px;
-    --radius-button: 8px;
-    --container-page: 1100px;
-  }
-
-  /* ── DARK — system preference, unless user forced light ─────────────── */
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-
-      --brand: #8f8aff; /* indigo lifted for contrast on dark */
-      --brand-soft: #23213a;
-
-      --paper: #0f0f1a; /* near-black indigo-tinted */
-      --paper-2: #17172a;
-      --ink: #ececf1;
-      --ink-mute: #9aa0ad;
-      --rule: #262640;
-      --color-accent-fg: #0f0f1a;
-    }
-  }
-
-  /* ── DARK — explicit user override, wins over system ────────────────── */
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-
-    --brand: #8f8aff;
-    --brand-soft: #23213a;
-
-    --paper: #0f0f1a;
-    --paper-2: #17172a;
-    --ink: #ececf1;
-    --ink-mute: #9aa0ad;
-    --rule: #262640;
-    --color-accent-fg: #0f0f1a;
-  }
-
-  /* ── SEPIA — warm paper, indigo accent ──────────────────────────────── */
-  :root[data-theme="sepia"] {
-    color-scheme: light;
-
-    --brand: #5a52e0;
-    --brand-soft: #ece7ff;
-
-    --paper: #faf4e8;
-    --paper-2: #f3ead6;
-    --ink: #3a2f22;
-    --ink-mute: #7a6a52;
-    --rule: #e0d3ba;
-    --color-accent-fg: #faf4e8;
-    --color-fg-soft: color-mix(in oklab, var(--ink) 55%, var(--paper));
-  }
-
-  /* ── HIGH-CONTRAST — pure black/white, hard borders ─────────────────── */
-  :root[data-theme="hc"] {
-    color-scheme: light;
-
-    --brand: #2e26d6;
-    --brand-soft: #dcd9ff;
-
-    --paper: #ffffff;
-    --paper-2: #ffffff;
-    --ink: #000000;
-    --ink-mute: #2a2a35;
-    --rule: #000000;
-    --color-accent-fg: #ffffff;
-    --color-fg-soft: #2a2a35;
-  }
-
   html {
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
@@ -179,6 +70,11 @@
   a {
     color: inherit;
     text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--cobalt);
+    outline-offset: 2px;
   }
 }
 
@@ -222,10 +118,11 @@
   left: 0;
 }
 
-/* ── Page-head + prose utility (used by /about, /contact, /legal/*, …) ─ */
+/* ── Masthead / page-head (editorial) ───────────────────────────────────
+   Used by /about, /contact, /legal/*, archive, categories, tags … */
 
 .page-head {
-  padding-block: clamp(2rem, 6vw, 3.5rem) 1.5rem;
+  padding-block: clamp(2.5rem, 7vw, 4.5rem) 1.75rem;
   border-bottom: 1px solid var(--rule);
   max-width: var(--container-prose);
   margin-inline: auto;
@@ -233,10 +130,10 @@
 .page-head .eyebrow {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-mute);
-  margin: 0 0 0.875rem;
+  margin: 0 0 1rem;
 }
 .page-head .eyebrow a {
   color: var(--ink-mute);
@@ -246,8 +143,8 @@
 }
 .page-head h1 {
   font-family: var(--font-display);
-  font-weight: 640;
-  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  font-weight: 600;
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
   line-height: 1.05;
   letter-spacing: -0.022em;
   margin: 0;
@@ -255,15 +152,17 @@
 }
 .page-head .lede,
 .page-head .meta {
-  margin: 0.75rem 0 0;
+  margin: 0.875rem 0 0;
   color: var(--ink-mute);
 }
 .page-head .meta {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+
+/* ── Generic prose (about/contact/legal, not articles) ───────────────── */
 
 .prose {
   padding-block: 2.5rem 4rem;
@@ -278,20 +177,22 @@
   font-size: 1.1875rem;
   color: var(--ink);
   margin: 0 0 2rem;
+  font-family: var(--font-display);
+  line-height: 1.5;
 }
 .prose h2 {
   font-family: var(--font-display);
-  font-weight: 640;
-  font-size: 1.6625rem;
-  letter-spacing: -0.018em;
+  font-weight: 600;
+  font-size: 1.75rem;
+  letter-spacing: -0.015em;
   color: var(--ink);
-  margin: 2.5rem 0 1rem;
+  margin: 2.75rem 0 1rem;
 }
 .prose h3 {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.3125rem;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.01em;
   color: var(--ink);
   margin: 1.75rem 0 0.625rem;
 }
@@ -334,6 +235,8 @@
   margin-left: 0;
   color: var(--ink-mute);
   font-style: italic;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
 }
 .prose hr {
   height: 1px;
@@ -370,7 +273,7 @@
   --pagefind-ui-primary: var(--cobalt);
   --pagefind-ui-border-width: 1px;
   --pagefind-ui-border-radius: 0;
-  --pagefind-ui-font: var(--font-serif);
+  --pagefind-ui-font: var(--font-body);
 }
 .pagefind-ui__result-link {
   color: var(--ink);

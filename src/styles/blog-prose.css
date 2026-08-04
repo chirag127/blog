@@ -1,30 +1,40 @@
 /*
- * blog-prose.css — long-form body typography for a single blog post.
+ * blog-prose.css — long-form article typography ("Signal Press" editorial).
  *
- * Shared oriz.in design system (locked 2026-08-01 — one system across all
- * oriz.in apps, family with cards.oriz.in). Content-first, Stripe/Linear
- * clean: Inter body 17.5px / 1.7 on a ~68ch measure, Inter Tight semibold
- * headings, indigo (#635BFF) links + blockquote rule, JetBrains Mono code.
+ * Serif display headings (Source Serif 4), Inter body on a ~68ch measure,
+ * international-orange links + rule, JetBrains Mono code + metadata, and an
+ * optional serif drop-cap for the opening paragraph.
  *
- * Font tokens (--font-body/-sans/-mono/-display), colours (--ink/-mute,
- * --cobalt, --rule, --paper-2, --brand-soft) resolve from the .post-shell
- * scope in [...slug].astro (light/dark/sepia/hc variants live there). This
- * file only styles the article body; selectors scoped to `.prose-blog`.
+ * Colors/types resolve from the .post-shell scope in [...slug].astro
+ * (light/dark/sepia/hc variants live there). Selectors scoped to .prose-blog.
  */
-@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 .prose-blog {
   color: var(--ink);
   font-family: var(--font-body, 'Inter Variable', 'Inter', system-ui, sans-serif);
   font-size: 17.5px;
-  line-height: 1.7;
+  line-height: 1.72;
   max-width: 68ch;
   margin-inline: auto;
   font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
 }
 
-/* Lede — first paragraph slightly larger; no serif drop-cap (retired). */
-.prose-blog > p:first-of-type,
+/* Lede — first paragraph slightly larger; optional serif drop-cap. */
+.prose-blog > p:first-of-type {
+  font-size: 1.08em;
+  line-height: 1.62;
+  color: var(--ink);
+}
+.prose-blog > p:first-of-type::first-letter {
+  float: left;
+  font-family: var(--font-display, 'Source Serif 4', Georgia, serif);
+  font-weight: 600;
+  font-size: 3.1em;
+  line-height: 0.82;
+  padding: 0.06em 0.12em 0 0;
+  color: var(--cobalt, #e63a1f);
+}
 .prose-blog .drop-cap {
   font-size: 1.075em;
   line-height: 1.6;
@@ -35,30 +45,26 @@
   margin: 0 0 1.25em;
 }
 
-.prose-blog h2 {
-  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
-  font-weight: 650;
-  font-size: 1.55em;
-  letter-spacing: -0.018em;
-  line-height: 1.25;
+.prose-blog h2,
+.prose-blog h3,
+.prose-blog h4 {
+  font-family: var(--font-display, 'Source Serif 4', Georgia, serif);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.22;
   color: var(--ink);
-  margin: 2.5em 0 0.7em;
+}
+.prose-blog h2 {
+  font-size: 1.75em;
+  margin: 2.25em 0 0.7em;
 }
 .prose-blog h3 {
-  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
-  font-weight: 600;
-  font-size: 1.25em;
-  letter-spacing: -0.012em;
-  line-height: 1.3;
-  color: var(--ink);
-  margin: 2em 0 0.5em;
+  font-size: 1.35em;
+  margin: 1.9em 0 0.5em;
 }
 .prose-blog h4 {
-  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
-  font-weight: 600;
-  font-size: 1.05em;
-  color: var(--ink);
-  margin: 1.75em 0 0.5em;
+  font-size: 1.12em;
+  margin: 1.6em 0 0.5em;
 }
 
 .prose-blog a {
@@ -86,7 +92,9 @@
   padding: 0.25em 0 0.25em 1.1rem;
   margin: 1.75em 0;
   color: var(--ink-mute);
-  font-style: normal;
+  font-style: italic;
+  font-family: var(--font-display, 'Source Serif 4', Georgia, serif);
+  font-size: 1.0625em;
 }
 .prose-blog blockquote p:last-child {
   margin-bottom: 0;
@@ -101,7 +109,7 @@
   margin-bottom: 0.4em;
 }
 .prose-blog li::marker {
-  color: var(--ink-mute);
+  color: var(--cobalt);
 }
 
 .prose-blog code {
@@ -154,11 +162,14 @@
 }
 .prose-blog th {
   background: var(--paper-2);
-  font-family: var(--font-sans, 'Inter Tight', system-ui, sans-serif);
-  font-weight: 600;
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-weight: 500;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-/* expressive-code frame — tint to the shared surface + indigo. */
+/* expressive-code frame — tint to the editorial surface + orange. */
 .prose-blog .expressive-code {
   margin-block: 1.5em;
 }

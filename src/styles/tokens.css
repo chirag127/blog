@@ -1,50 +1,83 @@
 /*
- * tokens.css — shared oriz.in design system (locked 2026-08-01).
+ * tokens.css — oriz-blog editorial identity ("Signal Press", 2026-08-04).
  *
- * ONE design system across all oriz.in apps. Bright, crisp, Stripe/Linear-clean;
- * reads as one family with cards.oriz.in. White paper, indigo accent, Inter type.
+ * Deliberately DISTINCT from the other oriz.in apps (cards/finance/home use
+ * the white-paper + indigo + Inter "Stripe/Linear" system). Per the
+ * design-diversity rule each website owns its identity:
  *
- * Every `--color-*` name kept as an alias so chrome/legal/Footer components
- * (which consume the shell token names) compile unchanged.
+ *   Cool ink-paper · international-orange signal accent · serif display
+ *   (Source Serif 4) · Inter body · JetBrains Mono metadata.
+ *
+ * Every --color-* name is kept as an alias so chrome/legal/Footer components
+ * (which consume the shell token names) compile unchanged. Theme modes:
+ *   :root                              → light (default)
+ *   @media (prefers-color-scheme:dark) → dark, UNLESS [data-theme="light"]
+ *   [data-theme="dark"]                → dark, always (overrides system)
+ *   [data-theme="sepia"]               → warm paper variant
+ *   [data-theme="hc"]                  → pure black/white high contrast
  */
 :root {
-  /* color — shared oriz.in palette */
-  --color-brand-indigo: #635bff; /* accent — links, active, primary */
-  --color-brand-indigo-soft: #eeedff; /* soft tint — hover, chips */
-  --color-brand-success: #0e9f6e;
-  --color-brand-danger: #c1440e;
+  color-scheme: light;
 
+  /* ── editorial palette — light ─────────────────────────────────────── */
+  --brand: #e63a1f; /* signal orange — links, active, primary */
+  --brand-soft: #fdebe7; /* soft tint — hover, chips */
+  --success: #0e9f6e;
+  --danger-color: #c1440e;
+
+  --paper: #f5f6f7; /* cool ink-paper */
+  --paper-2: #eceef1; /* faint grey panels / surface */
+  --surface: var(--paper-2);
+  --ink: #17191d; /* near-black blue-tinted text */
+  --ink-mute: #5c6470; /* secondary */
+  --rule: #d8dce2; /* light hairlines */
+  --cobalt: var(--brand); /* accent (name kept, orange value) */
+  --brand-tint: var(--brand-soft);
+  --sage: var(--success);
+  --vermilion: var(--danger-color);
+  --highlighter: var(--brand);
+
+  /* semantic passthroughs */
+  --color-bg: var(--paper);
+  --color-fg: var(--ink);
+  --color-accent: var(--brand);
+  --color-accent-fg: #ffffff;
+  --color-sage: var(--success);
+  --color-muted: var(--ink-mute);
+  --color-border: var(--rule);
+  --color-bg-soft: var(--paper-2);
+  --color-bg-muted: var(--paper-2);
+  --color-prose: var(--ink);
+  --color-fg-muted: var(--ink-mute);
+  --color-fg-soft: var(--ink-mute);
+
+  /* color alias layer (chrome components read these) */
+  --color-brand-indigo: var(--brand); /* name kept for compatibility */
+  --color-brand-indigo-soft: var(--brand-soft);
+  --color-brand-success: var(--success);
+  --color-brand-danger: var(--danger-color);
   --color-neutral-0: #ffffff;
-  --color-neutral-50: #fbfbfd; /* faint grey panels */
-  --color-neutral-100: #f4f4f8;
-  --color-neutral-200: #ececf1; /* light hairlines */
-  --color-neutral-300: #d7d7de;
-  --color-neutral-500: #6b7280; /* secondary text */
-  --color-neutral-700: #3a3a44;
-  --color-neutral-900: #1a1a2e; /* near-black text */
+  --color-neutral-50: #f5f6f7;
+  --color-neutral-100: #eceef1;
+  --color-neutral-200: #d8dce2;
+  --color-neutral-300: #c3c9d1;
+  --color-neutral-500: #5c6470;
+  --color-neutral-700: #2b3038;
+  --color-neutral-900: #17191d;
   --color-neutral-1000: #000000;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-mute: var(--ink-mute);
+  --color-rule: var(--rule);
 
-  /*
-   * Semantic aliases resolve through global.css's theme-aware primitives
-   * (--paper/--ink/--rule/--cobalt/--brand-*) when it is loaded, so chrome
-   * components flip correctly across light/dark/sepia/hc. Shell neutrals are
-   * the standalone fallback for apps that import tokens.css on its own.
-   */
-  --color-paper: var(--paper, var(--color-neutral-0));
-  --color-paper-2: var(--paper-2, var(--color-neutral-50));
-  --color-ink: var(--ink, var(--color-neutral-900));
-  --color-ink-mute: var(--ink-mute, var(--color-neutral-500));
-  --color-rule: var(--rule, var(--color-neutral-200));
-  --color-accent: var(--brand, var(--color-brand-indigo));
-  --color-accent-soft: var(--brand-soft, var(--color-brand-indigo-soft));
-  --color-success: var(--success, var(--color-brand-success));
-  --color-danger: var(--vermilion, var(--color-brand-danger));
-
-  /* type — shared oriz.in families */
-  --font-sans: 'Inter Tight Variable', 'Inter Tight', Inter, system-ui, sans-serif;
-  --font-display: 'Inter Tight Variable', 'Inter Tight', Inter, system-ui, sans-serif;
+  /* ── type — editorial families ─────────────────────────────────────── */
+  --font-display: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, serif;
   --font-body: 'Inter Variable', Inter, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: 'Inter Variable', Inter, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-utility: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --text-2xs: 10px;
   --text-xs: 11px;
@@ -57,7 +90,6 @@
   --text-3xl: 48px;
 
   /* spacing — 8 steps */
-  --space-unit: 4px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -75,10 +107,94 @@
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
-  /* breakpoints — 4 standard (mobile-first reference) */
+  /* breakpoints */
   --bp-sm: 480px;
   --bp-md: 768px;
   --bp-lg: 1024px;
   --bp-xl: 1440px;
+
+  /* radii + containers */
+  --radius-card: 8px;
+  --radius-button: 6px;
+  --container-page: 1100px;
 }
 
+/* ── DARK — system preference, unless user forced light ─────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --brand: #ff5a3c; /* orange lifted for contrast on dark */
+    --brand-soft: #2c1a15;
+    --paper: #121417;
+    --paper-2: #1a1d21;
+    --ink: #e7eaed;
+    --ink-mute: #98a0ab;
+    --rule: #262a31;
+    --color-accent-fg: #121417;
+    --color-neutral-50: #121417;
+    --color-neutral-100: #1a1d21;
+    --color-neutral-200: #262a31;
+    --color-neutral-500: #98a0ab;
+    --color-neutral-700: #c6ccd4;
+    --color-neutral-900: #e7eaed;
+  }
+}
+
+/* ── DARK — explicit user override, wins over system ────────────────── */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --brand: #ff5a3c;
+  --brand-soft: #2c1a15;
+  --paper: #121417;
+  --paper-2: #1a1d21;
+  --ink: #e7eaed;
+  --ink-mute: #98a0ab;
+  --rule: #262a31;
+  --color-accent-fg: #121417;
+  --color-neutral-50: #121417;
+  --color-neutral-100: #1a1d21;
+  --color-neutral-200: #262a31;
+  --color-neutral-500: #98a0ab;
+  --color-neutral-700: #c6ccd4;
+  --color-neutral-900: #e7eaed;
+}
+
+/* ── SEPIA — warm paper, amber-orange accent ────────────────────────── */
+:root[data-theme='sepia'] {
+  color-scheme: light;
+  --brand: #c4451c;
+  --brand-soft: #f6e5da;
+  --paper: #f6f0e3;
+  --paper-2: #efe7d5;
+  --ink: #34302a;
+  --ink-mute: #7a7264;
+  --rule: #e0d6c2;
+  --color-accent-fg: #f6f0e3;
+  --color-fg-soft: color-mix(in oklab, var(--ink) 55%, var(--paper));
+  --color-neutral-50: #f6f0e3;
+  --color-neutral-100: #efe7d5;
+  --color-neutral-200: #e0d6c2;
+  --color-neutral-500: #7a7264;
+  --color-neutral-700: #5a5242;
+  --color-neutral-900: #34302a;
+}
+
+/* ── HIGH-CONTRAST — pure black/white, hard borders ─────────────────── */
+:root[data-theme='hc'] {
+  color-scheme: light;
+  --brand: #b3280d;
+  --brand-soft: #ffe3db;
+  --paper: #ffffff;
+  --paper-2: #ffffff;
+  --ink: #000000;
+  --ink-mute: #2a2a35;
+  --rule: #000000;
+  --color-accent-fg: #ffffff;
+  --color-fg-soft: #2a2a35;
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #ffffff;
+  --color-neutral-200: #000000;
+  --color-neutral-500: #2a2a35;
+  --color-neutral-700: #000000;
+  --color-neutral-900: #000000;
+}

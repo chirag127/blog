@@ -1,13 +1,12 @@
 ---
 /*
- * Wordmark — `oriz` set in display serif with a vermilion hairline strike
- * through the `z` glyph. The proofreader's deletion mark rendered as the
- * brand mark.
+ * Wordmark — `oriz` set in display serif (Source Serif 4) with an
+ * international-orange hairline strike through the `z` glyph — the
+ * proofreader's deletion mark rendered as the brand mark.
  *
- * Sister sites copy this component verbatim. On oriz-blog, the `subtitle`
- * is "blog" and the wordmark sits inside the 60px header chrome.
- *
- * Family-anchor file. See oriz-home/knowledge/anchor-patterns.md.
+ * The z-strike is the family anchor (kept across sites) but each site owns
+ * its type/palette: on oriz-blog the wordmark is serif with the signal-orange
+ * strike; sister sites render their own identity.
  */
 
 interface Props {
@@ -86,7 +85,7 @@ const Tag = asHeading ? 'h1' : ('div' as const)
     font-weight: 600;
     font-size: var(--wm-size, 96px);
     line-height: 1;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     color: var(--ink);
   }
   .wordmark-mark {
@@ -103,9 +102,9 @@ const Tag = asHeading ? 'h1' : ('div' as const)
   .wordmark-strike {
     position: absolute;
     inset: 50% 0 auto 0;
-    height: 0.06em;
+    height: 0.055em;
     background: var(--cobalt);
-    transform: translateY(-50%);
+    transform: translateY(-50%) rotate(-2deg);
     pointer-events: none;
   }
   @media (max-width: 480px) {
@@ -114,12 +113,14 @@ const Tag = asHeading ? 'h1' : ('div' as const)
     }
   }
   .wordmark-sep {
-    margin-inline: 0.18em 0.18em;
+    margin-inline: 0.2em;
     color: var(--ink-mute);
     font-weight: 400;
   }
   .wordmark-sub {
     color: var(--cobalt);
+    font-family: var(--font-mono);
     font-weight: 500;
+    letter-spacing: 0.02em;
   }
 </style>

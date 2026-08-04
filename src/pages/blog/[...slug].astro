@@ -22,7 +22,7 @@ import { type CollectionEntry, render } from 'astro:content'
  */
 import type { GetStaticPaths } from 'astro'
 import BlogPostLeftSidebar from '~/components/blog/BlogPostLeftSidebar.astro'
-import BookmarkButton from '~/components/blog/BookmarkButton.tsx'
+import BookmarkButtonIsland from '~/components/blog/BookmarkButtonIsland'
 import GiscusComments from '~/components/blog/GiscusComments.astro'
 import SeriesJumpList from '~/components/blog/SeriesJumpList.astro'
 import SeriesNav from '~/components/blog/SeriesNav.astro'
@@ -169,7 +169,7 @@ const breadcrumbSchema = {
           </>
         )}
         <span class="post-byline-spacer"></span>
-        <BookmarkButton
+        <BookmarkButtonIsland
           client:idle
           slug={post.id}
           url={url}

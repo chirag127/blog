@@ -4,17 +4,19 @@
  * on Firestore updates.
  *
  * Embedded inline on each post page; wired with `client:idle`.
+ * Requires a ClerkProvider ancestor — mount this inside an AccountIsland
+ * or wrap the page with ClerkProvider.
  */
 
-import type { User } from 'firebase/auth'
+import { useUser } from '@clerk/clerk-react'
 import { Bookmark, BookmarkCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import {
   addBookmark,
+  type AuthUser,
   type Bookmark as BookmarkData,
   isBookmarked,
   removeBookmark,
-  watchAuth,
   watchBookmarks,
 } from '~/lib/bookmarks'
 
@@ -28,15 +30,13 @@ interface Props {
 }
 
 export default function BookmarkButton(props: Props) {
-  const [user, setUser] = useState<User | null>(null)
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser()
+  const user: AuthUser | null = isLoaded && isSignedIn && clerkUser ? { id: clerkUser.id } : null
   const [saved, setSaved] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  // Track auth state
-  useEffect(() => watchAuth(setUser), [])
-
-  // Refresh bookmark state when user / slug changes, and subscribe to live updates.
   useEffect(() => {
+    if (!isLoaded) return
     let cancelled = false
     isBookmarked(props.slug, user)
       .then((b) => !cancelled && setSaved(b))
@@ -49,7 +49,7 @@ export default function BookmarkButton(props: Props) {
       cancelled = true
       unsub()
     }
-  }, [user, props.slug])
+  }, [isLoaded, user?.id, props.slug])
 
   const toggle = async () => {
     if (busy) return

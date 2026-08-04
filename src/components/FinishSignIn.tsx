@@ -1,105 +1,13 @@
-import { type Auth, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth'
-import { useCallback, useEffect, useState } from 'react'
-import { auth as defaultAuth } from '~/lib/firebase'
-
-export interface FinishSignInProps {
-  /**
-   * Initialized Firebase Auth instance. The consuming app owns Firebase
-   * initialization (typically via `~/lib/firebase`) and passes it in.
-   */
-  auth?: Auth
-  successPath?: string
-  emailStorageKey?: string
-}
-
-export function FinishSignIn({
-  auth = defaultAuth,
-  successPath = '/account/',
-  emailStorageKey = 'oriz:emailForSignIn',
-}: FinishSignInProps) {
-  const [status, setStatus] = useState<'working' | 'need-email' | 'done' | 'error'>('working')
-  const [email, setEmail] = useState('')
-  const [error, setError] = useState<string | null>(null)
-
-  const finish = useCallback(
-    async (e: string) => {
-      setStatus('working')
-      setError(null)
-      try {
-        await signInWithEmailLink(auth, e, window.location.href)
-        window.localStorage.removeItem(emailStorageKey)
-        setStatus('done')
-        window.setTimeout(() => {
-          window.location.href = successPath
-        }, 1200)
-      } catch (err) {
-        setStatus('error')
-        setError(err instanceof Error ? err.message : String(err))
-      }
-    },
-    [auth, emailStorageKey, successPath],
-  )
-
-  useEffect(() => {
-    if (!isSignInWithEmailLink(auth, window.location.href)) {
-      setStatus('error')
-      setError('This link is invalid or expired.')
-      return
-    }
-    const stored = window.localStorage.getItem(emailStorageKey)
-    if (stored) void finish(stored)
-    else setStatus('need-email')
-  }, [auth, emailStorageKey, finish])
-
-  if (status === 'working') {
-    return (
-      <p data-oriz-finish-sign-in data-oriz-finish-sign-in-state="working" role="status">
-        Signing you in…
-      </p>
-    )
+/**
+ * Deprecated — Firebase email-link finish-sign-in flow.
+ * Auth is now handled by Clerk; this component is a no-op stub kept to
+ * avoid breaking any stale imports. Remove after confirming no callsite.
+ */
+export function FinishSignIn() {
+  if (typeof window !== 'undefined') {
+    window.location.replace('/account/')
   }
-  if (status === 'done') {
-    return (
-      <p data-oriz-finish-sign-in data-oriz-finish-sign-in-state="done" role="status">
-        Signed in. Redirecting…
-      </p>
-    )
-  }
-  if (status === 'need-email') {
-    return (
-      <form
-        data-oriz-finish-sign-in
-        data-oriz-finish-sign-in-state="need-email"
-        onSubmit={(e) => {
-          e.preventDefault()
-          void finish(email)
-        }}
-      >
-        <p>Please confirm the email address you used:</p>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          autoComplete="email"
-        />
-        <button type="submit" data-oriz-account-provider="email">
-          Continue
-        </button>
-      </form>
-    )
-  }
-  return (
-    <div data-oriz-finish-sign-in data-oriz-finish-sign-in-state="error">
-      <p data-oriz-finish-sign-in-error role="alert">
-        {error ?? 'Sign-in failed.'}
-      </p>
-      <a href="/account/" data-oriz-account-provider="email">
-        Back to sign in
-      </a>
-    </div>
-  )
+  return <p>Redirecting…</p>
 }
 
 export default FinishSignIn

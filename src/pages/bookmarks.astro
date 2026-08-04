@@ -1,5 +1,5 @@
 ---
-import BookmarksList from '~/components/blog/BookmarksList.tsx'
+import BookmarksIsland from '~/components/blog/BookmarksIsland'
 /**
  * /bookmarks — all the posts the current user has saved.
  * Uses the React BookmarksList island so live Firestore updates flow
@@ -23,7 +23,7 @@ import BaseLayout from '~/layouts/BaseLayout.astro'
       </p>
     </header>
 
-    <BookmarksList client:load />
+    <BookmarksIsland client:load />
   </section>
 </BaseLayout>
 
