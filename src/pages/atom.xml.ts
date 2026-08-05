@@ -24,7 +24,6 @@ const escapeXml = (s: string): string =>
 
 export async function GET(context: APIContext): Promise<Response> {
   const blog = await getCollection('blog', ({ data }) => data.draft === false).catch(() => [])
-  const posts = await getCollection('posts', ({ data }) => data.draft === false).catch(() => [])
 
   type Entry = {
     id: string
@@ -36,8 +35,8 @@ export async function GET(context: APIContext): Promise<Response> {
     url: string
     tags: string[]
   }
-  const entries: Entry[] = [
-    ...blog.map((p) => ({
+  const entries: Entry[] = blog
+    .map((p) => ({
       id: p.id,
       title: p.data.title,
       description: p.data.description,
@@ -46,18 +45,8 @@ export async function GET(context: APIContext): Promise<Response> {
       author: p.data.author,
       url: `/blog/${p.id}/`,
       tags: p.data.tags ?? [],
-    })),
-    ...posts.map((p) => ({
-      id: p.id,
-      title: p.data.title,
-      description: p.data.description,
-      pubDate: p.data.pubDate,
-      updatedDate: p.data.updatedDate,
-      author: p.data.author,
-      url: `/posts/${p.id}/`,
-      tags: p.data.tags ?? [],
-    })),
-  ].sort((a, b) => b.pubDate.valueOf() - a.pubDate.valueOf())
+    }))
+    .sort((a, b) => b.pubDate.valueOf() - a.pubDate.valueOf())
 
   const site = (context.site ?? new URL(SITE_CONFIG.url)).toString().replace(/\/$/, '')
   const updated = entries[0]?.updatedDate ?? entries[0]?.pubDate ?? new Date()

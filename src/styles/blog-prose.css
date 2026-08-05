@@ -7,8 +7,10 @@
  *
  * Colors/types resolve from the .post-shell scope in [...slug].astro
  * (light/dark/sepia/hc variants live there). Selectors scoped to .prose-blog.
+ *
+ * Fonts are bundled via @fontsource-variable/* in global.css — no webfont
+ * @import here (that was a redundant second network fetch; removed 2026-08-05).
  */
-@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 .prose-blog {
   color: var(--ink);

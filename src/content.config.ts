@@ -64,6 +64,8 @@ const blog = defineCollection({
     readingTime: z.union([z.string(), z.number()]).optional(),
     canonical: z.string().url().optional(),
     featured: z.boolean().optional(),
+    /** Cross-post canonical (posts merged in from the old `posts` collection). */
+    canonicalUrl: z.string().url().optional(),
 
     // Legacy passthroughs (book-summary collection ported from open-ncert)
     slug: z.string().optional(),
@@ -79,31 +81,11 @@ const blog = defineCollection({
 })
 
 /**
- * `posts` collection — slimmer schema introduced in the Batch-13 spec.
- * Coexists with `blog` (legacy bulk-import collection ported from
- * open-ncert). New posts written to spec land here; `blog/` keeps the
- * existing 200+ entries intact.
- *
- * Frontmatter contract (per oriz-blog Batch-13 brief):
- *   title, description, pubDate, author, tags, canonicalUrl  required-ish
- *   updatedDate, heroImage, draft                            optional
+ * Single content collection. The old `posts` collection (12 spec-conformant
+ * entries) was merged into `blog` (2026-08-05) — one collection, one schema,
+ * one route family (`/blog/<slug>/`). Old `/posts/*` URLs redirect in
+ * astro.config.mjs.
  */
-const posts = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    pubDate: z.coerce.date(),
-    updatedDate: z.coerce.date().optional(),
-    heroImage: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-    draft: z.boolean().default(false),
-    canonicalUrl: z.string().url().optional(),
-    author: z.string().default('Chirag Singhal'),
-  }),
-})
-
 export const collections = {
   blog,
-  posts,
 }

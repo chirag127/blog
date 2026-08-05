@@ -72,7 +72,7 @@ const year = new Date().getFullYear()
       </ul>
     </details>
     <div class="lf-col lf-brand">
-      <span class="lf-mark">oriz<span class="lf-strike" aria-hidden="true"></span></span>
+      <a class="lf-mark" href="https://oriz.in" rel="home" aria-label="oriz.in — family home">oriz<span class="lf-strike" aria-hidden="true"></span><span class="lf-tld">.in</span></a>
       <p class="lf-bio">{bio}</p>
       <p class="lf-copy">© {year} Chirag Singhal · {appName} · MIT</p>
     </div>
@@ -106,12 +106,16 @@ const year = new Date().getFullYear()
     font-family: var(--font-display, var(--font-sans, serif));
     font-size: 28px; font-weight: 600; line-height: 1;
     color: var(--color-ink, var(--ink, inherit));
-    position: relative; display: inline-block;
+    position: relative; display: inline-block; text-decoration: none;
+    width: fit-content;
   }
+  .lf-mark:hover { color: var(--color-accent, var(--brand, currentColor)); }
+  .lf-mark:focus-visible { outline: 2px solid var(--color-accent, var(--brand)); outline-offset: 3px; }
+  .lf-tld { color: var(--color-ink-mute, var(--ink-mute, #6b6b6b)); font-weight: 500; }
   .lf-strike {
-    position: absolute; right: 0.05em; top: 50%; width: 0.6em; height: 0.04em;
-    background: var(--color-brand-vermilion, var(--vermilion, #c1440e));
-    transform: translateY(-50%);
+    position: absolute; left: 2.05em; top: 50%; width: 0.6em; height: 0.055em;
+    background: var(--color-accent, var(--brand, #e63a1f));
+    transform: translateY(-50%) rotate(-2deg);
   }
   .lf-bio { margin: 0; font-size: 13px; color: var(--color-ink-mute, var(--ink-mute, #6b6b6b)); line-height: 1.5; }
   .lf-copy { margin: 0; font-family: var(--font-mono, ui-monospace); font-size: 11px; color: var(--color-ink-mute, var(--ink-mute, #6b6b6b)); }

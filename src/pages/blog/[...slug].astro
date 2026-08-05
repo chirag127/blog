@@ -18,7 +18,7 @@ import { type CollectionEntry, render } from 'astro:content'
  *   - Series jump-list ALSO rendered inside BlogPostLeftSidebar.
  *
  * Series spine: inline in the meta row + in the right rail on desktop.
- * Visual layer = shared oriz.in design system (Inter / Inter Tight / indigo).
+ * Visual layer = Signal Press identity (Source Serif 4 / Inter / JetBrains Mono, coral signal ink) from tokens.css.
  */
 import type { GetStaticPaths } from 'astro'
 import BlogPostLeftSidebar from '~/components/blog/BlogPostLeftSidebar.astro'
@@ -300,71 +300,12 @@ const breadcrumbSchema = {
 </BaseLayout>
 
 <style>
-  /* ── Shared oriz.in design system — scoped to the post ─────────────────
-     Locked 2026-08-01: one design system across all oriz.in apps (family
-     with cards.oriz.in). Bright, crisp, Stripe/Linear-clean. White paper,
-     near-black ink, indigo (#635BFF) accent, Inter body / Inter Tight
-     display / JetBrains Mono. Tokens overridden here (not globally) so the
-     surrounding chrome is untouched; light + dark provided. */
-  .post-shell {
-    --paper: #ffffff;
-    --paper-2: #fbfbfd;
-    --surface: #fbfbfd;
-    --ink: #1a1a2e;
-    --ink-mute: #6b7280;
-    --rule: #ececf1;
-    --cobalt: #635bff;
-    --color-accent: #635bff;
-    --brand-soft: #eeedff;
-    --success: #0e9f6e;
-    --vermilion: #c1440e;
-    --font-serif: 'Inter Variable', 'Inter', system-ui, sans-serif;
-    --font-body: 'Inter Variable', 'Inter', system-ui, sans-serif;
-    --font-sans: 'Inter Tight', 'Inter Variable', system-ui, sans-serif;
-    --font-display: 'Inter Tight', 'Inter Variable', system-ui, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    color: var(--ink);
-  }
-  :global([data-theme='dark']) .post-shell,
-  :global([data-theme='hc']) .post-shell {
-    --paper: #0f1015;
-    --paper-2: #17181f;
-    --surface: #17181f;
-    --ink: #e8e8ef;
-    --ink-mute: #9095a3;
-    --rule: #262832;
-    --cobalt: #8b84ff;
-    --color-accent: #8b84ff;
-    --brand-soft: #211f3a;
-  }
-  :global([data-theme='hc']) .post-shell {
-    --paper: #000000;
-    --ink: #ffffff;
-    --rule: #4a4a55;
-    --cobalt: #a9a4ff;
-    --color-accent: #a9a4ff;
-  }
-  :global([data-theme='sepia']) .post-shell {
-    --paper: #f6f0e3;
-    --paper-2: #efe7d5;
-    --surface: #efe7d5;
-    --ink: #34302a;
-    --ink-mute: #7a7264;
-    --rule: #e0d6c2;
-  }
-  @media (prefers-color-scheme: dark) {
-    :global(html:not([data-theme='light']):not([data-theme='sepia'])) .post-shell {
-      --paper: #0f1015;
-      --paper-2: #17181f;
-      --surface: #17181f;
-      --ink: #e8e8ef;
-      --ink-mute: #9095a3;
-      --rule: #262832;
-      --cobalt: #8b84ff;
-      --color-accent: #8b84ff;
-      --brand-soft: #211f3a;
-    }
-  }
+  /* ── Signal Press identity is global (tokens.css) ─────────────────────
+     Articles inherit the site palette + type — coral signal ink, mineral
+     paper, Source Serif 4 display, Inter body, JetBrains Mono utility — and
+     the light/dark/sepia/hc theme modes from tokens.css. No per-post theme
+     override here (the old indigo Stripe/Linear skin was removed 2026-08-05:
+     it silently repainted every article a different site than the homepage). */
 
   /* ── Shell ─────────────────────────────────────────────────────────────
      Hero/header full-width above; then a 2-col grid (content + right TOC
@@ -592,41 +533,16 @@ const breadcrumbSchema = {
 
 <style is:global>
   /* ── Mobile TOC drawer (vaul) ──────────────────────────────────────────
-     Rendered as a portal to <body> (outside .post-shell), so shared-system
-     tokens are inlined here rather than inherited. Indigo #635BFF accent. */
+     Rendered as a portal to <body> (outside .post-shell). Aliases the global
+     Signal Press tokens (coral signal ink, mineral paper) so the drawer
+     matches the site in every theme mode — no separate indigo palette. */
   :root {
-    --mtd-accent: #635bff;
-    --mtd-paper: #ffffff;
-    --mtd-paper-2: #fbfbfd;
-    --mtd-ink: #1a1a2e;
-    --mtd-ink-mute: #6b7280;
-    --mtd-rule: #ececf1;
-  }
-  [data-theme='dark'],
-  [data-theme='hc'] {
-    --mtd-accent: #8b84ff;
-    --mtd-paper: #0f1015;
-    --mtd-paper-2: #17181f;
-    --mtd-ink: #e8e8ef;
-    --mtd-ink-mute: #9095a3;
-    --mtd-rule: #262832;
-  }
-  [data-theme='sepia'] {
-    --mtd-paper: #f6f0e3;
-    --mtd-paper-2: #efe7d5;
-    --mtd-ink: #34302a;
-    --mtd-ink-mute: #7a7264;
-    --mtd-rule: #e0d6c2;
-  }
-  @media (prefers-color-scheme: dark) {
-    html:not([data-theme='light']):not([data-theme='sepia']) {
-      --mtd-accent: #8b84ff;
-      --mtd-paper: #0f1015;
-      --mtd-paper-2: #17181f;
-      --mtd-ink: #e8e8ef;
-      --mtd-ink-mute: #9095a3;
-      --mtd-rule: #262832;
-    }
+    --mtd-accent: var(--brand);
+    --mtd-paper: var(--paper);
+    --mtd-paper-2: var(--paper-2);
+    --mtd-ink: var(--ink);
+    --mtd-ink-mute: var(--ink-mute);
+    --mtd-rule: var(--rule);
   }
 
   .mtd-fab {

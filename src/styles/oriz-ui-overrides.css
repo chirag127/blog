@@ -7,9 +7,9 @@
  * Hook contract documented in home/knowledge/anchor-patterns.md.
  */
 
-/* ── AccountPanel ───────────────────────────────────────────────────── */
+/* ── AccountPanel (Clerk-backed — data-oriz-account-* hooks) ────── */
 
-[data-account] {
+[data-oriz-account] {
   display: block;
   margin-block: 2rem;
   padding: 1.75rem;
@@ -19,244 +19,97 @@
   color: var(--ink);
 }
 
-[data-account-state="loading"] {
+[data-oriz-account-state="loading"] {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
   padding-block: 2.5rem;
 }
-
-[data-account-spinner] {
+[data-oriz-account-spinner] {
   display: inline-block;
   font-size: 1.25rem;
   color: var(--ink-mute);
   animation: spin 1.2s linear infinite;
 }
 
-[data-account-heading] {
+[data-oriz-account-heading] {
   font-family: var(--font-display);
-  font-weight: 500;
-  font-variation-settings:
-    "opsz" 60,
-    "SOFT" 40;
+  font-weight: 600;
   font-size: 1.5rem;
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.75rem;
   color: var(--ink);
 }
 
-[data-account-providers] {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-[data-account-provider] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
-  width: 100%;
-  height: 44px;
-  padding-inline: 1rem;
-  background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 0;
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 0.9375rem;
-  cursor: pointer;
-}
-[data-account-provider]:hover:not(:disabled) {
-  border-color: var(--cobalt);
-  color: var(--cobalt);
-}
-[data-account-provider]:focus-visible {
-  outline: 2px solid var(--cobalt);
-  outline-offset: 2px;
-}
-[data-account-provider]:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-[data-account-provider="email"] {
-  background: var(--cobalt);
-  color: var(--paper);
-  border-color: var(--cobalt);
-  font-weight: 500;
-}
-[data-account-provider="email"]:hover:not(:disabled) {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
-}
-
-[data-account-separator] {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-block: 1.5rem;
-  color: var(--ink-mute);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-}
-[data-account-separator]::before,
-[data-account-separator]::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--rule);
-}
-
-[data-account-email-form] {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-[data-account-email-form] input[type="email"] {
-  flex: 1;
-  min-width: 200px;
-  height: 44px;
-  padding-inline: 0.875rem;
-  background: transparent;
-  border: 1px solid var(--rule);
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 0.9375rem;
-}
-[data-account-email-form] input[type="email"]:focus {
-  outline: none;
-  border-color: var(--cobalt);
-}
-
-[data-account-link-sent] {
-  margin-block: 0.75rem 0;
-  color: var(--ink-mute);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-[data-account-provider="anon"] {
-  display: block;
-  width: 100%;
-  margin-top: 1rem;
-  padding: 0.5rem;
-  background: transparent;
-  border: 0;
-  color: var(--ink-mute);
-  font-family: inherit;
-  font-size: 0.875rem;
-  text-align: center;
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-  cursor: pointer;
-}
-[data-account-provider="anon"]:hover:not(:disabled) {
-  color: var(--cobalt);
-}
-
-[data-account-me] {
+[data-oriz-account-me] {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.25rem;
 }
-[data-account-avatar] {
-  width: 56px;
-  height: 56px;
-  border: 1px solid var(--rule);
-}
-[data-account-name] {
+[data-oriz-account-name] {
   margin: 0;
   font-weight: 600;
   font-size: 1.0625rem;
   color: var(--ink);
 }
-[data-account-email] {
+[data-oriz-account-email] {
   margin: 0.125rem 0 0;
   color: var(--ink-mute);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
 }
 
-[data-account-note] {
-  margin-block: 1rem;
+[data-oriz-account-note] {
+  margin-block: 1rem 0;
   color: var(--ink-mute);
   line-height: 1.55;
   font-size: 0.9375rem;
 }
 
-[data-account-action="sign-out"] {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  height: 40px;
-  padding-inline: 1rem;
-  background: transparent;
-  border: 1px solid var(--rule);
-  color: var(--ink);
+[data-oriz-account-action="sign-in"] {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  height: 44px;
+  padding-inline: 1.5rem;
+  background: var(--brand);
+  color: var(--color-accent-fg, #fff);
+  border: 1px solid var(--brand);
   font-family: inherit;
   font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
 }
-[data-account-action="sign-out"]:hover:not(:disabled) {
-  border-color: var(--vermilion);
-  color: var(--vermilion);
+[data-oriz-account-action="sign-in"]:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
 }
-
-[data-account-error] {
-  margin-top: 1rem;
-  padding: 0.75rem 1rem;
-  background: color-mix(in oklab, var(--vermilion) 15%, transparent);
-  border: 1px solid color-mix(in oklab, var(--vermilion) 50%, transparent);
-  color: var(--ink);
-  font-size: 0.875rem;
-}
-
-/* ── FinishSignIn ───────────────────────────────────────────────────── */
-
-[data-finish-sign-in] {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  margin-block: 4rem;
-  font-family: var(--font-sans);
-  color: var(--ink);
-}
-[data-finish-sign-in-state="done"] {
-  color: var(--cobalt);
-}
-[data-finish-sign-in-error] {
-  padding: 0.875rem 1.25rem;
-  background: color-mix(in oklab, var(--vermilion) 15%, transparent);
-  border: 1px solid color-mix(in oklab, var(--vermilion) 50%, transparent);
-  color: var(--ink);
+[data-oriz-account-action="sign-in"]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }
 
 /* ── ContactForm ────────────────────────────────────────────────────── */
 
-form[data-contact] {
+form[data-oriz-contact] {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   margin-block: 2rem;
   font-family: var(--font-sans);
 }
-[data-contact-honeypot] {
+[data-oriz-contact-honeypot] {
   position: absolute;
   left: -9999px;
   opacity: 0;
 }
-[data-contact-field] {
+[data-oriz-contact-field] {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
 }
-[data-contact-field] > span:first-child {
+[data-oriz-contact-field] > span:first-child {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   text-transform: uppercase;
@@ -264,8 +117,8 @@ form[data-contact] {
   color: var(--ink-mute);
   font-weight: 500;
 }
-[data-contact-field] input,
-[data-contact-field] textarea {
+[data-oriz-contact-field] input,
+[data-oriz-contact-field] textarea {
   padding: 0.625rem 0.875rem;
   background: transparent;
   border: 1px solid var(--rule);
@@ -273,21 +126,21 @@ form[data-contact] {
   font-family: inherit;
   font-size: 1rem;
 }
-[data-contact-field] input:focus,
-[data-contact-field] textarea:focus {
+[data-oriz-contact-field] input:focus,
+[data-oriz-contact-field] textarea:focus {
   outline: none;
   border-color: var(--cobalt);
 }
-[data-contact-field] textarea {
+[data-oriz-contact-field] textarea {
   resize: vertical;
   min-height: 120px;
 }
-[data-contact-error] {
+[data-oriz-contact-error] {
   color: var(--vermilion);
   font-size: 0.8125rem;
   margin: 0;
 }
-[data-contact-submit] {
+[data-oriz-contact-submit] {
   align-self: flex-start;
   height: 44px;
   padding-inline: 1.5rem;
@@ -299,15 +152,15 @@ form[data-contact] {
   font-weight: 500;
   cursor: pointer;
 }
-[data-contact-submit]:hover:not(:disabled) {
+[data-oriz-contact-submit]:hover:not(:disabled) {
   background: var(--ink);
   border-color: var(--ink);
 }
-[data-contact-submit]:disabled {
+[data-oriz-contact-submit]:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-[data-contact-success] {
+[data-oriz-contact-success] {
   margin-top: 0.75rem;
   padding: 0.75rem 1rem;
   background: color-mix(in oklab, var(--cobalt) 15%, transparent);

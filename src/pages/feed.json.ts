@@ -38,12 +38,11 @@ interface JsonFeed {
 
 export async function GET(context: APIContext): Promise<Response> {
   const blog = await getCollection('blog', ({ data }) => data.draft === false).catch(() => [])
-  const posts = await getCollection('posts', ({ data }) => data.draft === false).catch(() => [])
 
   const site = (context.site ?? new URL(SITE_CONFIG.url)).toString().replace(/\/$/, '')
 
-  const items: JsonFeedItem[] = [
-    ...blog.map((p) => ({
+  const items: JsonFeedItem[] = blog
+    .map((p) => ({
       id: `${site}/blog/${p.id}/`,
       url: `${site}/blog/${p.id}/`,
       title: p.data.title,
@@ -53,19 +52,8 @@ export async function GET(context: APIContext): Promise<Response> {
       date_modified: (p.data.updatedDate ?? p.data.pubDate).toISOString(),
       authors: [{ name: p.data.author, url: SITE_CONFIG.author.url }],
       tags: p.data.tags ?? [],
-    })),
-    ...posts.map((p) => ({
-      id: `${site}/posts/${p.id}/`,
-      url: `${site}/posts/${p.id}/`,
-      title: p.data.title,
-      content_text: p.data.description,
-      summary: p.data.description,
-      date_published: p.data.pubDate.toISOString(),
-      date_modified: (p.data.updatedDate ?? p.data.pubDate).toISOString(),
-      authors: [{ name: p.data.author, url: SITE_CONFIG.author.url }],
-      tags: p.data.tags ?? [],
-    })),
-  ].sort((a, b) => b.date_published.localeCompare(a.date_published))
+    }))
+    .sort((a, b) => b.date_published.localeCompare(a.date_published))
 
   const feed: JsonFeed = {
     version: 'https://jsonfeed.org/version/1.1',

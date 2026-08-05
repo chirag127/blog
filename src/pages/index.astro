@@ -321,6 +321,18 @@ const jsonLd = {
     font-family: var(--font-mono);
     font-size: 12px;
     letter-spacing: 0.04em;
+    position: relative;
+    padding-left: 0.875rem;
+  }
+  /* dateline gutter: coral tick marks the wire-feed timestamp */
+  .recent-date::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.12em;
+    width: 3px;
+    height: 0.7em;
+    background: var(--cobalt);
   }
   .recent-meat {
     display: flex;

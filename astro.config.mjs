@@ -43,6 +43,27 @@ export default defineConfig({
   base: process.env.PUBLIC_BASE_PATH ?? '/',
   output: 'static',
   trailingSlash: 'ignore',
+  // The `posts` collection was merged into `blog` (2026-08-05). Preserve the
+  // 12 old `/posts/<slug>/` URLs with 301s to their new `/blog/<slug>/` home.
+  redirects: Object.fromEntries(
+    [
+      'cross-post-engine',
+      'hermes-agent-what-is-it',
+      'hermes-openclaw-deep-dive',
+      'hermes-openclaw-vs-claude-code-opencode',
+      'hermes-openclaw-vs-claude-code-pick',
+      'hermes-vs-openclaw-architecture',
+      'hermes-vs-openclaw-which-to-use',
+      'openclaw-what-is-it',
+      'oriz-family-architecture',
+      'tech-stack-sandwich-part-1',
+      'tech-stack-sandwich-part-2',
+      'welcome',
+    ].flatMap((s) => [
+      [`/posts/${s}`, { status: 301, destination: `/blog/${s}/` }],
+      [`/posts/${s}/`, { status: 301, destination: `/blog/${s}/` }],
+    ]),
+  ),
   build: { format: 'directory' },
   prefetch: { prefetchAll: true, defaultStrategy: 'viewport' },
   integrations: [
