@@ -20,6 +20,9 @@ importers:
       '@astrojs/sitemap':
         specifier: ^3.2.0
         version: 3.7.3
+      '@chirag127/oz-ai':
+        specifier: file:../design-system/packages/oz-ai
+        version: file:../design-system/packages/oz-ai
       '@clerk/clerk-react':
         specifier: ^5.0.0
         version: 5.61.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -802,6 +805,9 @@ packages:
   '@capsizecss/unpack@4.0.1':
     resolution: {integrity: sha512-CuNiSqg7+e1cO/GjffyMOm5Tt2jUF9CWHHnvQ/UkqvtkGfHdgwEC0wpmq7fkN3gxwpRnrAN0WzO3vREKmNolMQ==}
     engines: {node: '>=18'}
+
+  '@chirag127/oz-ai@file:../design-system/packages/oz-ai':
+    resolution: {directory: ../design-system/packages/oz-ai, type: directory}
 
   '@clack/core@1.4.1':
     resolution: {integrity: sha512-FILJa1gGKEFTGZAJE9RpVhrjKz3c3h4ar60dSv6cGuDqufQ84YEIS3GAGvZiN+H6yaLbbvTFNejjCC4tXpZEuw==}
@@ -1592,6 +1598,9 @@ packages:
 
   '@fontsource/ibm-plex-mono@5.2.7':
     resolution: {integrity: sha512-MKAb8qV+CaiMQn2B0dIi1OV3565NYzp3WN5b4oT6LTkk+F0jR6j0ZN+5BKJiIhffDC3rtBULsYZE65+0018z9w==}
+
+  '@gpt4free/g4f.dev@1.1.2':
+    resolution: {integrity: sha512-ncCXCBixJZySDgznA3VeoHL22wwE412EAj4yeWX+A66cXu4vqgvdpMQjxhQfpqRIgRsWa+4cX2Y7iivdY6NqwQ==}
 
   '@grpc/grpc-js@1.9.16':
     resolution: {integrity: sha512-wE4Ut/olIzfKqp631XrG+wbF0v1vWFN4YL9FyXC2LJiG33DsV7PLzURjrCvY/6je2ntdRkeLpPDluzSRGaVltQ==}
@@ -6402,6 +6411,10 @@ snapshots:
     dependencies:
       fontkitten: 1.0.3
 
+  '@chirag127/oz-ai@file:../design-system/packages/oz-ai':
+    dependencies:
+      '@gpt4free/g4f.dev': 1.1.2
+
   '@clack/core@1.4.1':
     dependencies:
       fast-wrap-ansi: 0.2.2
@@ -7070,6 +7083,8 @@ snapshots:
   '@fontsource-variable/source-serif-4@5.2.9': {}
 
   '@fontsource/ibm-plex-mono@5.2.7': {}
+
+  '@gpt4free/g4f.dev@1.1.2': {}
 
   '@grpc/grpc-js@1.9.16':
     dependencies:

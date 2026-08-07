@@ -24,6 +24,7 @@ import type { GetStaticPaths } from 'astro'
 import BlogPostLeftSidebar from '~/components/blog/BlogPostLeftSidebar.astro'
 import BookmarkButtonIsland from '~/components/blog/BookmarkButtonIsland'
 import GiscusComments from '~/components/blog/GiscusComments.astro'
+import PostAI from '~/components/blog/PostAI.tsx'
 import SeriesJumpList from '~/components/blog/SeriesJumpList.astro'
 import SeriesNav from '~/components/blog/SeriesNav.astro'
 import TableOfContents from '~/components/blog/TableOfContents.astro'
@@ -206,6 +207,8 @@ const breadcrumbSchema = {
         <div class="post-body prose-blog">
           <Content />
         </div>
+
+        <PostAI client:visible title={post.data.title} />
 
         {post.data.tags.length > 0 && (
           <ul class="post-tags" aria-label="Tags">
