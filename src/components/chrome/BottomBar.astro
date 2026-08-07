@@ -27,10 +27,12 @@ const { actions } = Astro.props
   ))}
 </nav>
 <style>
-  .bottom-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; height: 56px; background: var(--color-paper, var(--paper)); border-top: 1px solid var(--color-rule, var(--rule)); }
-  .bb-item { flex: 1; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--color-ink-mute, var(--ink-mute)); text-decoration: none; font-size: 11px; }
-  .bb-item.is-active { color: var(--color-accent, var(--mustard)); }
-  .bb-icon { font-size: 18px; line-height: 1; }
+  .bottom-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; height: 56px; padding-bottom: env(safe-area-inset-bottom, 0px); background: color-mix(in oklab, var(--paper) 94%, transparent); border-top: 1px solid var(--rule); backdrop-filter: blur(12px); }
+  .bb-item { flex: 1; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 44px; color: var(--ink-mute); text-decoration: none; font-size: 11px; transition: color var(--dur-fast) ease; }
+  .bb-item.is-active { color: var(--color-accent, var(--accent)); }
+  .bb-icon { font-family: var(--font-mono); font-size: 11px; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; }
+  .bb-item:hover, .bb-item:focus-visible { color: var(--accent); }
   .bb-label { font-family: var(--font-mono); letter-spacing: 0.02em; }
+  @media (prefers-reduced-motion: reduce) { .bb-item { transition: none; } }
   @media (max-width: 767px) { .bottom-bar { display: flex; } }
 </style>

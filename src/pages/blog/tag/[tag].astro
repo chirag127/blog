@@ -63,7 +63,7 @@ const jsonLd = {
     {posts.length === 0 ? (
       <p class="muted">No posts under this tag yet.</p>
     ) : (
-      <ul class="post-grid">
+      <ul class="post-list">
         {posts.map((p) => (
           <li>
             <PostCard post={p} />
@@ -92,10 +92,4 @@ const jsonLd = {
   }
   .lede { color: var(--color-fg-muted); margin: 0.5rem 0 0; }
   .muted { color: var(--color-fg-muted); }
-  .post-grid {
-    list-style: none; margin: 0; padding: 0;
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  }
 </style>

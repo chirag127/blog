@@ -54,9 +54,9 @@ const jsonLd = {
 
 <style>
   .page { padding-block: 2.5rem 4rem; }
-  .page-head { margin-bottom: 2rem; }
-  h1 { font-family: var(--font-serif); font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; }
-  .meta { color: var(--color-fg-muted); font-size: 0.9375rem; margin: 0.5rem 0 0; }
+  .page-head { margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 2px solid var(--ink); }
+  h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 2.75rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+  .meta { color: var(--ink-mute); font-size: 0.9375rem; margin: 0.625rem 0 0; }
   .archive { display: flex; flex-direction: column; gap: 2rem; }
   .year {
     position: sticky;
@@ -70,16 +70,14 @@ const jsonLd = {
     font-family: var(--font-serif);
     font-size: 1.5rem;
     font-weight: 600;
-    background: color-mix(in oklab, var(--color-bg) 85%, transparent);
+    background: color-mix(in oklab, var(--paper) 88%, transparent);
     backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--rule);
   }
   .year-count {
-    padding: 0.125rem 0.5rem;
-    background: var(--color-bg-muted);
-    border-radius: 0.25rem;
-    color: var(--color-fg-muted);
-    font-family: var(--font-sans);
+    padding: 0.125rem 0;
+    color: var(--ink-mute);
+    font-family: var(--font-mono);
     font-size: 0.6875rem;
     font-weight: 500;
   }
@@ -90,33 +88,35 @@ const jsonLd = {
     align-items: center;
     gap: 1rem;
     padding: 0.5rem 0;
-    border-bottom: 1px solid color-mix(in oklab, var(--color-border) 50%, transparent);
+    border-bottom: 1px solid color-mix(in oklab, var(--rule) 50%, transparent);
   }
   .row-date {
-    color: var(--color-fg-soft);
+    color: var(--ink-mute);
     font-family: var(--font-mono);
     font-size: 0.75rem;
   }
   .row-title {
-    color: var(--color-fg);
+    color: var(--ink);
     text-decoration: none;
-    font-size: 0.9375rem;
+    font-family: var(--font-display);
+    font-size: 1rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .row-title:hover { color: var(--color-accent); text-decoration: underline; text-underline-offset: 0.2em; }
+  .row-title:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 0.2em; }
   .row-cat {
-    color: var(--color-fg-muted);
+    color: var(--ink-mute);
+    font-family: var(--font-mono);
     font-size: 0.6875rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     text-decoration: none;
-    padding: 0.125rem 0.5rem;
-    background: var(--color-bg-muted);
-    border-radius: 0.25rem;
+    padding: 0.125rem 0;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
   }
-  .row-cat:hover { color: var(--color-fg); }
+  .row-cat:hover { color: var(--accent); }
   @media (max-width: 640px) {
     .row { grid-template-columns: 5.5rem minmax(0, 1fr); }
     .row-cat { display: none; }

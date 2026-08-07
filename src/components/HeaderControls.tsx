@@ -1,26 +1,27 @@
 /**
  * Header controls — the right side of the v2 60px header.
  *
- *   ⌘K · rss · ···
+ *   search · rss · more
  *
  * - ⌘K opens the Pagefind search modal (`/`, ⌘K, Ctrl+K)
  * - rss is a plain link
  * - ··· opens an overflow menu with /about, /now, /series and a theme toggle
  *
- * No accent picker (the v2 design has a single accent: cobalt). No theme
+ * No accent picker: the editorial identity owns one signal color. No theme
  * picker in the header chrome — it lives behind the ··· overflow per the
  * brief.
  */
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
-type Theme = 'auto' | 'light' | 'dark'
+type Theme = 'auto' | 'light' | 'dark' | 'sepia' | 'hc'
 
 export default function HeaderControls() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [theme, setTheme] = useState<Theme>('auto')
   const mountRef = useRef<HTMLDivElement>(null)
-  const mountedRef = useRef(false)
+  const searchPanelRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
   const id = useId()
 
   const applyTheme = useCallback((next: Theme, persist = true) => {
@@ -34,7 +35,8 @@ export default function HeaderControls() {
   }, [])
 
   useEffect(() => {
-    const stored = (localStorage.getItem('oriz:theme') as Theme | null) ?? 'auto'
+    const storedValue = localStorage.getItem('oriz:theme') as Theme | null
+    const stored: Theme = storedValue && ['auto', 'light', 'dark', 'sepia', 'hc'].includes(storedValue) ? storedValue : 'auto'
     setTheme(stored)
     applyTheme(stored, false)
 
@@ -53,12 +55,52 @@ export default function HeaderControls() {
         setMenuOpen(false)
       }
     }
+    const closeTransientUi = () => {
+      setSearchOpen(false)
+      setMenuOpen(false)
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    document.addEventListener('astro:before-preparation', closeTransientUi)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.removeEventListener('astro:before-preparation', closeTransientUi)
+    }
   }, [applyTheme])
 
   useEffect(() => {
-    if (!searchOpen || !mountRef.current || mountedRef.current) return
+    if (!searchOpen) return
+    previousFocusRef.current = document.activeElement as HTMLElement | null
+    const focusSearch = () => {
+      const firstFocusable = searchPanelRef.current?.querySelector<HTMLElement>('input, button, a, [tabindex]:not([tabindex="-1"])')
+      firstFocusable?.focus()
+    }
+    const frame = window.requestAnimationFrame(focusSearch)
+    const onDialogKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !searchPanelRef.current) return
+      const focusable = Array.from(
+        searchPanelRef.current.querySelectorAll<HTMLElement>('input, button, a, [tabindex]:not([tabindex="-1"])'),
+      ).filter((element) => !element.hasAttribute('disabled'))
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onDialogKeyDown)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      document.removeEventListener('keydown', onDialogKeyDown)
+      previousFocusRef.current?.focus()
+    }
+  }, [searchOpen])
+
+  useEffect(() => {
+    if (!searchOpen || !mountRef.current) return
     let cancelled = false
     const load = async () => {
       try {
@@ -80,7 +122,10 @@ export default function HeaderControls() {
             zero_results: 'No matches for "[SEARCH_TERM]". Try fewer / different words.',
           },
         })
-        mountedRef.current = true
+        // Pagefind adds its input after construction; focus again after its DOM settles.
+        window.requestAnimationFrame(() => {
+          mountRef.current?.querySelector<HTMLElement>('input, button, a, [tabindex]:not([tabindex="-1"])')?.focus()
+        })
       } catch (e) {
         if (mountRef.current) {
           mountRef.current.innerHTML =
@@ -167,6 +212,24 @@ export default function HeaderControls() {
             >
               dark
             </button>
+            <button
+              type="button"
+              role="menuitemradio"
+              aria-checked={theme === 'sepia'}
+              onClick={() => applyTheme('sepia')}
+              className={theme === 'sepia' ? 'is-active' : ''}
+            >
+              sepia
+            </button>
+            <button
+              type="button"
+              role="menuitemradio"
+              aria-checked={theme === 'hc'}
+              onClick={() => applyTheme('hc')}
+              className={theme === 'hc' ? 'is-active' : ''}
+            >
+              high contrast
+            </button>
           </div>
         )}
       </div>
@@ -185,7 +248,7 @@ export default function HeaderControls() {
           aria-label="Search the blog"
           tabIndex={-1}
         >
-          <div className="search-panel">
+          <div className="search-panel" ref={searchPanelRef}>
             <div ref={mountRef} className="pagefind-mount" />
             <div className="search-foot mono">
               <span>
@@ -221,14 +284,14 @@ export default function HeaderControls() {
           font: inherit;
           letter-spacing: 0.04em;
         }
-        .hc-trigger:hover { color: var(--cobalt); }
-        .hc-trigger:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 2px; }
+        .hc-trigger:hover { color: var(--accent); }
+        .hc-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
         .hc-link {
           color: var(--ink-mute);
           text-decoration: none;
           padding: 0.375rem 0.25rem;
         }
-        .hc-link:hover { color: var(--cobalt); }
+        .hc-link:hover { color: var(--accent); }
         .hc-kbd {
           display: inline-block;
           padding: 0.125rem 0.5rem;
@@ -237,7 +300,7 @@ export default function HeaderControls() {
           font-family: var(--font-mono);
           font-size: 11px;
         }
-        .hc-trigger:hover .hc-kbd { border-color: var(--cobalt); color: var(--cobalt); }
+        .hc-trigger:hover .hc-kbd { border-color: var(--accent); color: var(--accent); }
         .hc-overflow { font-size: 16px; line-height: 1; padding: 0.25rem 0.5rem; letter-spacing: 0.1em; }
 
         .hc-menu {
@@ -262,8 +325,8 @@ export default function HeaderControls() {
           text-decoration: none;
           cursor: pointer;
         }
-        .hc-menu a:hover, .hc-menu button:hover { background: var(--paper-2); color: var(--cobalt); }
-        .hc-menu .is-active { color: var(--cobalt); }
+        .hc-menu a:hover, .hc-menu button:hover { background: var(--paper-2); color: var(--accent); }
+        .hc-menu .is-active { color: var(--accent); }
         .hc-menu hr { height: 1px; border: 0; background: var(--rule); margin: 0.5rem 0; }
         .hc-menu-h {
           padding: 0 1rem 0.25rem;
@@ -312,7 +375,7 @@ export default function HeaderControls() {
           margin-right: 0.25rem;
         }
         .search-foot-link { margin-left: auto; color: var(--ink-mute); text-decoration: underline; text-underline-offset: 3px; }
-        .search-foot-link:hover { color: var(--cobalt); }
+        .search-foot-link:hover { color: var(--accent); }
       `}</style>
     </>
   )

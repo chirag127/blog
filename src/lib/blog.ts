@@ -214,6 +214,47 @@ export function slugifyTag(value: string): string {
 }
 
 /**
+ * Content verticals — collapse the ~40 raw category strings into the five
+ * editorial desks the notebook actually covers. Drives the vertical marker
+ * colour (--v-*) on cards, rows, and category kickers so Dev / Finance /
+ * Culture / Health read differently at a glance without leaving the pure
+ * editorial system.
+ */
+export type Vertical = 'dev' | 'finance' | 'culture' | 'health' | 'personal'
+
+const VERTICAL_LABEL: Record<Vertical, string> = {
+  dev: 'Dev',
+  finance: 'Finance',
+  culture: 'Culture',
+  health: 'Health',
+  personal: 'Personal',
+}
+
+/** Map a raw category string → one of the five verticals. */
+export function verticalFor(category: string): Vertical {
+  const c = category.toLowerCase()
+  if (/(health|medic|pharma|skincare|beauty|ingredient|safety|routine)/.test(c)) return 'health'
+  if (/(finance|invest|wealth|tax|money|credit|automation)/.test(c)) return 'finance'
+  if (
+    /(engineer|tech|software|developer|tool|ai|ml|code|projects|learning|education|career)/.test(c)
+  )
+    return 'dev'
+  if (/(culture|entertainment|travel|relationship|lifestyle|self-improvement|life)/.test(c))
+    return 'culture'
+  return 'personal'
+}
+
+/** Human label for a vertical. */
+export function verticalLabel(v: Vertical): string {
+  return VERTICAL_LABEL[v]
+}
+
+/** Vertical + label for a post (uses its primary category). */
+export function postVertical(post: BlogPost): Vertical {
+  return verticalFor(getPostCategories(post)[0] ?? post.data.category)
+}
+
+/**
  * Compute reading time for a post if not provided in frontmatter.
  * Renders the post body, strips MDX/code, and runs reading-time.
  */

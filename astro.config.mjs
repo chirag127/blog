@@ -59,10 +59,7 @@ export default defineConfig({
       'tech-stack-sandwich-part-1',
       'tech-stack-sandwich-part-2',
       'welcome',
-    ].flatMap((s) => [
-      [`/posts/${s}`, { status: 301, destination: `/blog/${s}/` }],
-      [`/posts/${s}/`, { status: 301, destination: `/blog/${s}/` }],
-    ]),
+    ].map((s) => [`/posts/${s}`, { status: 301, destination: `/blog/${s}/` }]),
   ),
   build: { format: 'directory' },
   prefetch: { prefetchAll: true, defaultStrategy: 'viewport' },
@@ -74,7 +71,7 @@ export default defineConfig({
           ? '[data-theme="light"], [data-theme="sepia"]'
           : '[data-theme="dark"], [data-theme="hc"]',
       styleOverrides: {
-        borderRadius: 'var(--radius-card, 0.625rem)',
+        borderRadius: '0',
         codeFontFamily: 'var(--font-mono)',
         codeFontSize: '0.875rem',
         codeLineHeight: '1.55',

@@ -127,7 +127,7 @@ if (!isSeries) {
     text-decoration: none;
     border-bottom: 1px solid transparent;
   }
-  .lsb-list a:hover { color: var(--cobalt); border-bottom-color: var(--cobalt); }
+  .lsb-list a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
   .lsb-series { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.625rem; }
   .lsb-series li {
@@ -137,8 +137,8 @@ if (!isSeries) {
     align-items: baseline;
   }
   .lsb-series li.is-current {
-    background: color-mix(in oklab, var(--cobalt) 8%, transparent);
-    border-left: 2px solid var(--cobalt);
+    background: color-mix(in oklab, var(--accent) 8%, transparent);
+    border-left: 2px solid var(--accent);
     padding: 0.375rem 0.5rem;
     margin-left: -0.5rem;
   }
@@ -148,9 +148,9 @@ if (!isSeries) {
     text-decoration: none;
     grid-column: 2;
   }
-  .lsb-series a:hover { color: var(--cobalt); }
+  .lsb-series a:hover { color: var(--accent); }
   .lsb-cur {
-    color: var(--cobalt);
+    color: var(--accent);
     font-weight: 600;
     grid-column: 2;
   }
@@ -171,7 +171,7 @@ if (!isSeries) {
     font-size: 11px;
     text-decoration: none;
   }
-  .lsb-tags a:hover { color: var(--cobalt); border-color: var(--cobalt); }
+  .lsb-tags a:hover { color: var(--accent); border-color: var(--accent); }
   .lsb-tag-n {
     color: var(--ink-mute);
     margin-left: 0.25rem;

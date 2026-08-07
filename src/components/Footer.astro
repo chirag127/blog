@@ -9,18 +9,20 @@
  * Reads palette + type from the editorial tokens (tokens.css / global.css).
  */
 import LegalFooter from '~/components/chrome/legal/LegalFooter.astro'
+import {
+  getCategoriesWithCounts,
+  getTagsWithCounts,
+  slugifyTag,
+} from '~/lib/blog'
 
 const categories = [
-  { name: 'Engineering', slug: 'engineering' },
-  { name: 'Finance', slug: 'finance' },
-  { name: 'Tech', slug: 'tech' },
-  { name: 'Personal', slug: 'personal' },
+  { name: 'All categories', slug: '' },
+  ...(await getCategoriesWithCounts()).slice(0, 6).map(({ category }) => ({
+    name: category,
+    slug: slugifyTag(category),
+  })),
 ]
-const tags = ['astro', 'typescript', 'firebase', 'india', 'books', 'agents']
-const series = [
-  { name: 'IT career guide', slug: 'it-career-guide' },
-  { name: 'Windows home server', slug: 'windows-home-server-series' },
-]
+const tags = (await getTagsWithCounts()).slice(0, 8).map(({ tag }) => tag)
 ---
 <footer class="blog-footer" role="contentinfo">
   <div class="bf-quote">
@@ -34,7 +36,7 @@ const series = [
     <div class="bf-col">
       <h3 class="bf-h">Categories</h3>
       <ul>
-        {categories.map((c) => <li><a href={`/blog/category/${c.slug}/`}>{c.name}</a></li>)}
+        {categories.map((c) => <li><a href={c.slug ? `/categories/${c.slug}/` : '/categories/'}>{c.name}</a></li>)}
       </ul>
     </div>
     <div class="bf-col">
@@ -49,18 +51,19 @@ const series = [
     <div class="bf-col">
       <h3 class="bf-h">Tags</h3>
       <ul class="bf-tags">
-        {tags.map((t) => <li><a href={`/blog/tag/${t}/`}>#{t}</a></li>)}
+        {tags.map((t) => <li><a href={`/tags/${slugifyTag(t)}/`}>#{t}</a></li>)}
       </ul>
     </div>
     <div class="bf-col">
       <h3 class="bf-h">Series</h3>
       <ul>
-        {series.map((s) => <li><a href={`/series/${s.slug}/`}>{s.name}</a></li>)}
-        <li><a href="/series/">All series</a></li>
+        <li><a href="/series/">Browse series</a></li>
+        <li><a href="/blog/">Latest threads</a></li>
       </ul>
     </div>
   </div>
   <LegalFooter
+    github="https://github.com/chirag127/oriz-blog"
     appName="Oriz Blog"
     bio="Long-form writing on engineering, finance, and books by Chirag Singhal."
     rss="/rss.xml"

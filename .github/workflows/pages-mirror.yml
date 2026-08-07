@@ -62,11 +62,9 @@ jobs:
 
       - name: Build
         env:
-          # Many static frameworks need a base path when hosted under
-          # a subpath like /oriz-blog-site/. Override per-repo if the
-          # GH Pages URL is a custom domain or a user-page root.
           PUBLIC_BASE_PATH: /oriz-blog-site/
           BASE_URL: /oriz-blog-site/
+          PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_CLERK_PUBLISHABLE_KEY }}
         run: pnpm build
 
       - name: Configure GitHub Pages

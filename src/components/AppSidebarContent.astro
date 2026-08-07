@@ -6,12 +6,14 @@
  * Recent posts: latest 5 entries from src/content/blog by pubDate desc.
  */
 import { getCollection } from 'astro:content'
+import { getCategoriesWithCounts, slugifyTag } from '~/lib/blog'
 
 const categories = [
-  { label: 'Engineering', href: '/blog/category/engineering/' },
-  { label: 'Finance', href: '/blog/category/finance/' },
-  { label: 'Tech', href: '/blog/category/tech/' },
-  { label: 'Personal', href: '/blog/category/personal/' },
+  { label: 'All categories', href: '/categories/' },
+  ...(await getCategoriesWithCounts()).slice(0, 6).map(({ category }) => ({
+    label: category,
+    href: `/categories/${slugifyTag(category)}/`,
+  })),
 ]
 
 let recent: { slug: string; title: string }[] = []
@@ -52,8 +54,8 @@ try {
 
 <style>
   .sb-section { margin-bottom: 1.25rem; }
-  .sb-h { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted, #666); margin: 0 0 0.5rem; }
+  .sb-h { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-mute, #526671); margin: 0 0 0.5rem; }
   .sb-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
   .sb-list a { color: var(--ink, inherit); text-decoration: none; font-size: 0.875rem; }
-  .sb-list a:hover { text-decoration: underline; }
+  .sb-list a:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 </style>

@@ -34,7 +34,9 @@ const Tag = asHeading ? 'h1' : ('div' as const)
           <span class="wordmark-letter">i</span>
           <span class="wordmark-letter wordmark-z">
             z
-            <span class="wordmark-strike" aria-hidden="true" />
+            <svg class="wordmark-strike" viewBox="0 0 100 40" aria-hidden="true" preserveAspectRatio="none" focusable="false">
+              <path d="M4 30 L96 12 L84 4" />
+            </svg>
           </span>
         </span>
         {subtitle && (
@@ -55,7 +57,9 @@ const Tag = asHeading ? 'h1' : ('div' as const)
         <span class="wordmark-letter">i</span>
         <span class="wordmark-letter wordmark-z">
           z
-          <span class="wordmark-strike" aria-hidden="true" />
+          <svg class="wordmark-strike" viewBox="0 0 100 40" aria-hidden="true" preserveAspectRatio="none" focusable="false">
+            <path d="M4 30 L96 12 L84 4" />
+          </svg>
         </span>
       </span>
       {subtitle && (
@@ -101,15 +105,26 @@ const Tag = asHeading ? 'h1' : ('div' as const)
   }
   .wordmark-strike {
     position: absolute;
-    inset: 50% 0 auto 0;
-    height: 0.055em;
-    background: var(--cobalt);
-    transform: translateY(-50%) rotate(-2deg);
+    left: -0.06em;
+    right: -0.06em;
+    top: 42%;
+    width: calc(100% + 0.12em);
+    height: 0.42em;
+    overflow: visible;
     pointer-events: none;
+    transform: rotate(-2deg);
+  }
+  .wordmark-strike path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
   }
   @media (max-width: 480px) {
-    .wordmark-strike {
-      height: max(1px, 0.04em);
+    .wordmark-strike path {
+      stroke-width: 5;
     }
   }
   .wordmark-sep {
@@ -118,7 +133,7 @@ const Tag = asHeading ? 'h1' : ('div' as const)
     font-weight: 400;
   }
   .wordmark-sub {
-    color: var(--cobalt);
+    color: var(--accent);
     font-family: var(--font-mono);
     font-weight: 500;
     letter-spacing: 0.02em;

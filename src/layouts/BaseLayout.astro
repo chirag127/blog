@@ -51,6 +51,9 @@ const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT
 const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN
 const ga4Id = import.meta.env.PUBLIC_GA4_ID
 const ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : undefined
+const visibleBottomBarActions = hideSidebar
+  ? bottomBarActions.filter((action) => action.label !== 'Menu')
+  : bottomBarActions
 ---
 
 <!doctype html>
@@ -78,10 +81,22 @@ const ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : unde
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@chirag127" />
 
+    <!-- Apply the saved reading theme before paint so the editorial surface never flashes. -->
+    <script is:inline>
+      {`(() => {
+        try {
+          const theme = localStorage.getItem('oriz:theme')
+          if (theme && theme !== 'auto' && ['light', 'dark', 'sepia', 'hc'].includes(theme)) {
+            document.documentElement.dataset.theme = theme
+          }
+        } catch (_) {}
+      })()`}
+    </script>
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f0f1a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f6f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <FeedDiscovery />
@@ -124,7 +139,7 @@ const ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : unde
     )}
   </head>
   <body>
-    <FamilyChrome slug="oriz-pages-blog-app" title="Blog" accent="#1a3a8f" />
+    <FamilyChrome slug="oriz-pages-blog-app" title="Blog" accent="var(--accent)" />
     <a href="#main" class="skip-link">Skip to content</a>
     <Header />
     <div class="layout-body">
@@ -132,7 +147,7 @@ const ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : unde
       <main id="main"><slot /></main>
     </div>
     <Footer />
-    <BottomBar actions={bottomBarActions} />
+    <BottomBar actions={visibleBottomBarActions} />
     <ConsentBanner />
 
     <script>

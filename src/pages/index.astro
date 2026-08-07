@@ -1,15 +1,17 @@
 ---
 import SeriesSpine from '~/components/SeriesSpine.astro'
 /**
- * /  — oriz-blog homepage (v2 stratified index).
+ * /  — oriz-blog homepage ("Signal Press" front page).
  *
- * NOT a card grid. Three strata:
- *   1. IN PROGRESS — current series with the spine `●─●─○─○`
- *   2. RECENT     — last 8 posts (full title + 2-line dek + reading time)
- *   3. BY CATEGORY — Tech / Finance / Culture / Health / Personal as a single typographic row
+ * Above the fold: a real newspaper masthead — mono dateline (Vol. N · date ·
+ * dispatch count), a big Source Serif 4 nameplate, the active-series spine
+ * (`●─●─○─○`), and a colour-flagged LEAD STORY. Below: three hairline strata:
+ *   1. IN PROGRESS — series spines
+ *   2. RECENT      — last 7 posts, each with its vertical desk kicker
+ *   3. BY CATEGORY — one typographic row, each desk in its vertical colour
  *
- * No hero, no cover images, no pull quotes. The wordmark is in the header;
- * the lede line + active series spine sit just below it.
+ * No cover images, no cards, no radius. Verticals (Dev/Finance/Culture/
+ * Health/Personal) each carry their own marker colour (--v-*).
  */
 import BaseLayout from '~/layouts/BaseLayout.astro'
 import {
@@ -17,13 +19,17 @@ import {
   getPostsInSeries,
   getPublishedPosts,
   getSeriesWithCounts,
+  postVertical,
   readingTimeFor,
   slugifyTag,
+  verticalFor,
+  verticalLabel,
 } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 
 const allPosts = await getPublishedPosts()
-const recentPosts = allPosts.slice(0, 8)
+const lead = allPosts[0]
+const recentPosts = allPosts.slice(1, 8)
 
 const seriesAll = await getSeriesWithCounts()
 // In-progress: series where at least one post exists. We model "published"
@@ -69,6 +75,18 @@ inProgress.sort((a, b) => b.latest.valueOf() - a.latest.valueOf())
 
 const cats = await getCategoriesWithCounts()
 
+// Masthead dateline — "VOL. N · <today, long>" — the front-page nameplate.
+const now = new Date()
+const dateline = now.toLocaleDateString('en-GB', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+})
+const volume = now.getFullYear() - 2018 // notebook began 2019 → Vol. 1
+const leadVertical = lead ? postVertical(lead) : 'personal'
+const leadRt = lead ? (lead.data.readingTime ?? readingTimeFor(lead)) : ''
+
 // "Days since" helper for the in-progress rail.
 function ago(date: Date): string {
   const days = Math.floor((Date.now() - date.valueOf()) / 86_400_000)
@@ -96,24 +114,55 @@ const jsonLd = {
   title="oriz / blog"
   description={SITE_CONFIG.description}
   jsonLd={jsonLd}
+  hideSidebar
 >
   <div class="container-page">
-    {/* Lede — one line, no hero. */}
-    <section class="lede-section">
-      <p class="lede-line">
-        An engineer's working notebook. <span class="count">{allPosts.length}</span> posts since 2019.
-      </p>
+    {/* Masthead — real above-the-fold front page. */}
+    <section class="masthead" aria-label="Front page">
+      <div class="dateline mono">
+        <span class="dateline-vol">Vol. {volume}</span>
+        <span class="dateline-sep" aria-hidden="true">·</span>
+        <span class="dateline-date">{dateline}</span>
+        <span class="dateline-sep" aria-hidden="true">·</span>
+        <span class="dateline-count"><span class="count">{allPosts.length}</span> dispatches since 2019</span>
+      </div>
+      <p class="nameplate">An engineer's working notebook.</p>
+      <p class="nameplate-sub">Field notes on shipping software, running money, and staying alive — logged as they happen, revised in public.</p>
       {inProgress[0] && (
-        <p class="lede-spine">
+        <p class="masthead-spine">
+          <span class="masthead-spine-label mono">Now running</span>
           <SeriesSpine
             total={inProgress[0].total}
             published={inProgress[0].published}
             current={inProgress[0].current}
             size="md"
           />
+          <a class="masthead-spine-name" href={`/series/${inProgress[0].slug}/`}>{inProgress[0].name}</a>
         </p>
       )}
     </section>
+
+    {lead && (
+      <>
+        <hr class="rule-heavy" />
+        <section class="lead" data-vertical={leadVertical} aria-labelledby="lead-title">
+          <a class="lead-link" href={`/blog/${lead.id}`}>
+            <span class="lead-kicker mono">
+              <span class="lead-tick" aria-hidden="true"></span>
+              <span class="lead-desk">{verticalLabel(leadVertical)}</span>
+              <span class="lead-flag">Lead story</span>
+            </span>
+            <h2 id="lead-title" class="lead-title">{lead.data.title}</h2>
+            <p class="lead-dek">{lead.data.description}</p>
+            <span class="lead-meta mono">
+              <time datetime={lead.data.pubDate.toISOString()}>{lead.data.pubDate.toISOString().slice(0, 10)}</time>
+              <span aria-hidden="true">·</span>
+              <span>{leadRt}</span>
+            </span>
+          </a>
+        </section>
+      </>
+    )}
 
     <hr class="hairline" />
 
@@ -150,12 +199,15 @@ const jsonLd = {
       <h2 id="s-recent" class="stratum-h mono">Recent</h2>
       <ul class="recent-list">
         {recentPosts.map((p) => (
-          <li class="recent-row">
+          <li class="recent-row" data-vertical={postVertical(p)}>
             <a class="recent-link" href={`/blog/${p.id}`}>
               <time class="recent-date mono" datetime={p.data.pubDate.toISOString()}>
                 {p.data.pubDate.toISOString().slice(0, 10)}
               </time>
               <span class="recent-meat">
+                <span class="recent-kicker mono">
+                  <span class="recent-tick" aria-hidden="true"></span>{verticalLabel(postVertical(p))}
+                </span>
                 <span class="recent-title">{p.data.title}</span>
                 <span class="recent-dek">{p.data.description}</span>
               </span>
@@ -179,7 +231,7 @@ const jsonLd = {
           {cats.map((c, i) => (
             <>
               {i > 0 && <span class="cats-dot" aria-hidden="true">·</span>}
-              <a href={`/categories/${slugifyTag(c.category)}/`} class="cats-link">
+              <a href={`/categories/${slugifyTag(c.category)}/`} class="cats-link" data-vertical={verticalFor(c.category)}>
                 <span class="cats-name">{c.category}</span>
                 <span class="cats-count mono">({c.count})</span>
               </a>
@@ -198,28 +250,112 @@ const jsonLd = {
     padding-inline: clamp(1.25rem, 4vw, 2rem);
   }
 
-  /* ── Lede ─────────────────────────────────────────────────────────── */
+  /* ── Masthead (front page) ─────────────────────────────────────────── */
 
-  .lede-section {
-    padding-block: clamp(2.5rem, 6vw, 4rem) 1.75rem;
+  .masthead {
+    padding-block: clamp(1.75rem, 5vw, 3rem) 1.5rem;
   }
-  .lede-line {
+  .dateline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding-bottom: 0.875rem;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 1.5rem;
+  }
+  .dateline-vol { color: var(--accent); font-weight: 500; }
+  .dateline-sep { color: var(--rule-strong, var(--rule)); }
+  .dateline .count { color: var(--ink); }
+  .nameplate {
     font-family: var(--font-display);
-    font-size: clamp(1.375rem, 2.6vw, 1.75rem);
+    font-size: clamp(2.25rem, 7vw, 4rem);
     font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.35;
+    letter-spacing: -0.03em;
+    line-height: 1.0;
     color: var(--ink);
     margin: 0;
-    max-width: 36ch;
+    max-width: 16ch;
   }
-  .lede-line .count {
-    font-family: var(--font-mono);
-    font-size: 0.85em;
+  .nameplate-sub {
+    font-family: var(--font-display);
+    font-size: clamp(1.0625rem, 2vw, 1.3125rem);
+    line-height: 1.45;
+    color: var(--ink-mute);
+    margin: 1rem 0 0;
+    max-width: 52ch;
+  }
+  .masthead-spine {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.625rem;
+    margin: 1.5rem 0 0;
+  }
+  .masthead-spine-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .masthead-spine-name {
+    font-family: var(--font-display);
+    font-size: 1rem;
     font-weight: 500;
-    color: var(--cobalt);
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
   }
-  .lede-spine { margin: 1rem 0 0; }
+  .masthead-spine-name:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .rule-heavy {
+    height: 3px;
+    background: var(--ink);
+    border: 0;
+    margin: 0;
+  }
+
+  /* ── Lead story ────────────────────────────────────────────────────── */
+
+  .lead {
+    --v: var(--v-personal);
+    padding-block: 1.75rem 0.5rem;
+  }
+  .lead[data-vertical='dev'] { --v: var(--v-dev); }
+  .lead[data-vertical='finance'] { --v: var(--v-finance); }
+  .lead[data-vertical='culture'] { --v: var(--v-culture); }
+  .lead[data-vertical='health'] { --v: var(--v-health); }
+  .lead-link { display: grid; gap: 0.625rem; color: var(--ink); text-decoration: none; }
+  .lead-kicker {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-mute);
+  }
+  .lead-tick { width: 8px; height: 8px; background: var(--v); flex: 0 0 auto; }
+  .lead-desk { color: var(--v); font-weight: 500; }
+  .lead-flag { border-left: 1px solid var(--rule); padding-left: 0.5rem; color: var(--accent); }
+  .lead-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.875rem, 4.5vw, 2.75rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    margin: 0;
+    max-width: 20ch;
+  }
+  .lead-link:hover .lead-title { color: var(--accent); }
+  .lead-dek {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    line-height: 1.5;
+    color: var(--ink-mute);
+    margin: 0;
+    max-width: 58ch;
+  }
+  .lead-meta { display: inline-flex; gap: 0.5rem; font-size: 11px; letter-spacing: 0.06em; color: var(--ink-mute); }
 
   /* ── Strata ────────────────────────────────────────────────────────── */
 
@@ -254,9 +390,9 @@ const jsonLd = {
     text-decoration: none;
     padding-block: 0.5rem;
   }
-  .progress-link:hover { color: var(--cobalt); }
+  .progress-link:hover { color: var(--accent); }
   .progress-link:hover .progress-meta,
-  .progress-link:hover .progress-ago { color: var(--cobalt); }
+  .progress-link:hover .progress-ago { color: var(--accent); }
   .progress-name {
     font-family: var(--font-display);
     font-size: 1.0625rem;
@@ -300,8 +436,13 @@ const jsonLd = {
     flex-direction: column;
   }
   .recent-row {
+    --v: var(--v-personal);
     border-bottom: 1px solid color-mix(in oklab, var(--rule) 70%, transparent);
   }
+  .recent-row[data-vertical='dev'] { --v: var(--v-dev); }
+  .recent-row[data-vertical='finance'] { --v: var(--v-finance); }
+  .recent-row[data-vertical='culture'] { --v: var(--v-culture); }
+  .recent-row[data-vertical='health'] { --v: var(--v-health); }
   .recent-row:last-child { border-bottom: 0; }
   .recent-link {
     display: grid;
@@ -311,10 +452,27 @@ const jsonLd = {
     color: var(--ink);
     text-decoration: none;
     padding-block: 0.875rem;
+    padding-left: 0.75rem;
+    margin-left: -0.75rem;
+    border-left: 2px solid transparent;
+    transition: border-color var(--dur-fast, 120ms) ease;
   }
-  .recent-link:hover .recent-title { color: var(--cobalt); }
+  .recent-link:hover { border-left-color: var(--v); }
+  .recent-link:hover .recent-title { color: var(--accent); }
   .recent-link:hover .recent-date,
-  .recent-link:hover .recent-rt { color: var(--cobalt); }
+  .recent-link:hover .recent-rt { color: var(--accent); }
+
+  .recent-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--v);
+    font-weight: 500;
+  }
+  .recent-tick { width: 6px; height: 6px; background: var(--v); flex: 0 0 auto; }
 
   .recent-date {
     color: var(--ink-mute);
@@ -391,7 +549,7 @@ const jsonLd = {
     text-underline-offset: 3px;
     text-decoration-color: var(--rule);
   }
-  .all-link a:hover { color: var(--cobalt); text-decoration-color: var(--cobalt); }
+  .all-link a:hover { color: var(--accent); text-decoration-color: var(--accent); }
 
   /* ── By category (one row) ────────────────────────────────────────── */
 
@@ -401,11 +559,16 @@ const jsonLd = {
     color: var(--ink);
   }
   .cats-link {
+    --v: var(--v-personal);
     color: var(--ink);
     text-decoration: none;
     margin-inline: 0.125rem;
   }
-  .cats-link:hover .cats-name { color: var(--cobalt); }
+  .cats-link[data-vertical='dev'] { --v: var(--v-dev); }
+  .cats-link[data-vertical='finance'] { --v: var(--v-finance); }
+  .cats-link[data-vertical='culture'] { --v: var(--v-culture); }
+  .cats-link[data-vertical='health'] { --v: var(--v-health); }
+  .cats-link:hover .cats-name { color: var(--v); }
   .cats-name {
     font-family: var(--font-display);
     font-size: 17px;

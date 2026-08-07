@@ -1,57 +1,90 @@
 ---
 import BaseLayout from '~/layouts/BaseLayout.astro'
-import { getCategoriesWithCounts, getPublishedPosts, slugifyTag } from '~/lib/blog'
+import {
+  getCategoriesWithCounts,
+  getPublishedPosts,
+  slugifyTag,
+  verticalFor,
+  verticalLabel,
+  type Vertical,
+} from '~/lib/blog'
 
 const allPosts = await getPublishedPosts()
 const sortedCategories = await getCategoriesWithCounts()
+
+// Group categories under their vertical desk, so the index reads as a
+// masthead directory (Dev / Finance / Culture / Health / Personal) rather
+// than an undifferentiated grid.
+const order: Vertical[] = ['dev', 'finance', 'culture', 'health', 'personal']
+const desks = order
+  .map((v) => ({
+    vertical: v,
+    label: verticalLabel(v),
+    cats: sortedCategories.filter((c) => verticalFor(c.category) === v),
+  }))
+  .filter((d) => d.cats.length > 0)
 ---
 
-<BaseLayout title="Categories — Blog" description="Browse blog posts by category.">
+<BaseLayout title="Categories — Blog" description="Browse blog posts by category desk.">
   <div class="page">
     <header class="page-head">
+      <p class="eyebrow">Index</p>
       <h1>Categories</h1>
-      <p class="meta">{sortedCategories.length} categor{sortedCategories.length === 1 ? 'y' : 'ies'} across {allPosts.length} posts.</p>
+      <p class="meta">{sortedCategories.length} categories across {allPosts.length} posts, filed under {desks.length} desks.</p>
     </header>
 
-    <ul class="cat-grid">
-      {sortedCategories.map(({ category, count }) => (
-        <li>
-          <a class="cat-card" href={`/categories/${slugifyTag(category)}/`}>
-            <span class="cat-name">{category}</span>
-            <span class="cat-count">{count}</span>
-          </a>
-        </li>
+    <div class="desks">
+      {desks.map((d) => (
+        <section class="desk-block" data-vertical={d.vertical}>
+          <h2 class="desk-label">
+            <span class="desk-tick" aria-hidden="true"></span>{d.label}
+          </h2>
+          <ul class="cat-list">
+            {d.cats.map(({ category, count }) => (
+              <li>
+                <a class="cat-row" href={`/categories/${slugifyTag(category)}/`}>
+                  <span class="cat-name">{category}</span>
+                  <span class="cat-count mono">{count}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
       ))}
-    </ul>
+    </div>
   </div>
 </BaseLayout>
 
 <style>
-  .page { padding-block: 2.5rem 4rem; }
-  .page-head { margin-bottom: 1.5rem; }
-  h1 { font-family: var(--font-serif); font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; }
-  .meta { color: var(--color-fg-muted); font-size: 0.9375rem; margin: 0.5rem 0 0; }
-  .cat-grid {
+  .page { max-width: 820px; margin-inline: auto; padding: 2.5rem clamp(1rem, 4vw, 1.5rem) 4rem; }
+  .page-head { margin-bottom: 2rem; border-bottom: 2px solid var(--ink); padding-bottom: 1.25rem; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 2.75rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+  .meta { color: var(--ink-mute); font-size: 0.9375rem; margin: 0.625rem 0 0; }
+  .desks { display: grid; gap: 2.25rem; }
+  .desk-block { --v: var(--v-personal); }
+  .desk-block[data-vertical='dev'] { --v: var(--v-dev); }
+  .desk-block[data-vertical='finance'] { --v: var(--v-finance); }
+  .desk-block[data-vertical='culture'] { --v: var(--v-culture); }
+  .desk-block[data-vertical='health'] { --v: var(--v-health); }
+  .desk-label {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--v); font-weight: 500; margin: 0 0 0.75rem;
+  }
+  .desk-tick { width: 8px; height: 8px; background: var(--v); flex: 0 0 auto; }
+  .cat-list {
     list-style: none; padding: 0; margin: 0;
-    display: grid; gap: 0.625rem;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    display: grid; gap: 0; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    border-top: 1px solid var(--rule);
   }
-  .cat-card {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0.875rem 1.125rem;
-    background: var(--color-bg-soft);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    color: var(--color-fg);
-    text-decoration: none;
+  .cat-row {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem;
+    padding: 0.625rem 0.25rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink); text-decoration: none;
   }
-  .cat-card:hover { border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border)); }
-  .cat-name { font-weight: 500; }
-  .cat-count {
-    color: var(--color-fg-muted);
-    font-size: 0.75rem;
-    padding: 0.125rem 0.5rem;
-    background: var(--color-bg-muted);
-    border-radius: 0.25rem;
-  }
+  .cat-row:hover .cat-name { color: var(--v); }
+  .cat-name { font-family: var(--font-display); font-size: 1.0625rem; font-weight: 500; letter-spacing: -0.01em; }
+  .cat-count { color: var(--ink-mute); font-size: 12px; }
 </style>

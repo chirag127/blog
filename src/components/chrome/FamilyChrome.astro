@@ -10,6 +10,7 @@ const { title, titleHref = '/', accent = '#c1440e' } = Astro.props
 ---
 
 <header class="family-chrome" style={`--family-accent:${accent}`}>
+  <div class="family-chrome__rule" aria-hidden="true"></div>
   <nav class="family-chrome__inner" aria-label="Family">
     <a class="family-chrome__title" href={titleHref}>
       <span class="family-chrome__mark" aria-hidden="true">o</span>
@@ -17,16 +18,21 @@ const { title, titleHref = '/', accent = '#c1440e' } = Astro.props
     </a>
     <span class="family-chrome__spacer" aria-hidden="true"></span>
     <a class="family-chrome__link" href="https://oriz.in">Family</a>
-    <a class="family-chrome__link" href="https://github.com/chirag127/blog">Source</a>
+    <a class="family-chrome__link" href="https://github.com/chirag127/oriz-blog">Source</a>
   </nav>
 </header>
 
 <style>
-  .family-chrome { position: sticky; top: 0; z-index: 100; background: #faf6ef; border-bottom: 1px solid #15140f; font-family: var(--font-sans, system-ui); font-size: 14px; }
-  .family-chrome__inner { max-width: 1280px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 18px; }
-  .family-chrome__title { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #15140f; font-weight: 600; }
-  .family-chrome__mark { display: inline-grid; place-items: center; width: 22px; height: 22px; background: var(--family-accent); color: #faf6ef; font-weight: 700; }
+  .family-chrome { position: relative; z-index: 40; background: var(--paper-2, #eceef1); border-bottom: 1px solid var(--rule, #d8dce2); font-family: var(--font-mono, ui-monospace); font-size: 12px; letter-spacing: 0.04em; }
+  .family-chrome__rule { height: 2px; background: var(--family-accent); }
+  .family-chrome__inner { max-width: 1280px; margin: 0 auto; padding: 8px 20px; display: flex; align-items: center; gap: 18px; }
+  .family-chrome__title { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink, #17191d); font-weight: 600; }
+  .family-chrome__mark { display: inline-grid; place-items: center; width: 20px; height: 20px; background: var(--family-accent); color: var(--paper, #fff); font-weight: 700; }
   .family-chrome__spacer { flex: 1; }
-  .family-chrome__link { color: #3a3a36; text-decoration: none; border-bottom: 1px solid transparent; }
-  .family-chrome__link:hover { border-bottom-color: #15140f; }
+  .family-chrome__link { color: var(--ink-mute, #5c6470); text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid transparent; }
+  .family-chrome__link:hover, .family-chrome__link:focus-visible { color: var(--accent, #d65b45); border-bottom-color: var(--accent, #d65b45); }
+  @media (max-width: 480px) {
+    .family-chrome__inner { padding-inline: 14px; gap: 12px; }
+    .family-chrome__link { font-size: 10px; }
+  }
 </style>
